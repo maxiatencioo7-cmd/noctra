@@ -92,7 +92,7 @@ function generar(P){
       ? `No creés demasiado en eso de que los opuestos se atraen, y el retrato te hizo caso: hay más parecido que contraste. Comparten forma de ver el mundo. El riesgo de esa comodidad es que a los dos les cueste señalarse las cosas.`
       : `Sobre si los opuestos se atraen quedaste en el medio, y ahí quedó el retrato: alguien parecido en lo esencial y distinto en lo cotidiano. Es la proporción que más suele durar.`,
     `Astrológicamente sos de ${el} y de modalidad ${modo}, regido por ${reg}. En vínculos eso se traduce en algo concreto: ${el==="fuego"?"arrancás con todo y necesitás que te sigan el ritmo sin apagarte":el==="tierra"?"vas despacio y desconfiás de lo que llega demasiado fácil":el==="aire"?"necesitás conversación antes que intensidad, y te aburrís antes de lo que admitís":"leés lo que no se dice y te herís con lo que a otros les resbala"}. Esta persona está construida para no chocar de frente con eso.`,
-    `Lo que puede aparecer como problema: ${cual.includes("Protector/a")||cual.includes("Seguro/a")?"la seguridad que buscás a veces viene con una necesidad de tener razón":"la calidez que buscás a veces viene con dificultad para poner límites"}. No es motivo para descartar a nadie. Es motivo para nombrarlo temprano, cuando todavía es un detalle y no una costumbre.`
+    `Lo que puede aparecer como problema: ${cual.some(c=>/^(protector|segur)/i.test(c))?"la seguridad que buscás a veces viene con una necesidad de tener razón":"la calidez que buscás a veces viene con dificultad para poner límites"}. No es motivo para descartar a nadie. Es motivo para nombrarlo temprano, cuando todavía es un detalle y no una costumbre.`
   ].filter(Boolean)});
 
   /* 3 — FORMA DE AMAR */

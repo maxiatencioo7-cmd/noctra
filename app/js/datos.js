@@ -2,6 +2,8 @@
 (function(){
 const KEY_QUIZ="noctra_v2", KEY_APP="noctra_app_v1";
 const A=window.NOCTRA_ASTRO;
+/* "Honesto/a" -> "Honesta" o "Honesto", según el género de la persona del retrato */
+function gener(txt,g){return String(txt||"").replace(/([A-Za-zÁÉÍÓÚÑáéíóúñ]+?)o\/a\b/g,(m,w)=>g==="f"?w+"a":w+"o").replace(/([A-Za-zÁÉÍÓÚÑáéíóúñ]+?)a\/o\b/g,(m,w)=>g==="f"?w+"a":w+"o").replace(/([A-Za-zÁÉÍÓÚÑáéíóúñ]+?)\/a\b/g,(m,w)=>g==="f"?w+"a":w);}
 
 /* ---------- perfil: viene del quiz, en el mismo origen ---------- */
 function leerQuiz(){
@@ -12,7 +14,7 @@ function leerQuiz(){
       nombre:s.nombre||"", email:(s.compra&&s.compra.email)||(s.lead&&s.lead.email)||"",
       genero:a.genero, generoRetrato:a.generoRetrato||(a.interes==="x"?(a.genero==="m"?"f":"m"):a.interes),
       interes:a.interes, edad:a.edad, etnia:a.etnia, fecha:a.fecha,
-      cualidades:a.cualidades||[], apariencia:a.apariencia, decision:a.decision,
+      cualidades:(a.cualidades||[]).map(x=>gener(x,a.generoRetrato||(a.interes==="x"?(a.genero==="m"?"f":"m"):a.interes))), apariencia:a.apariencia, decision:a.decision,
       motivo:a.motivo, dificultad:a.dificultad, lenguaje:a.lenguaje,
       futuro:a.futuro||[], energia:a.energia, opuestos:a.opuestos, experiencias:a.experiencias,
       pelo:a.pelo||"a", ciudad:s.city||""
@@ -21,7 +23,7 @@ function leerQuiz(){
 }
 /* Perfil de muestra: sólo si alguien abre la app sin haber hecho el quiz. */
 const DEMO={nombre:"",email:"",genero:"f",generoRetrato:"m",interes:"m",edad:"30",etnia:"libre",
-  fecha:{d:14,m:9,y:1994},cualidades:["Leal","Honesto/a","Divertido/a","Comprensivo/a"],apariencia:"algo",
+  fecha:{d:14,m:9,y:1994},cualidades:["Leal","Honesto","Divertido","Comprensivo"],apariencia:"algo",
   decision:"emociones",motivo:"comunicacion",dificultad:"abrirme",lenguaje:"palabras",
   futuro:["Vivir aventuras","Crear lindos recuerdos"],energia:"calma",opuestos:3,experiencias:"tranquilos",pelo:"a",ciudad:"",demo:true};
 
