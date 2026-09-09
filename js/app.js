@@ -383,7 +383,7 @@ function renderThanks(){
   </div></section>`;
   setTimeout(()=>{for(let i=0;i<24;i++){const p=document.createElement("span");p.className="pt";const a=Math.random()*6.28,d=80+Math.random()*120;p.style.cssText=`left:50%;top:38%;background:${i%2?"#F5D67B":"#fff"};--tx:${Math.cos(a)*d}px;--ty:${Math.sin(a)*d}px;animation-duration:1.2s`;document.body.appendChild(p);setTimeout(()=>p.remove(),1300);}},reduced?0:2600);
   $app.querySelectorAll("[data-f]").forEach(b=>b.onclick=ev=>{burst(b,ev);track("familiar_"+b.dataset.f);$app.querySelector("#fbHint").textContent=G.respuestas[b.dataset.f];});
-  $app.querySelector('[data-act="app"]').onclick=ev=>{burst(ev.currentTarget,ev);$app.querySelector("#fbHint").textContent=G.appPendiente;};
+  $app.querySelector('[data-act="app"]').onclick=ev=>{burst(ev.currentTarget,ev);track("abrir_app");setTimeout(()=>{location.href="app/";},260);};
 }
 function modal(html,onPick){
   $ov.innerHTML=`<div class="card modal">${html}</div>`;$ov.classList.add("on");
