@@ -1,6 +1,20 @@
 /* Noctra — motor del funnel (v2: secuencia Nebula, estética galaxia) */
 (function(){
 const C=window.NOCTRA, KEY="noctra_v2";
+const CHECKOUT_URL=(C&&C.checkoutUrl)||"https://noctralmagemela.myshopify.com/cart/50392314314966:1";
+function irACheckout(b,ev){
+  if(b&&ev)burst(b,ev);
+  track("inicio_checkout");
+  S.fueAlCheckout=true;save();
+  const y=$app.querySelector("#yapague");if(y)y.hidden=false;
+  setTimeout(()=>{
+    /* sin "noopener": con esa bandera window.open devuelve null siempre
+       y disparaba el respaldo, llevándose también la pestaña del quiz */
+    let w=null;
+    try{ w=window.open(CHECKOUT_URL,"_blank"); if(w)w.opener=null; }catch(e){}
+    if(!w) location.href=CHECKOUT_URL;
+  },reduced?0:180);
+}
 const $app=document.getElementById("app"), $ov=document.getElementById("overlay");
 const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -300,7 +314,8 @@ function renderSales(){
   <div class="sales">
     <div class="hero tint"><div class="hero-top">${brand}<span class="rating">${I.laurel}<b>${C.landing.badge2[1].split(" ")[0]}</b></span></div><h1>${fill(V.h1)}</h1>
       <div class="benefits">${V.beneficios.map((b,i)=>`<div><span class="bic">${[I.img,I.chat][i]}</span><b>${b[0]}</b><small>${b[1]}</small></div>`).join("")}</div></div>
-    <div class="card sec" id="precio"><h2 class="center">${V.accesoTitulo}</h2>${priceCard}<p class="legal" style="text-align:center">${V.legalCorto}</p>${cta(V.cta,'data-act="checkout"')}</div>
+    <div class="card sec" id="precio"><h2 class="center">${V.accesoTitulo}</h2>${priceCard}<p class="legal" style="text-align:center">${V.legalCorto}</p>${cta(V.cta,'data-act="checkout"')}
+      <p class="legal center" id="yapague" style="margin-top:14px"${S.fueAlCheckout?"":" hidden"}><a href="#/gracias">${C.venta.yaPague||"Ya completé el pago · Abrir mi retrato"}</a></p></div>
     <div class="hero-canvas"><h2>${fill(V.sketchTitulo)}</h2>
       <div class="card tint sec" style="width:100%;align-items:center">${canvasHTML(85,"xl",{lock:true})}<div class="cap">${V.sketchCap.replace("{who}",who).replace("{signo}",signo())}</div>
       <div class="traits" style="grid-template-columns:1fr 1fr">${traits().slice(0,2).map((t,i)=>`<div><small>${V.rasgosLbl[i]}</small><b>${t}</b></div>`).join("")}</div>
@@ -314,23 +329,9 @@ function renderSales(){
     <p class="legal">${C.marca} © ${new Date().getFullYear()} · ${V.footer}</p><p class="legal"><a href="#" onclick="noctraReset();return false">Volver a empezar el test</a></p>
   </div>`;
   if(!strict){const tmEl=$app.querySelector("#tm");const iv=setInterval(()=>{if(!document.contains(tmEl)){clearInterval(iv);return;}const l=timerLeft();tmEl.textContent=l>0?mmss(l):V.timerFin;},1000);exitIntent();}
-  $app.querySelectorAll('[data-act="checkout"]').forEach(b=>b.onclick=ev=>{burst(b,ev);track("inicio_checkout");openCheckout();});
+  $app.querySelectorAll('[data-act="checkout"]').forEach(b=>b.onclick=ev=>irACheckout(b,ev));
   track("resultado");
 }
-function openCheckout(){
-  const V=C.venta;
-  modal(`<button class="x" type="button">✕</button><h3 class="center" style="margin-top:8px">${V.checkoutTitulo}</h3>
-    <div class="pc-row" style="border:0;padding:8px 0"><span><b>${V.checkoutTotal}</b></span><b style="font-family:var(--font-display);font-size:24px;color:var(--moon-gold)">${fmt(C.precio)}</b></div>
-    <label class="bump" style="margin-bottom:12px"><input type="checkbox" id="ckOk" checked><span>${V.checkoutConsent.replace("{precio}",fmt(C.precio))}</span></label>
-    <div class="paytabs" style="margin-bottom:10px"><button type="button" class="on" data-pay="card">Tarjeta</button><button type="button" data-pay="mp">Mercado Pago</button></div>
-    <div class="stack" style="gap:10px"><input class="field" value="${S.nombre||""}" placeholder="Nombre" id="ckName"><input class="field" value="${S.lead&&S.lead.email||""}" placeholder="Email" id="ckMail" inputmode="email">
-    <div id="cardBox"><input class="field" placeholder="Número de tarjeta" inputmode="numeric" id="ckNum" style="margin-bottom:10px"><div class="row"><input class="field" placeholder="MM/AA" id="ckExp" inputmode="numeric"><input class="field" placeholder="CVV" id="ckCvv" inputmode="numeric"></div></div></div>
-    <div style="margin-top:12px">${cta(V.pagar,'data-act="pay"')}</div>
-    <p class="legal" style="margin-top:8px">${I.lock.replace('viewBox','width="14" height="14" style="vertical-align:-2px" viewBox')} ${V.checkoutSecure} · ${V.pagoLegal}</p>`);
-  $ov.querySelectorAll("[data-pay]").forEach(b=>b.onclick=()=>{$ov.querySelectorAll("[data-pay]").forEach(x=>x.classList.toggle("on",x===b));$ov.querySelector("#cardBox").hidden=b.dataset.pay==="mp";});
-  $ov.querySelector('[data-act="pay"]').onclick=ev=>{ev.stopPropagation();const b=ev.currentTarget;const m=$ov.querySelector("#ckMail").value.trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(m)){$ov.querySelector("#ckMail").classList.add("err");$ov.querySelector("#ckMail").focus();return;}if(!$ov.querySelector("#ckOk").checked)return;burst(b,ev);S.compra={t:Date.now(),email:m};save();track("compra");setTimeout(()=>{$ov.classList.remove("on");location.hash="#/gracias";},400);};
-}
-
 function retratoImg(full){const r=IMG.retrato;if(!r)return "";const g=A().generoRetrato||"m";return full?(r[g+"Full"]||r[g]):r[g];}
 function renderSalesNebula(){
   $app.className="";const V=C.venta;const d=new Date(Date.now()+C.diasPrueba*864e5);const fecha=d.toISOString().slice(0,10);
@@ -346,7 +347,8 @@ function renderSalesNebula(){
       <div class="pricecard"><div class="pc-top"></div><h3>${V.plan}</h3>
         ${V.filas.map(f=>`<div class="pc-row"><span>${rep(f[0])}</span><b>${f[1]==="precioHoy"?fmt(C.precioHoy):fmt(C.precioMes)}</b></div>`).join("")}${V.notaMoneda?`<div class="pc-nota">${V.notaMoneda}</div>`:""}</div>
       <div class="legalbox">${rep(V.legalCorto)}</div>
-      ${cta(V.cta,'data-act="checkout" class="cta pulse"')}</div>
+      ${cta(V.cta,'data-act="checkout" class="cta pulse"')}
+      <p class="legal center" id="yapague" style="margin-top:14px"${S.fueAlCheckout?"":" hidden"}><a href="#/gracias">${C.venta.yaPague||"Ya completé el pago · Abrir mi retrato"}</a></p></div>
     <div class="sec"><h1>${V.sketchTitulo}</h1><div class="sketchcard"><div class="sk-img">${retratoImg()?`<img class="sk-photo" src="${retratoImg()}" alt="" width="478" height="399">`:`<div class="sk-blur">${sketchSVG(sketchParams())}</div>`}</div>
       <div class="sk-row"><div><small>${V.rasgosLbl[0]}</small><b>${vibe}</b></div><div><small>${V.rasgosLbl[1]}</small><b>${gl(trait)}</b></div></div>
       <small class="muted">${V.previewLbl}</small><p>${V.previewTxt}</p>
@@ -355,21 +357,8 @@ function renderSalesNebula(){
     <div class="sec"><h2>${V.testiTitulo}</h2>${testis}</div>
     <p class="legal">${V.footer}</p>
   </div>`;
-  $app.querySelectorAll('[data-act="checkout"]').forEach(b=>b.onclick=()=>{track("inicio_checkout");openCheckoutNebula(rep,fecha);});
+  $app.querySelectorAll('[data-act="checkout"]').forEach(b=>b.onclick=ev=>irACheckout(b,ev));
   track("resultado");
-}
-function openCheckoutNebula(rep,fecha){
-  const V=C.venta;
-  modal(`<button class="x" type="button">✕</button><h4 class="center">${V.checkoutTitulo}</h4>
-    <div class="ck-row"><b>${V.checkoutTotal}</b><b>${fmt(C.precioHoy)}</b></div>
-    ${V.checkoutDespues?`<div class="ck-row muted small"><span>${rep(V.checkoutDespues)}</span><span>${rep(V.checkoutMes)}</span></div>`:""}
-    <label class="consent"><input type="checkbox" id="ckOk" checked><span>${rep(V.checkoutConsent)}</span></label>
-    <div class="paytabs"><button type="button" class="on" data-pay="card">💳 Tarjeta</button></div>
-    <div class="stack" style="gap:10px"><input class="field" value="${S.nombre||""}" placeholder="Nombre" id="ckName"><input class="field" value="${S.lead&&S.lead.email||""}" placeholder="Email" id="ckMail" inputmode="email">
-    <div id="cardBox"><input class="field" placeholder="Número de tarjeta" inputmode="numeric" id="ckNum" style="margin-bottom:10px"><div class="row"><input class="field" placeholder="MM/AA" id="ckExp" inputmode="numeric"><input class="field" placeholder="CVV" id="ckCvv" inputmode="numeric"></div></div></div>
-    <div style="margin-top:12px">${cta(rep(V.pagar),'data-act="pay"')}</div>
-    <p class="legal center" style="margin-top:10px">🔒 ${V.checkoutSecure}<br>${V.pagoLegal}</p><p class="legal center">${V.footer}</p>`);
-  $ov.querySelector('[data-act="pay"]').onclick=ev=>{ev.stopPropagation();const b=ev.currentTarget;const m=$ov.querySelector("#ckMail").value.trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(m)){$ov.querySelector("#ckMail").classList.add("err");$ov.querySelector("#ckMail").focus();return;}if(!$ov.querySelector("#ckOk").checked)return;S.compra={t:Date.now(),email:m};save();track("compra");setTimeout(()=>{$ov.classList.remove("on");location.hash="#/gracias";},300);};
 }
 function renderThanks(){
   $app.className="";const G=C.gracias;

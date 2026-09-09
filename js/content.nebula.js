@@ -13,6 +13,7 @@ window.NOCTRA = {
     mas: ["assets/mas-1.webp","assets/mas-2.webp","assets/mas-3.webp","assets/mas-4.webp","assets/mas-5.webp","assets/mas-6.webp"]
   },
   marca: "Noctra", guia: "", seccion: "Sobre vos",
+  checkoutUrl: "https://noctralmagemela.myshopify.com/cart/50392314314966:1",
   precioHoy: 9799, precioMes: 9799, moneda: "ARS", diasPrueba: 7, precio: 9799, precioAncla: 9799,
   totalPreguntas: 15, timerMin: 15, garantiaDias: 7, diasApp: 7,
   btn: { continuar: "Continuar" },
@@ -88,10 +89,7 @@ window.NOCTRA = {
     masItems: [["Detalles físicos:","mirá los rasgos que más van a destacar en esa persona."],["Rasgos de personalidad:","entendé los temas que podrían aparecer y cómo manejarlos."],["Forma de amar:","aprendé cómo demuestra afecto, cómo se compromete y cómo actúa en pareja."],["Señales del encuentro:","descubrí cuándo, dónde y en qué circunstancias se pueden cruzar."],["Desafíos de la relación:","surgen de ver las fortalezas y los límites de la unión."]],
     masCierre: "Descubrí cómo puede profundizarse el vínculo y convertirse en un amor duradero.",
     testiTitulo: "Algunas historias de usuarios de Noctra",
-    checkoutTitulo: "Completá tu compra", checkoutTotal: "Total a pagar:", checkoutDespues: "Pago único, sin renovación automática", checkoutMes: "",
-    checkoutConsent: "Al completar la compra pagás {precioHoy} una sola vez. No es una suscripción: no se te va a cobrar nada más. Precio en pesos argentinos, servicio disponible únicamente en Argentina.",
-    checkoutSecure: "Pagos con seguridad garantizada", pagar: "Pagar {precioHoy}",
-    pagoLegal: "Vista previa: el cobro real se conecta en producción. No ingreses datos reales de tarjeta.",
+    yaPague: "Ya completé el pago · Abrir mi retrato",
     footer: "Noctra S.A., Buenos Aires, Argentina"
   },
 
