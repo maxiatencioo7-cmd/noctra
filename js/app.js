@@ -113,7 +113,7 @@ const SCREENS=[
  {id:"q",key:"energia",n:13},
  {id:"escala",key:"opuestos",n:14},
  {id:"q",key:"experiencias",n:15},
- {id:"email"},{id:"transicion"}
+ {id:"transicion"}
 ];
 const LABEL={};Object.entries(Q).forEach(([k,q])=>{if(q.opts)q.opts.forEach(o=>{if(Array.isArray(o))(LABEL[k]=LABEL[k]||{})[o[0]]=o[1];});});
 const low=s=>s.charAt(0).toLowerCase()+s.slice(1);
@@ -401,6 +401,6 @@ addEventListener("hashchange",render);
 try{fetch("https://get.geojs.io/v1/ip/geo.json").then(r=>r.json()).then(d=>{if(d&&d.city){S.city=d.city;save();}}).catch(()=>{});}catch(e){}
 window.noctraReset=function(){localStorage.removeItem(KEY);location.hash="";location.reload();};
 if(new URLSearchParams(location.search).get("reset")==="1"||location.hash==="#reset"){localStorage.removeItem(KEY);S={step:0,a:{},nombre:"",city:"",lead:null,timerStart:null,ev:[]};history.replaceState(null,"",location.pathname);}
-if(location.hash&&!S.lead&&location.hash!=="#/gracias"){location.hash="";}
+if(location.hash&&!A().experiencias&&location.hash!=="#/gracias"){location.hash="";}
 render();
 })();
