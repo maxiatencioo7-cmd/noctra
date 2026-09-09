@@ -186,6 +186,14 @@ label.f>span{display:block;margin:0 0 7px}
 .vacio{text-align:center;padding:34px 10px;color:var(--tx2)}
 .vacio svg{width:34px;height:34px;opacity:.4;margin:0 auto 12px}
 
+@media (min-width:600px){
+  .head{padding-left:calc(50% - 260px + 18px);padding-right:calc(50% - 260px + 18px)}
+  .vista{max-width:520px;margin:0 auto}
+  .tabs{max-width:520px;left:50%;transform:translateX(-50%);border-left:1px solid var(--linea);border-right:1px solid var(--linea);border-radius:20px 20px 0 0}
+  .compose{max-width:520px;left:50%;transform:translateX(-50%)}
+  .hoja .panel{max-width:520px;left:50%;transform:translateX(-50%)}
+  #revelado .rw{max-width:420px}
+}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001ms !important;transition-duration:.001ms !important}
   #revelado .rimg img{filter:blur(0) !important;transform:none !important}
