@@ -19,3 +19,6 @@ Sitio estático. No necesita build ni servidor: se sube tal cual.
 - Captura de leads: definir `window.NOCTRA_LEAD_WEBHOOK = "https://..."` antes de `app.js`
 - Cobro real: el checkout de ahora es una vista previa (no procesa pagos)
 - Píxel de Meta / analítica
+
+## Publicacion
+Conectado a Vercel: cada commit en `main` se publica solo en https://noctrastral.online
