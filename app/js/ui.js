@@ -57,7 +57,7 @@ function cielo(canvas){
   const ctx=canvas.getContext("2d");
   let W=0,H=0,dpr=Math.min(devicePixelRatio||1,2),estrellas=[],nebulosas=[],fugaz=null,raf=0,t0=performance.now(),vivo=true;
   function medir(){
-    W=canvas.clientWidth;H=canvas.clientHeight;
+    W=canvas.clientWidth||innerWidth;H=canvas.clientHeight||innerHeight;
     canvas.width=W*dpr;canvas.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
     estrellas=[];for(let i=0;i<140;i++)estrellas.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.25+.28,a:Math.random(),v:.0006+Math.random()*.0016,d:.004+Math.random()*.010});
     nebulosas=[{x:W*.18,y:H*.16,r:W*.62,c:"22,44,96",a:.30},{x:W*.86,y:H*.42,r:W*.55,c:"58,32,86",a:.20},{x:W*.42,y:H*.88,r:W*.7,c:"14,36,74",a:.24}];
