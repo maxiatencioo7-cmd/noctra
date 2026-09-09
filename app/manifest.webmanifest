@@ -1,0 +1,18 @@
+{
+  "name": "Noctra — Retrato del Alma Gemela",
+  "short_name": "Noctra",
+  "description": "Tu Retrato del Alma Gemela y tu lectura personalizada, con ventanas de encuentro, compatibilidad y diario.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#05070F",
+  "theme_color": "#05070F",
+  "lang": "es-AR",
+  "categories": ["lifestyle"],
+  "icons": [
+    {"src":"icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  ]
+}
