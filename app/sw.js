@@ -1,6 +1,10 @@
-/* Noctra — service worker. Todo lo descargado funciona sin señal. */
-const CACHE="noctra-app-v1";
+/* Noctra — service worker.
+   Imágenes e íconos: primero la caché (no cambian).
+   Código y páginas: primero la red, con la caché como respaldo sin señal. */
+const CACHE="noctra-app-v2";
 const ARCHIVOS=["./","./index.html","./css/app.css","./js/astro.js","./js/datos.js","./js/lectura.js","./js/ui.js","./js/maia.js","./js/app.js","./manifest.webmanifest","./icons/icon.svg","./icons/icon-192.png","./icons/icon-512.png","./assets/retrato-m-full.webp","./assets/retrato-f-full.webp"];
+const inmutable=u=>/\/(assets|icons)\//.test(u.pathname);
+
 self.addEventListener("install",e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ARCHIVOS)).then(()=>self.skipWaiting()));
 });
@@ -11,12 +15,14 @@ self.addEventListener("fetch",e=>{
   const r=e.request;
   if(r.method!=="GET")return;
   const u=new URL(r.url);
-  if(u.origin!==location.origin){ // fuentes: red primero, cache de respaldo
-    e.respondWith(fetch(r).then(res=>{const cl=res.clone();caches.open(CACHE).then(c=>c.put(r,cl));return res;}).catch(()=>caches.match(r)));
+  const guardar=res=>{ if(res&&res.ok){const cl=res.clone();caches.open(CACHE).then(c=>c.put(r,cl));} return res; };
+
+  if(u.origin===location.origin && inmutable(u)){
+    e.respondWith(caches.match(r).then(c=>c||fetch(r).then(guardar)));
     return;
   }
-  e.respondWith(caches.match(r).then(c=>c||fetch(r).then(res=>{
-    if(res.ok){const cl=res.clone();caches.open(CACHE).then(x=>x.put(r,cl));}
-    return res;
-  }).catch(()=>caches.match("./index.html"))));
+  // red primero: así una actualización se ve enseguida
+  e.respondWith(
+    fetch(r).then(guardar).catch(()=>caches.match(r).then(c=>c||(r.mode==="navigate"?caches.match("./index.html"):undefined)))
+  );
 });
