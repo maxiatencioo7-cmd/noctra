@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Noctra · Retrato del Alma Gemela</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- La hoja de Google Fonts bloqueaba el primer pintado: hasta que respondía,
+     la pantalla quedaba en blanco. Con media="print" el navegador la baja sin
+     bloquear y la aplica al terminar; mientras tanto se ve la tipografía del
+     sistema, que ya está declarada como respaldo en --font. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap"></noscript>
 <meta name="description" content="Descubrí con quién estás destinada/o. Hacé el test de 1 minuto y recibí el Retrato de tu Alma Gemela.">
 <meta name="theme-color" content="#9974F6">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -15,7 +21,8 @@
 <meta property="og:image" content="assets/og.jpg">
 <meta property="og:locale" content="es_AR">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preload" as="image" href="assets/principal.webp">
+<!-- El hero es el elemento que define el primer pintado: se precarga. -->
+<link rel="preload" as="image" href="assets/principal.webp" fetchpriority="high">
 <link rel="stylesheet" href="css/nebula.css">
 <!-- Meta Pixel -->
 <script>
