@@ -14,6 +14,9 @@ function irACheckout(b,ev){
     const cod=window.NOCTRA_CODIGO&&window.NOCTRA_CODIGO.codificar(A());
     if(cod) destino+=(destino.indexOf("?")<0?"?":"&")+"attributes[perfil]="+encodeURIComponent(cod);
   }catch(e){}
+  /* utm_*, fbclid y las cookies del pixel viajan igual que el perfil:
+     el webhook las lee de la orden para atribuir la venta al anuncio */
+  try{ if(window.NOCTRA_ATRIB) destino=window.NOCTRA_ATRIB(destino); }catch(e){}
   setTimeout(()=>{
     /* sin "noopener": con esa bandera window.open devuelve null siempre
        y disparaba el respaldo, llevándose también la pestaña del quiz */
