@@ -174,6 +174,7 @@ function render(){
   $app.querySelectorAll(".back, .pback").forEach(b=>b.onclick=back);
   if($app.querySelector(".pback")){const tb=$app.querySelector(".topbar .back");if(tb)tb.classList.add("hidden");}
   track("step_"+S.step);
+  precargar();
   if(s.id==="fecha")initWheels();
   if(s.id==="transicion")runTransicion();
   if(s.id==="landing")runRot();
@@ -183,7 +184,7 @@ function landing(){
   const L=C.landing;
   return shell(`<div class="card center" style="align-items:center">
     <div class="badges"><div class="badge">${I.laurel}<div><small>${L.badge1[0]}</small><b>${L.badge1[1]}</b></div></div><div class="badge">${I.users}<div><small>${L.badge2[0]}</small><b>${L.badge2[1]}</b></div></div></div>
-    <div class="hero-photo">${NEB?(img("principal")?`<img class="hero-img" src="${img("principal")}" alt="Pareja con su Retrato del Alma Gemela" width="330" height="248">`:`<div class="photo-ph">Foto: pareja con su retrato (asset pendiente)</div>`):`<div class="canvas xl" style="margin:0 auto"><div style="width:100%;height:100%;filter:blur(20px)">${sketchSVG({genero:"m"})}</div><svg viewBox="0 0 100 100" style="position:absolute;inset:0;width:100%;height:100%" fill="none" stroke="#33333A" stroke-width="4" stroke-linecap="round"><path d="M36 34c2-12 14-16 22-12 8 4 8 14 0 20-6 4-8 8-8 14" filter="url(#pen)"/><circle cx="50" cy="70" r="2.5" fill="#33333A"/></svg></div><span class="photo-note">Foto: pareja con su retrato (asset pendiente)</span>`}</div>
+    <div class="hero-photo">${NEB?(img("principal")?`<img class="hero-img" src="${img("principal")}" alt="Pareja con su Retrato del Alma Gemela" width="330" height="248" fetchpriority="high" decoding="async">`:`<div class="photo-ph">Foto: pareja con su retrato (asset pendiente)</div>`):`<div class="canvas xl" style="margin:0 auto"><div style="width:100%;height:100%;filter:blur(20px)">${sketchSVG({genero:"m"})}</div><svg viewBox="0 0 100 100" style="position:absolute;inset:0;width:100%;height:100%" fill="none" stroke="#33333A" stroke-width="4" stroke-linecap="round"><path d="M36 34c2-12 14-16 22-12 8 4 8 14 0 20-6 4-8 8-8 14" filter="url(#pen)"/><circle cx="50" cy="70" r="2.5" fill="#33333A"/></svg></div><span class="photo-note">Foto: pareja con su retrato (asset pendiente)</span>`}</div>
     <div class="rot"><span class="gtitle rot-line" id="rot">${L.rotativas[0]}</span><h1>${L.titulo}</h1></div>
     <p class="muted">${L.sub}</p>
     <div class="chips">${L.chips.map((c,i)=>`<span class="chip">${[I.clock,I.star,I.img][i]||I.star}${c}</span>`).join("")}</div>
@@ -247,6 +248,31 @@ function ref(s){
   if(C.estricto) return shell(`<div class="card center" style="align-items:center"><h2 style="text-align:left;width:100%">${gl(r.titulo)}</h2><p class="muted" style="text-align:left;width:100%">${gl(r.literal)}</p><div class="canvas-wrap">${canvasHTML(r.progreso,"lg")}<span class="trazo">${r.contador}</span></div>${cta(C.btn.continuar,'data-act="next"')}</div>`);
   return shell(`<div class="card center" style="align-items:center"><div class="canvas-wrap">${canvasHTML(r.progreso,"lg")}<span class="trazo">${r.contador}</span></div><h2>${fill(r.titulo)}</h2><div style="width:100%;text-align:left">${bubble(fill(txt),r.stat?fill(r.stat):"")}</div>${cta(C.btn.continuar,'data-act="next"')}</div>`);
 }
+/* ---------- precarga de imágenes ----------
+   Cada pantalla ilustrada pedía su imagen recién al aparecer, así que sobre
+   datos móviles se veía el hueco un momento. Acá se piden antes, en segundo
+   plano: cuando la pantalla llega, la imagen ya está en la caché del
+   navegador. No bloquea nada; si falla, la pantalla la pide igual. */
+const _yaPedida={};
+function warm(u){
+  if(!u||_yaPedida[u])return;
+  _yaPedida[u]=1;
+  const i=new Image(); i.decoding="async"; i.src=u;
+}
+function precargar(){
+  const i=S.step, a=A();
+  /* las dos pantallas siguientes, si son de refuerzo */
+  [SCREENS[i+1],SCREENS[i+2]].forEach(s=>{ if(s&&s.id==="ref") warm(refImg(s.key)); });
+  /* la pantalla de lenguajes del amor trae cinco imágenes juntas: es la más
+     pesada del quiz, así que empieza a bajarlas varias pantallas antes */
+  if(i>=9){ const L=IMG.lenguaje||{}; Object.keys(L).forEach(k=>warm(L[k])); }
+  /* y la página de venta, mientras contesta las últimas preguntas */
+  if(i>=SCREENS.length-4){
+    warm(retratoImg(false));
+    (IMG.mas||[]).forEach(warm);
+  }
+}
+
 function refImg(key){const a=A();if(key==="ref1")return img("ref1");if(key==="ref2")return (IMG.ref2||{})[a.decision]||"";if(key==="ref3")return (IMG.ref3||{})[a.dificultad]||"";return "";}
 function visual(s){
   const q=Q[s.key];
@@ -397,7 +423,10 @@ function exitIntent(){
 
 /* ---------- arranque ---------- */
 addEventListener("hashchange",render);
-try{fetch("https://get.geojs.io/v1/ip/geo.json").then(r=>r.json()).then(d=>{if(d&&d.city){S.city=d.city;save();}}).catch(()=>{});}catch(e){}
+/* La ciudad es un detalle de la prueba social, no hace falta para pintar.
+   Pedirla al arrancar competía por el ancho de banda con el CSS y el JS. */
+function ciudad(){try{fetch("https://get.geojs.io/v1/ip/geo.json").then(r=>r.json()).then(d=>{if(d&&d.city){S.city=d.city;save();}}).catch(()=>{});}catch(e){}}
+if(window.requestIdleCallback)requestIdleCallback(ciudad,{timeout:4000});else setTimeout(ciudad,2000);
 window.noctraReset=function(){localStorage.removeItem(KEY);location.hash="";location.reload();};
 if(new URLSearchParams(location.search).get("reset")==="1"||location.hash==="#reset"){localStorage.removeItem(KEY);S={step:0,a:{},nombre:"",city:"",lead:null,timerStart:null,ev:[]};history.replaceState(null,"",location.pathname);}
 if(location.hash&&!A().experiencias&&location.hash!=="#/gracias"){location.hash="";}
