@@ -20,7 +20,10 @@ function gtxt(t){ if(P.genero!=="m") return t;
 
 const LECT=LEC.generar(P);
 const SIGNO=LECT.signo, EL=LECT.elemento;
-const RETRATO="assets/retrato-"+(P.generoRetrato==="f"?"f":"m")+"-full.webp";
+/* el retrato sale del test: género buscado, franja de edad y origen.
+   Ver js/retratos.js. Si ese archivo no cargara, cae al retrato genérico. */
+const RETRATO=(window.NOCTRA_RETRATOS&&window.NOCTRA_RETRATOS.ruta(P))
+  ||("assets/retrato-"+(P.generoRetrato==="f"?"f":"m")+"-full.webp");
 
 /* ---------- utilidades ---------- */
 const hoy=()=>new Date();
