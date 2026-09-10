@@ -7,12 +7,19 @@ function irACheckout(b,ev){
   track("inicio_checkout");
   S.fueAlCheckout=true;save();
   const y=$app.querySelector("#yapague");if(y)y.hidden=false;
+  /* el perfil viaja con la compra: así la app lo puede reconstruir en
+     cualquier teléfono, aunque el mail se abra en otro navegador */
+  let destino=CHECKOUT_URL;
+  try{
+    const cod=window.NOCTRA_CODIGO&&window.NOCTRA_CODIGO.codificar(A());
+    if(cod) destino+=(destino.indexOf("?")<0?"?":"&")+"attributes[perfil]="+encodeURIComponent(cod);
+  }catch(e){}
   setTimeout(()=>{
     /* sin "noopener": con esa bandera window.open devuelve null siempre
        y disparaba el respaldo, llevándose también la pestaña del quiz */
     let w=null;
-    try{ w=window.open(CHECKOUT_URL,"_blank"); if(w)w.opener=null; }catch(e){}
-    if(!w) location.href=CHECKOUT_URL;
+    try{ w=window.open(destino,"_blank"); if(w)w.opener=null; }catch(e){}
+    if(!w) location.href=destino;
   },reduced?0:180);
 }
 const $app=document.getElementById("app"), $ov=document.getElementById("overlay");
