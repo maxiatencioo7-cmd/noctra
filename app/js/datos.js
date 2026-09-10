@@ -39,6 +39,25 @@ let D=cargar();
 function guardar(){ try{localStorage.setItem(KEY_APP,JSON.stringify(D));}catch(e){} }
 function borrarTodo(){ try{localStorage.removeItem(KEY_APP);}catch(e){} D=Object.assign({},vacio,{creado:Date.now()}); }
 
+/* Si el enlace trae el perfil (viene del mail de la compra), lo guardamos
+   en este dispositivo. Desde ahí en más la app ya no necesita el enlace. */
+function desdeURL(){
+  try{
+    const q=new URLSearchParams(location.search).get("p");
+    if(!q||!window.NOCTRA_CODIGO) return false;
+    const a=window.NOCTRA_CODIGO.decodificar(q);
+    if(!a) return false;
+    let s={}; try{ s=JSON.parse(localStorage.getItem(KEY_QUIZ))||{}; }catch(e){}
+    s.a=Object.assign({},s.a||{},a);
+    const n=(new URLSearchParams(location.search).get("n")||"").trim().slice(0,40);
+    if(n) s.nombre=n;
+    localStorage.setItem(KEY_QUIZ,JSON.stringify(s));
+    try{ history.replaceState(null,"",location.pathname); }catch(e){}
+    return true;
+  }catch(e){ return false; }
+}
+desdeURL();
+
 const P=leerQuiz()||DEMO;
 if(!D.creado) { D.creado=Date.now(); guardar(); }
 if(!D.nombre && P.nombre) D.nombre=P.nombre;
