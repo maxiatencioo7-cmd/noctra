@@ -770,12 +770,13 @@ function arrancar(){
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)revisarAvisos();});
   if(DT.esDemo){
     setTimeout(()=>{
-      U.hoja(`<h2 style="margin:0 0 10px">Estás viendo una vista de ejemplo</h2>
-       <p>No encontré tus respuestas del quiz en este dispositivo, así que estoy mostrando un perfil de muestra para que veas cómo funciona la app.</p>
-       <p class="small muted">Si ya compraste, abrí la app desde el mismo navegador donde hiciste el quiz. Si preferís, podés hacer el quiz ahora y la app se arma con tus respuestas.</p>
-       <a class="btn" href="../index.html?reset=1" style="text-decoration:none">Hacer el quiz</a>
-       <button class="btn ghost" data-cerrar style="margin:10px 0 0">Seguir mirando el ejemplo</button>`);
-    },900);
+      const p=U.hoja(`<h2 style="margin:0 0 10px">Falta un paso para armar tu retrato</h2>
+       <p>Necesito las respuestas de tu test para dibujarlo. Son quince preguntas y te lleva dos minutos.</p>
+       <button class="btn" id="responder">${I.estrella} Responder ahora</button>
+       <p class="small muted center" style="margin:16px 0 0">¿Ya las respondiste y no aparecen? Escribinos a <a href="mailto:noctraretrato@gmail.com">noctraretrato@gmail.com</a> con tu número de pedido y lo resolvemos.</p>`);
+      const b=$("#responder",p);
+      if(b) b.onclick=()=>{ U.cerrarHoja(); window.NOCTRA_PREGUNTAS&&window.NOCTRA_PREGUNTAS.abrir(); };
+    },700);
   }
 }
 if(document.readyState==="loading")addEventListener("DOMContentLoaded",arrancar);else arrancar();
