@@ -5,13 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Noctra · Retrato del Alma Gemela</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- La hoja de Google Fonts bloqueaba el primer pintado: hasta que respondía,
-     la pantalla quedaba en blanco. Con media="print" el navegador la baja sin
-     bloquear y la aplica al terminar; mientras tanto se ve la tipografía del
-     sistema, que ya está declarada como respaldo en --font. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap"></noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap">
 <meta name="description" content="Descubrí con quién estás destinada/o. Hacé el test de 1 minuto y recibí el Retrato de tu Alma Gemela.">
 <meta name="theme-color" content="#9974F6">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -21,17 +15,31 @@
 <meta property="og:image" content="assets/og.jpg">
 <meta property="og:locale" content="es_AR">
 <meta name="twitter:card" content="summary_large_image">
-<!-- El hero es el elemento que define el primer pintado: se precarga. -->
-<link rel="preload" as="image" href="assets/principal.webp" fetchpriority="high">
+<link rel="preload" as="image" href="assets/principal.webp">
 <link rel="stylesheet" href="css/nebula.css">
 <!-- Meta Pixel -->
 <script>
+/* El stub de fbq se define ya mismo y encola los eventos. El script de Meta
+   (unos 470 KB sin comprimir) se baja recién después del primer pintado: es
+   lo más pesado de la página y parsearlo traba el hilo principal en teléfonos
+   modestos. Como los eventos quedan encolados, no se pierde ninguno: se
+   mandan todos juntos cuando el script termina de cargar. */
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-document,'script','https://connect.facebook.net/en_US/fbevents.js');
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];
+var pedido=false;
+f.__pixelNoctra=function(){if(pedido)return;pedido=true;
+  t=b.createElement(e);t.async=!0;t.src=v;
+  s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s);};
+}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init','1563930394938040');fbq('track','PageView');
+/* dos disparadores: lo que ocurra primero. El tope de 2,5 s cubre a quien se
+   va antes de que la página termine de cargar. */
+addEventListener('load',function(){
+  if(window.requestIdleCallback)requestIdleCallback(window.__pixelNoctra,{timeout:2000});
+  else setTimeout(window.__pixelNoctra,600);
+});
+setTimeout(function(){window.__pixelNoctra();},2500);
 </script>
 <noscript><img height="1" width="1" style="display:none" alt=""
 src="https://www.facebook.com/tr?id=1563930394938040&ev=PageView&noscript=1"></noscript>
