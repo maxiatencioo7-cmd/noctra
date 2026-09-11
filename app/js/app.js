@@ -22,8 +22,14 @@ const LECT=LEC.generar(P);
 const SIGNO=LECT.signo, EL=LECT.elemento;
 /* el retrato sale del test: género buscado, franja de edad y origen.
    Ver js/retratos.js. Si ese archivo no cargara, cae al retrato genérico. */
-const RETRATO=(window.NOCTRA_RETRATOS&&window.NOCTRA_RETRATOS.ruta(P))
-  ||("assets/retrato-"+(P.generoRetrato==="f"?"f":"m")+"-full.webp");
+/* Los rasgos se preguntan dentro de la app (js/rasgos.js) y viven en D.
+   Se cuelgan del perfil para que la elección los vea. */
+P.rasgos=D.rasgos||null;
+function rutaRetrato(){
+  return (window.NOCTRA_RETRATOS&&window.NOCTRA_RETRATOS.ruta(P))
+    ||("assets/retrato-"+(P.generoRetrato==="f"?"f":"m")+"-full.webp");
+}
+let RETRATO=rutaRetrato();
 
 /* ---------- utilidades ---------- */
 const hoy=()=>new Date();
@@ -553,12 +559,15 @@ function hojaPerfil(){
      <p class="small muted" style="margin:8px 0 0">Ninguno viene activado por defecto salvo los que elijas. Nada de madrugada, nada de "volvé a la app".</p></div>
    <button class="btn" id="guardarP">Guardar</button>
    <div class="sep"></div>
+   <div class="card"><div class="lab">El retrato</div>
+     <p class="small muted" style="margin:8px 0 12px">Si la cara no se parece a lo que tenías en la cabeza, podés volver a elegir los rasgos y se dibuja de nuevo.</p>
+     <button class="btn ghost" id="rehacer" style="margin:0">${I.retrato} Rehacer los rasgos</button></div>
    <button class="btn ghost" id="exportar" style="margin:0 0 10px">${I.descarga} Exportar todo</button>
    <button class="btn ghost" id="borrar" style="margin:0 0 16px;color:var(--err);border-color:rgba(240,138,138,.35)">Borrar mi cuenta y todo el contenido</button>
    <div class="card"><div class="lab">Legales</div>
      <p class="small muted" style="margin:10px 0 0">Noctra es contenido interpretativo con fines de entretenimiento. No sustituye asesoramiento profesional.</p>
      <p class="small" style="margin:10px 0 0"><a href="legal/terminos.html">Términos</a> · <a href="legal/privacidad.html">Política de privacidad</a></p>
-     <p class="small muted" style="margin:10px 0 0">Soporte: hola@noctrastral.online</p></div>
+     <p class="small muted" style="margin:10px 0 0">Soporte: soporte@noctrastral.online</p></div>
    <button class="btn ghost" data-cerrar style="margin:10px 0 0">Cerrar</button>`);
   $$("[data-n]",p).forEach(c=>c.onchange=()=>{
     D.notif[c.dataset.n]=c.checked; guardar();
@@ -568,6 +577,11 @@ function hojaPerfil(){
     D.nombre=$("#un",p).value.trim(); D.nacimiento.hora=$("#uh",p).value;
     D.nacimiento.ciudad=$("#uc",p).value.trim(); D.notif.hora=$("#uho",p).value||"09:00";
     guardar(); U.cerrarHoja(); pintar(); U.toast("Guardado");
+  };
+  const reh=$("#rehacer",p);
+  if(reh) reh.onclick=()=>{
+    U.cerrarHoja();
+    pedirRasgos(()=>{ pintar(); window.NOCTRA_RASGOS.dibujar(RETRATO,()=>revelado(true,true)); });
   };
   $("#exportar",p).onclick=exportar;
   $("#borrar",p).onclick=()=>{
@@ -692,11 +706,13 @@ async function armarPDF(){
 }
 
 /* ================= revelado ================= */
-function revelado(revisita){
+/* auto = viene de la pantalla del dibujo, donde la persona ya tocó
+   "Revelar retrato". No se le puede pedir que revele dos veces. */
+function revelado(revisita,auto){
   const et=[VIB, P.cualidades[0]||"", EL.charAt(0).toUpperCase()+EL.slice(1)].filter(Boolean);
   const d=document.createElement("div");d.id="revelado";
   d.innerHTML=`<div class="rw">
-    <h1>Esto es lo que vi en tus respuestas${D.nombre?", "+esc(D.nombre):""}</h1>
+    <h1>${auto?"Acá está":"Esto es lo que vi en tus respuestas"}${D.nombre?", "+esc(D.nombre):""}</h1>
     <div class="rimg"><div class="marco"><img src="${RETRATO}" alt="Tu retrato"></div>
       ${et.map((t,i)=>`<span class="etq e${i+1}">${esc(t)}</span>`).join("")}</div>
     <button class="btn" id="rev">${I.estrella} Revelar</button>
@@ -707,9 +723,9 @@ function revelado(revisita){
     </div></div>`;
   document.body.appendChild(d);
   const cerrar=()=>{d.remove();};
-  $("#rev",d).onclick=()=>{
+  const abrir=()=>{
     d.classList.add("go");
-    $("#rev",d).style.display="none";
+    const bb=$("#rev",d); if(bb) bb.style.display="none";
     const es=$$(".etq",d);
     es.forEach((x,i)=>setTimeout(()=>x.classList.add("on"),700+i*700));
     setTimeout(()=>{
@@ -718,6 +734,9 @@ function revelado(revisita){
       if(!revisita){D.revelado=true;guardar();}
     },3100);
   };
+  const brev=$("#rev",d);
+  if(auto){ brev.remove(); setTimeout(abrir,120); }
+  else brev.onclick=abrir;
   $("#rdesc",d).onclick=()=>descargarRetrato();
   $("#rcomp",d).onclick=()=>compartirRetrato();
   $("#rlec",d).onclick=()=>{cerrar();ir("lectura");};
@@ -765,10 +784,29 @@ function revisarAvisos(){
 }
 
 /* ================= arranque ================= */
+/* Los rasgos se piden siempre, no sólo cuando falta el perfil del test.
+   Después van la pantalla del dibujo y recién ahí el botón de revelar. */
+function pedirRasgos(despues){
+  const g=(P.generoRetrato==="f"||P.generoRetrato==="m")?P.generoRetrato:(P.genero==="m"?"f":"m");
+  window.NOCTRA_RASGOS.abrir(g,r=>{
+    D.rasgos=r; P.rasgos=r; guardar();
+    RETRATO=rutaRetrato();
+    despues();
+  });
+}
+function dibujarYRevelar(){
+  window.NOCTRA_RASGOS.dibujar(RETRATO,()=>revelado(false,true));
+}
+function primeraVez(){
+  if(!window.NOCTRA_RASGOS) return revelado(false);
+  if(!D.rasgos) return pedirRasgos(dibujarYRevelar);
+  dibujarYRevelar();
+}
+
 function arrancar(){
   U.cielo($("#cielo"));
   pintar();
-  if(!D.revelado) setTimeout(()=>revelado(false),260);
+  if(!D.revelado && !DT.esDemo) setTimeout(primeraVez,220);
   setTimeout(revisarAvisos,1200);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)revisarAvisos();});
   if(DT.esDemo){
@@ -776,7 +814,7 @@ function arrancar(){
       const p=U.hoja(`<h2 style="margin:0 0 10px">Falta un paso para armar tu retrato</h2>
        <p>Necesito las respuestas de tu test para dibujarlo. Son quince preguntas y te lleva dos minutos.</p>
        <button class="btn" id="responder">${I.estrella} Responder ahora</button>
-       <p class="small muted center" style="margin:16px 0 0">¿Ya las respondiste y no aparecen? Escribinos a <a href="mailto:noctraretrato@gmail.com">noctraretrato@gmail.com</a> con tu número de pedido y lo resolvemos.</p>`);
+       <p class="small muted center" style="margin:16px 0 0">¿Ya las respondiste y no aparecen? Escribinos a <a href="mailto:soporte@noctrastral.online">soporte@noctrastral.online</a> con tu número de pedido y lo resolvemos.</p>`);
       const b=$("#responder",p);
       if(b) b.onclick=()=>{ U.cerrarHoja(); window.NOCTRA_PREGUNTAS&&window.NOCTRA_PREGUNTAS.abrir(); };
     },700);

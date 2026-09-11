@@ -136,7 +136,7 @@ function pintar(C){
     caja.innerHTML=`<div style="max-width:420px;margin:0 auto;padding:120px 24px;text-align:center">
       <div style="color:var(--oro);display:flex;justify-content:center;margin:0 0 18px">${I.estrella}</div>
       <h2 style="margin:0 0 10px">Listo</h2>
-      <p class="muted">Estoy dibujando tu retrato con esto.</p></div>`;
+      <p class="muted">Ya tengo tus respuestas.</p></div>`;
     setTimeout(()=>location.reload(),1100);
   }
 

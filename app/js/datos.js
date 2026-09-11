@@ -30,7 +30,7 @@ const DEMO={nombre:"",email:"",genero:"f",generoRetrato:"m",interes:"m",edad:"30
 /* ---------- estado propio de la app ---------- */
 const vacio={
   v:1, creado:0, nombre:"", nacimiento:{hora:"",ciudad:""},
-  revelado:false, leidas:{}, favoritas:{}, diario:[], personas:[], chat:[],
+  revelado:false, rasgos:null, leidas:{}, favoritas:{}, diario:[], personas:[], chat:[],
   maiaVisto:false, notif:{ventanas:true,lunas:true,bocetos:true,diaria:false,hora:"09:00"},
   rituales:{}, archivo:[], ultimaDiaria:""
 };
