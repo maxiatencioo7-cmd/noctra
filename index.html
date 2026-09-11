@@ -55,6 +55,11 @@ src="https://www.facebook.com/tr?id=1563930394938040&ev=PageView&noscript=1"></n
 <body>
 <main id="app" aria-live="polite"></main>
 <div id="overlay"></div>
+<!-- UTMify: captura las UTMs y las sostiene entre pantallas. Los dos flags
+     "prevent" le impiden reescribir el enlace del checkout, que ya arma
+     js/pixel.js con los cart attributes. Carga async: no bloquea nada. -->
+<script src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+  data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
 <script src="js/content.nebula.js"></script>
 <script src="js/sketch.js"></script>
 <script src="js/perfil-codigo.js"></script>
