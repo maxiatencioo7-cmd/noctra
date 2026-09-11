@@ -31,6 +31,18 @@ function rutaRetrato(){
 }
 let RETRATO=rutaRetrato();
 
+/* El nombre del retrato. Se calcula igual que el retrato, no se guarda: así
+   no hace falta migrar los datos de quien ya tenía la app instalada, y sigue
+   siendo el mismo nombre siempre porque sale de las mismas respuestas.
+   Ver js/nombres.js. */
+function nombreRetrato(){
+  if(!window.NOCTRA_NOMBRES) return "";
+  var fi=window.NOCTRA_RETRATOS&&window.NOCTRA_RETRATOS.ficha
+       ? window.NOCTRA_RETRATOS.ficha(P) : null;
+  try{ return window.NOCTRA_NOMBRES.elegir(P,fi)||""; }catch(e){ return ""; }
+}
+let NOMBRE=nombreRetrato();
+
 /* ---------- utilidades ---------- */
 const hoy=()=>new Date();
 function faseHoy(){ return AS.faseLunar(hoy()); }
@@ -97,6 +109,8 @@ function vRetrato(){
     <div class="lab" style="margin:0 0 8px">${esc(U.fechaLarga(hoy()))}</div>
     <h1 style="margin:0 0 16px">${nom()?"Tu retrato, "+esc(nom()):"Tu Retrato del Alma Gemela"}</h1>
     <div class="marco" id="marcoRetrato"><img src="${RETRATO}" alt="Retrato del alma gemela" id="imgRetrato"><span class="firma">${esc(nom()||"Noctra")} · ${esc(U.fechaCorta(new Date(D.creado||Date.now())))}</span></div>
+    ${NOMBRE?`<div style="margin:14px 0 0"><span class="lab">Se llama</span>
+      <div class="disp" style="font-size:28px;line-height:34px;color:var(--oro);margin:4px 0 0">${esc(NOMBRE)}</div></div>`:""}
     <div class="fila" style="margin:14px 0 0">
       <button class="pill" data-act="ampliar">${I.ojo} Ampliar</button>
       <button class="pill" data-act="revivir">${I.estrella} Ver el revelado</button>
@@ -715,6 +729,7 @@ function revelado(revisita,auto){
     <h1>${auto?"Acá está":"Esto es lo que vi en tus respuestas"}${D.nombre?", "+esc(D.nombre):""}</h1>
     <div class="rimg"><div class="marco"><img src="${RETRATO}" alt="Tu retrato"></div>
       ${et.map((t,i)=>`<span class="etq e${i+1}">${esc(t)}</span>`).join("")}</div>
+    ${NOMBRE?`<div class="rnom" id="rnom"><span class="lab">El nombre</span><b>${esc(NOMBRE)}</b></div>`:""}
     <button class="btn" id="rev">${I.estrella} Revelar</button>
     <div id="racts" style="display:none">
       <button class="btn" id="rdesc" style="margin:0 0 10px">${I.descarga} Guardar en el teléfono</button>
@@ -728,6 +743,10 @@ function revelado(revisita,auto){
     const bb=$("#rev",d); if(bb) bb.style.display="none";
     const es=$$(".etq",d);
     es.forEach((x,i)=>setTimeout(()=>x.classList.add("on"),700+i*700));
+    /* el nombre aparece solo, entre la última etiqueta y los botones: le
+       damos su propio momento porque es lo que convierte el dibujo en alguien */
+    const nn=$("#rnom",d);
+    if(nn) setTimeout(()=>nn.classList.add("on"),700+es.length*700);
     setTimeout(()=>{
       U.chispas(2400);
       const a=$("#racts",d);a.style.display="block";a.classList.add("enter");
@@ -742,6 +761,7 @@ function revelado(revisita,auto){
   $("#rlec",d).onclick=()=>{cerrar();ir("lectura");};
   if(matchMedia("(prefers-reduced-motion: reduce)").matches){
     $$(".etq",d).forEach(x=>x.classList.add("on"));
+    const nr=$("#rnom",d); if(nr) nr.classList.add("on");
   }
 }
 
@@ -790,7 +810,7 @@ function pedirRasgos(despues){
   const g=(P.generoRetrato==="f"||P.generoRetrato==="m")?P.generoRetrato:(P.genero==="m"?"f":"m");
   window.NOCTRA_RASGOS.abrir(g,r=>{
     D.rasgos=r; P.rasgos=r; guardar();
-    RETRATO=rutaRetrato();
+    RETRATO=rutaRetrato(); NOMBRE=nombreRetrato();
     despues();
   });
 }

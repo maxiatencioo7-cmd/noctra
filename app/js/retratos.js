@@ -98,7 +98,7 @@ function rasgosDe(p){
   return { pelo:r.pelo, tono:r.tono, barba:r.barba, largo:r.largo, mirada:r.mirada };
 }
 
-function elegir(p){
+function decidir(p){
   p=p||{};
   var g=(p.generoRetrato==="f"||p.generoRetrato==="m") ? p.generoRetrato
         : (p.genero==="m" ? "f" : "m");
@@ -138,12 +138,17 @@ function elegir(p){
   var top=finos[0].s;
   var empate=finos.filter(function(x){ return x.s<=top+0.001; });
 
-  return empate[ semilla(p) % empate.length ].r.f;
+  return empate[ semilla(p) % empate.length ].r;
 }
 
+/* elegir() devuelve el nombre del archivo, que es lo que usa casi todo.
+   ficha() devuelve la ficha entera del retrato elegido: la necesita
+   js/nombres.js, porque el nombre tiene que corresponder a la edad de ESA
+   cara y no a la franja que se pidió en el test. */
 window.NOCTRA_RETRATOS={
-  elegir: elegir,
-  ruta: function(p){ return "assets/retratos/"+elegir(p)+".webp"; },
+  elegir: function(p){ return decidir(p).f; },
+  ficha:  decidir,
+  ruta:   function(p){ return "assets/retratos/"+decidir(p).f+".webp"; },
   catalogo: CAT
 };
 })();
