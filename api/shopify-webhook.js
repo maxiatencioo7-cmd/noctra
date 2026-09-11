@@ -437,9 +437,14 @@ export default async function handler(request) {
   const pagado = topic === 'orders/paid'
     || String(order.financial_status || '').toLowerCase() === 'paid';
 
-  /* UTMify recibe las dos etapas; Meta, sólo la venta cobrada. */
+  /* UTMify recibe las dos etapas; Meta, sólo la venta cobrada Y real.
+     Un pedido de prueba que llegue a Meta queda como conversión para
+     siempre: no se puede borrar y le enseña a la campaña a buscar gente
+     que no compra. UTMify sí lo recibe, marcado como test. */
   const enUtmify = await sendUtmify(order, pagado ? 'paid' : 'waiting_payment');
-  const enMeta = pagado ? await sendPurchase(order) : { ok: true, ignored: 'not_paid' };
+  const enMeta = !pagado ? { ok: true, ignored: 'not_paid' }
+    : order.test ? { ok: true, ignored: 'pedido_de_prueba' }
+    : await sendPurchase(order);
 
   const result = { ...enMeta, ...enUtmify };
   console.log('[shopify] ' + topic + ' order_id=' + order.id, JSON.stringify(result));
