@@ -214,3 +214,89 @@ label.f>span{display:block;margin:0 0 7px}
   .muted,.tx2{color:#6A6F7E}
   a{color:#22252E;text-decoration:none}
 }
+
+/* ================= rasgos del retrato ================= */
+#rasgos{position:fixed;inset:0;z-index:95;overflow:auto;-webkit-overflow-scrolling:touch;
+  background:radial-gradient(120% 80% at 50% 10%,#131C3E 0%,#080B18 55%,#04060D 100%)}
+#rasgos .rwrap{max-width:520px;margin:0 auto;padding:calc(38px + env(safe-area-inset-top)) 22px 44px}
+#rasgos .rbar{display:flex;gap:5px;justify-content:center;margin:0 0 28px}
+#rasgos .rbar i{display:block;width:6px;height:6px;border-radius:99px;background:rgba(255,255,255,.14);transition:all .25s var(--ease)}
+#rasgos .rbar i.ya{background:rgba(245,214,123,.55)}
+#rasgos .rbar i.hoy{width:18px;background:var(--oro)}
+#rasgos .rkicker{margin:0 0 8px;font-size:12px;line-height:16px;letter-spacing:.16em;text-transform:uppercase;color:var(--oro);font-weight:700;opacity:.85}
+#rasgos h2{margin:0 0 6px;font-size:25px;line-height:32px}
+#rasgos .rsub{margin:0 0 22px}
+#rasgos .ropt{width:100%;justify-content:flex-start;margin:0 0 9px;padding:15px 16px;font-size:15px;text-align:left;white-space:normal;min-height:56px}
+#rasgos .ropt.on{border-color:rgba(245,214,123,.6);background:rgba(245,214,123,.10)}
+#rasgos .rglyph{width:26px;flex:0 0 26px;color:var(--oro);font-size:15px;opacity:.8;text-align:center}
+#rasgos .ratras{margin:18px auto 0;display:flex}
+
+/* ================= la pantalla del dibujo ================= */
+#dibujo{position:fixed;inset:0;z-index:96;overflow:hidden;
+  background:radial-gradient(130% 90% at 50% 8%,#16214A 0%,#0A1024 48%,#04060D 100%);
+  display:flex;align-items:center;justify-content:center;padding:26px;
+  animation:dEntrar .5s var(--ease) both}
+@keyframes dEntrar{from{opacity:0}to{opacity:1}}
+#dibujo.salir{animation:dSalir .42s var(--ease) both}
+@keyframes dSalir{to{opacity:0;transform:scale(1.03)}}
+#dibujo .dcielo{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+/* nebulosas: tres manchas que respiran y giran muy lento */
+#dibujo .dneb{position:absolute;border-radius:50%;filter:blur(56px);opacity:.75;pointer-events:none;mix-blend-mode:screen}
+#dibujo .dneb.n1{width:62vmin;height:62vmin;left:-14vmin;top:4vmin;
+  background:radial-gradient(circle at 40% 40%,rgba(96,124,255,.55),rgba(96,124,255,0) 68%);
+  animation:dFlot1 19s ease-in-out infinite alternate}
+#dibujo .dneb.n2{width:54vmin;height:54vmin;right:-12vmin;top:26vmin;
+  background:radial-gradient(circle at 55% 45%,rgba(214,120,255,.42),rgba(214,120,255,0) 68%);
+  animation:dFlot2 23s ease-in-out infinite alternate}
+#dibujo .dneb.n3{width:70vmin;height:70vmin;left:12vmin;bottom:-26vmin;
+  background:radial-gradient(circle at 50% 50%,rgba(245,214,123,.26),rgba(245,214,123,0) 66%);
+  animation:dFlot3 27s ease-in-out infinite alternate}
+@keyframes dFlot1{to{transform:translate3d(7vmin,-5vmin,0) scale(1.16)}}
+@keyframes dFlot2{to{transform:translate3d(-8vmin,6vmin,0) scale(1.12)}}
+@keyframes dFlot3{to{transform:translate3d(5vmin,-8vmin,0) scale(1.09)}}
+
+#dibujo .dwrap{position:relative;z-index:2;width:100%;max-width:360px;text-align:center}
+
+/* el retrato en formación: apenas insinuado, nunca legible */
+#dibujo .dmarco{position:relative;width:176px;height:234px;margin:0 auto 24px;border-radius:var(--r-img);
+  overflow:hidden;border:1px solid rgba(245,214,123,.20);background:#0A0E1C;
+  box-shadow:0 0 70px rgba(96,124,255,.22),inset 0 0 50px rgba(0,0,0,.7)}
+/* la hoja: un papel apenas insinuado detrás del trazo */
+#dibujo .dmarco::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:radial-gradient(120% 80% at 50% 30%,transparent 40%,rgba(4,6,13,.55) 100%)}
+#dibujo .dmarco img{width:100%;height:100%;object-fit:cover;opacity:.1;filter:blur(34px)}
+#dibujo .dbarrido{position:absolute;left:-30%;top:0;width:60%;height:100%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(245,214,123,.24),transparent);
+  animation:dBarrer 2.6s linear infinite}
+@keyframes dBarrer{to{transform:translateX(280%)}}
+
+/* anillo de progreso */
+#dibujo .danillo{position:relative;width:104px;height:104px;margin:0 auto 20px}
+#dibujo .danillo svg{width:104px;height:104px;transform:rotate(-90deg)}
+#dibujo .danillo circle{fill:none;stroke-width:2.5;stroke-linecap:round}
+#dibujo .danillo .pista{stroke:rgba(255,255,255,.10)}
+#dibujo .danillo .arco{stroke:var(--oro);filter:drop-shadow(0 0 6px rgba(245,214,123,.55))}
+#dibujo .dpct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:"Fraunces",serif;font-size:26px;color:var(--tx);letter-spacing:-.02em}
+#dibujo .dpct i{font-style:normal;font-size:14px;opacity:.55;margin:0 0 0 2px}
+
+#dibujo .dfrase{margin:0 0 6px;font-family:"Fraunces",serif;font-size:19px;line-height:26px;
+  color:var(--tx);opacity:0;transform:translateY(6px);transition:opacity .45s var(--ease),transform .45s var(--ease);min-height:52px}
+#dibujo .dfrase.on{opacity:1;transform:translateY(0)}
+#dibujo .dnota{margin:0}
+#dibujo .drevelar[hidden]{display:none!important}
+#dibujo .drevelar{margin:22px 0 0;animation:dBoton .6s var(--ease) both}
+@keyframes dBoton{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+#dibujo.listo .dmarco{border-color:rgba(245,214,123,.5);box-shadow:0 0 90px rgba(245,214,123,.30),inset 0 0 40px rgba(0,0,0,.5)}
+#dibujo.listo .dbarrido{display:none}
+
+@media (min-width:600px){
+  #dibujo .dwrap{max-width:400px}
+  #dibujo .dmarco{width:200px;height:266px}
+}
+@media (prefers-reduced-motion: reduce){
+  #dibujo,#dibujo .drevelar{animation:none}
+  #dibujo .dneb,#dibujo .dbarrido{animation:none}
+  #dibujo .dfrase{transition:none;opacity:1;transform:none}
+}
