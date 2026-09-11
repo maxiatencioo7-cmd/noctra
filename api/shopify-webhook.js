@@ -356,7 +356,10 @@ async function sendUtmify(order, status) {
       userCommissionInCents: total - fee,
       currency: (order.currency || 'ARS').toUpperCase(),
     },
-    isTest: false,
+    /* Shopify marca con "test" tanto las notificaciones de prueba como los
+       pedidos hechos con la pasarela en modo test. Si no se lo pasamos,
+       UTMify los cuenta como ventas reales y ensucia el panel. */
+    isTest: !!order.test,
   };
 
   try {
