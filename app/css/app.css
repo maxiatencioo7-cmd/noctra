@@ -122,6 +122,11 @@ label.f>span{display:block;margin:0 0 7px}
 #revelado .rimg img{border-radius:var(--r-img);filter:blur(24px);transform:scale(1.04);transition:filter 3s cubic-bezier(.12,.7,.2,1),transform 3s cubic-bezier(.12,.7,.2,1)}
 #revelado.go .rimg img{filter:blur(0);transform:scale(1)}
 #revelado h1{margin:0 0 22px;font-size:26px;line-height:34px}
+/* el nombre del retrato: entra solo, después de las etiquetas */
+#revelado .rnom{margin:0 0 22px;opacity:0;transform:translateY(10px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+#revelado .rnom.on{opacity:1;transform:translateY(0)}
+#revelado .rnom .lab{display:block;margin:0 0 5px}
+#revelado .rnom b{display:block;font-family:"Fraunces","Iowan Old Style","Times New Roman",Georgia,serif;font-weight:700;font-size:34px;line-height:40px;letter-spacing:-.01em;color:var(--oro)}
 .etq{position:absolute;padding:8px 13px;border-radius:var(--r-pill);background:rgba(10,17,40,.86);border:1px solid rgba(245,214,123,.34);color:var(--oro);font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;opacity:0;transform:translateY(8px);transition:opacity .5s var(--ease),transform .5s var(--ease);white-space:nowrap;backdrop-filter:blur(8px)}
 .etq.on{opacity:1;transform:translateY(0)}
 .etq.e1{left:-6px;top:16%}
