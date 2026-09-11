@@ -7,10 +7,17 @@
  * dominio) y la integración nativa "Facebook e Instagram" de Shopify debe
  * quedar SIN compartir datos, o se duplican las ventas.
  *
+ * Dos destinos, con reglas distintas a propósito:
+ *   - Meta (API de Conversiones): SÓLO pedidos pagados. Mandarle los
+ *     impagos infla las conversiones y le arruina la optimización.
+ *   - UTMify: todas las etapas, porque de eso vive su embudo (cuántos
+ *     iniciaron el checkout y cuántos terminaron pagando).
+ *
  * Topics manejados (header "x-shopify-topic"):
- *   - orders/paid   → Purchase a la API de Conversiones
- *   - orders/create → idem, SOLO si financial_status === 'paid' (respaldo)
- *   - el resto      → 200 para que Shopify no reintente
+ *   - orders/create  → UTMify "waiting_payment" (o "paid" si ya vino pago)
+ *   - orders/paid    → UTMify "paid" + Purchase a Meta
+ *   - refunds/create → UTMify "refunded"
+ *   - el resto       → 200 para que Shopify no reintente
  *
  * Seguridad (HMAC):
  *   Shopify firma cada request con HMAC-SHA256 (base64) del RAW body usando
@@ -240,6 +247,136 @@ async function sendPurchase(order) {
   }
 }
 
+/* ─── venta → UTMify ───────────────────────────────────────────────── */
+
+/** "2026-09-11T14:03:22-03:00" → "2026-09-11 17:03:22" (UTC, como pide UTMify). */
+function fechaUtc(valor) {
+  const t = valor ? Date.parse(valor) : NaN;
+  if (!Number.isFinite(t)) return null;
+  return new Date(t).toISOString().slice(0, 19).replace('T', ' ');
+}
+
+/** "9799.00" → 979900. UTMify trabaja siempre en centavos. */
+function centavos(valor) {
+  const n = parseFloat(valor);
+  return Number.isFinite(n) ? Math.round(n * 100) : 0;
+}
+
+/** El enum de UTMify es corto; lo que no reconoce se manda como tarjeta. */
+function medioDePago(order) {
+  const g = []
+    .concat(order.payment_gateway_names || [])
+    .concat(order.gateway ? [order.gateway] : [])
+    .join(' ')
+    .toLowerCase();
+  if (g.includes('pix')) return 'pix';
+  if (g.includes('boleto')) return 'boleto';
+  if (g.includes('paypal')) return 'paypal';
+  if (centavos(order.total_price) === 0) return 'free_price';
+  return 'credit_card';
+}
+
+function paisDe(order) {
+  const c = (order.shipping_address && order.shipping_address.country_code)
+    || (order.billing_address && order.billing_address.country_code)
+    || (order.customer && order.customer.default_address && order.customer.default_address.country_code);
+  return (typeof c === 'string' && c.length === 2) ? c.toUpperCase() : 'AR';
+}
+
+function nombreDe(order) {
+  const c = order.customer || {};
+  const n = [c.first_name, c.last_name].filter(Boolean).join(' ').trim();
+  if (n) return n;
+  const s = order.shipping_address || order.billing_address || {};
+  return (s.name || '').trim() || 'Sin nombre';
+}
+
+/**
+ * Manda el pedido a UTMify. Nunca tira: si falla, se loguea y seguimos.
+ * Una caída de UTMify no puede romper el Purchase de Meta ni hacer que
+ * Shopify reintente el webhook.
+ */
+async function sendUtmify(order, status) {
+  const token = process.env.UTMIFY_API_TOKEN;
+  if (!token) return { utmify: 'sin_token' };
+
+  const utms = orderUtms(order);
+  const total = centavos(order.total_price);
+
+  /* La comisión del medio de pago no viaja en el webhook. Si cargás
+     UTMIFY_GATEWAY_FEE_PCT (ej: "6.99") el neto sale realista; si no,
+     UTMify va a mostrar la venta bruta como ganancia. */
+  const pct = parseFloat(process.env.UTMIFY_GATEWAY_FEE_PCT || '0');
+  const fee = Number.isFinite(pct) && pct > 0 ? Math.round(total * (pct / 100)) : 0;
+
+  const pagado = status === 'paid';
+  const items = Array.isArray(order.line_items) && order.line_items.length
+    ? order.line_items
+    : [{ id: 'retrato', title: 'Retrato del Alma Gemela', quantity: 1, price: order.total_price }];
+
+  const payload = {
+    orderId: String(order.id),
+    platform: 'Shopify',
+    paymentMethod: medioDePago(order),
+    status: status,
+    createdAt: fechaUtc(order.created_at) || fechaUtc(new Date().toISOString()),
+    /* un reembolso también fue aprobado antes: sin esta fecha UTMify no lo
+       puede restar del día en que se cobró */
+    approvedDate: (pagado || status === 'refunded')
+      ? (fechaUtc(order.processed_at) || fechaUtc(order.created_at)) : null,
+    refundedAt: status === 'refunded' ? (fechaUtc(order.updated_at) || fechaUtc(new Date().toISOString())) : null,
+    customer: {
+      name: nombreDe(order),
+      email: buyerEmail(order),
+      phone: (order.phone || (order.customer && order.customer.phone) || null),
+      document: null,
+      country: paisDe(order),
+      ip: order.browser_ip || null,
+    },
+    products: items.map((it) => ({
+      id: String(it.product_id || it.id || 'retrato'),
+      name: it.title || it.name || 'Retrato del Alma Gemela',
+      planId: null,
+      planName: null,
+      quantity: it.quantity || 1,
+      priceInCents: centavos(it.price),
+    })),
+    trackingParameters: {
+      src: attr(order, 'src') || null,
+      sck: attr(order, 'sck') || null,
+      utm_source: utms.utm_source || null,
+      utm_campaign: utms.utm_campaign || null,
+      utm_medium: utms.utm_medium || null,
+      utm_content: utms.utm_content || null,
+      utm_term: utms.utm_term || null,
+    },
+    commission: {
+      totalPriceInCents: total,
+      gatewayFeeInCents: fee,
+      userCommissionInCents: total - fee,
+      currency: (order.currency || 'ARS').toUpperCase(),
+    },
+    isTest: false,
+  };
+
+  try {
+    const res = await fetch('https://api.utmify.com.br/api-credentials/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-token': token },
+      body: JSON.stringify(payload),
+    });
+    const texto = await res.text();
+    if (!res.ok) {
+      console.warn('[utmify] ' + res.status + ' order=' + order.id + ' ' + texto.slice(0, 300));
+      return { utmify: 'error', utmify_status: res.status };
+    }
+    return { utmify: status };
+  } catch (e) {
+    console.warn('[utmify] sin respuesta order=' + order.id + ' ' + (e && e.message));
+    return { utmify: 'error', utmify_status: 'fetch_failed' };
+  }
+}
+
 /* ─── handler ──────────────────────────────────────────────────────── */
 
 export default async function handler(request) {
@@ -250,6 +387,7 @@ export default async function handler(request) {
       secret: secrets().length > 0,
       pixel: !!process.env.META_PIXEL_ID,
       token: !!process.env.META_CAPI_TOKEN,
+      utmify: !!process.env.UTMIFY_API_TOKEN,
     });
   }
   if (request.method !== 'POST') {
@@ -272,11 +410,18 @@ export default async function handler(request) {
 
   const topic = (request.headers.get('x-shopify-topic') || '').toLowerCase();
 
+  /* refunds/create trae el reembolso, no la orden: la orden real cuelga
+     de .order_id y el resto de los campos no sirven. */
+  if (topic === 'refunds/create') {
+    const id = order.order_id;
+    if (id == null) return Response.json({ ok: true, topic, ignored: 'no_order_id' });
+    const r = await sendUtmify({ ...(order.order || {}), id, updated_at: order.created_at }, 'refunded');
+    console.log('[shopify] ' + topic + ' order_id=' + id, JSON.stringify(r));
+    return Response.json({ ok: true, topic, ...r });
+  }
+
   if (topic !== 'orders/paid' && topic !== 'orders/create') {
     return Response.json({ ok: true, ignored: topic || 'no_topic' });
-  }
-  if (topic === 'orders/create' && String(order.financial_status || '').toLowerCase() !== 'paid') {
-    return Response.json({ ok: true, topic, ignored: 'not_paid' });
   }
   if (order.id == null) {
     return Response.json({ ok: true, topic, ignored: 'no_order_id' });
@@ -286,7 +431,14 @@ export default async function handler(request) {
     return Response.json({ ok: true, topic, ignored: 'no_email' });
   }
 
-  const result = await sendPurchase(order);
+  const pagado = topic === 'orders/paid'
+    || String(order.financial_status || '').toLowerCase() === 'paid';
+
+  /* UTMify recibe las dos etapas; Meta, sólo la venta cobrada. */
+  const enUtmify = await sendUtmify(order, pagado ? 'paid' : 'waiting_payment');
+  const enMeta = pagado ? await sendPurchase(order) : { ok: true, ignored: 'not_paid' };
+
+  const result = { ...enMeta, ...enUtmify };
   console.log('[shopify] ' + topic + ' order_id=' + order.id, JSON.stringify(result));
   return Response.json({ ok: true, topic, ...result });
 }
