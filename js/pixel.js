@@ -24,9 +24,28 @@
       var e=o&&o.event;
       if(e==="noctra_lead")unaVez("Lead");
       else if(e==="noctra_inicio_checkout")fb("InitiateCheckout",V);
+      else if(e==="noctra_start")unaVez("QuizInicio");
+      else if(e==="noctra_resultado")unaVez("QuizResultado");
+      else if(e&&e.indexOf("noctra_step_")===0)paso(o.step);
     }catch(err){}
     return push.apply(dl,arguments);
   };
+  /* Un evento propio por pantalla, una sola vez por visita. Con esto el
+     embudo se ve en el Administrador de Eventos y, mejor todavía, se puede
+     abrir por campaña en el Administrador de Anuncios: ahí se ve si la
+     gente se cae por el anuncio o por una pregunta puntual.
+     El nombre lleva el número con dos dígitos para que ordene solo. */
+  var ETAPA={0:"Portada",1:"Prueba social",2:"Genero",3:"Interes",4:"Edad",
+    5:"Origen",6:"Fecha",7:"Cualidades",8:"Referencia 1",9:"Apariencia",
+    10:"Decision",11:"Referencia 2",12:"Motivo",13:"Dificultad",
+    14:"Referencia 3",15:"Lenguaje",16:"Futuro",17:"Energia",18:"Opuestos",
+    19:"Experiencias",20:"Transicion"};
+  function paso(i){
+    if(typeof i!=="number"||i<0) return;
+    var dosDigitos=(i<10?"0":"")+i;
+    unaVez("QuizPaso"+dosDigitos,{paso:i,etapa:ETAPA[i]||("Paso "+i)});
+  }
+
   function mirar(){if(location.hash==="#/resultado")unaVez("ViewContent",V)}
   mirar();
   addEventListener("hashchange",mirar);
