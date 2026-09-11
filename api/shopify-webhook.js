@@ -291,6 +291,18 @@ function nombreDe(order) {
   return (s.name || '').trim() || 'Sin nombre';
 }
 
+/* UTMify rechaza el pedido ENTERO si customer.ip viene en null
+   (SCHEMA_VALIDATION_FAILED) y la venta desaparece del panel. Shopify
+   manda la IP a veces arriba y a veces adentro de client_details, y en
+   pedidos hechos por API o a mano no la manda en absoluto. Una venta sin
+   IP sigue siendo una venta: la registramos sin geolocalizar antes que
+   perderla. */
+function ipDe(order) {
+  const cd = order.client_details || {};
+  const ip = order.browser_ip || cd.browser_ip || attr(order, 'ip');
+  return (typeof ip === 'string' && ip.trim()) ? ip.trim() : '0.0.0.0';
+}
+
 /**
  * Manda el pedido a UTMify. Nunca tira: si falla, se loguea y seguimos.
  * Una caída de UTMify no puede romper el Purchase de Meta ni hacer que
@@ -331,7 +343,7 @@ async function sendUtmify(order, status) {
       phone: (order.phone || (order.customer && order.customer.phone) || null),
       document: null,
       country: paisDe(order),
-      ip: order.browser_ip || null,
+      ip: ipDe(order),
     },
     products: items.map((it) => ({
       id: String(it.product_id || it.id || 'retrato'),
