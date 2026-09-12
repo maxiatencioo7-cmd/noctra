@@ -35,7 +35,7 @@
 
 export const config = { runtime: 'edge' };
 
-const TIENDA  = process.env.SHOPIFY_SHOP || 'noctralmagemela.myshopify.com';
+const TIENDA  = (process.env.SHOPIFY_SHOP || 'noctralmagemela.myshopify.com').trim();
 const API     = process.env.SHOPIFY_API_VERSION || '2024-10';
 /* La variante del pack. Si mañana hay más de un producto que da acceso,
    se agregan separados por coma en la variable de entorno. */
@@ -90,12 +90,18 @@ let tk = { valor: '', vence: 0 };
  *
  * El token vive en memoria de la función, no en disco: si Vercel recicla la
  * instancia se vuelve a pedir, que cuesta una llamada. */
+/* Copiar una credencial de un panel a otro arrastra espacios y tabuladores
+   con una facilidad asombrosa, y Shopify los manda tal cual: un tabulador
+   invisible adelante del ID devuelve "application_cannot_be_found", que
+   parece un problema de permisos y no lo es. Se limpian acá y listo. */
+function limpio(v) { return String(v || '').trim(); }
+
 async function tokenAdmin() {
-  const directo = process.env.SHOPIFY_ADMIN_TOKEN;
+  const directo = limpio(process.env.SHOPIFY_ADMIN_TOKEN);
   if (directo) return { token: directo };
 
-  const id = process.env.SHOPIFY_API_KEY;
-  const secreto = process.env.SHOPIFY_API_SECRET;
+  const id = limpio(process.env.SHOPIFY_API_KEY);
+  const secreto = limpio(process.env.SHOPIFY_API_SECRET);
   if (!id || !secreto) return { error: 'sin_token' };
 
   /* un minuto de margen antes del vencimiento real */
