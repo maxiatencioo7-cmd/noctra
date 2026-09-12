@@ -122,6 +122,38 @@ label.f>span{display:block;margin:0 0 7px}
 #revelado .rimg img{border-radius:var(--r-img);filter:blur(24px);transform:scale(1.04);transition:filter 3s cubic-bezier(.12,.7,.2,1),transform 3s cubic-bezier(.12,.7,.2,1)}
 #revelado.go .rimg img{filter:blur(0);transform:scale(1)}
 #revelado h1{margin:0 0 22px;font-size:26px;line-height:34px}
+/* El Segundo Trazo — la pantalla de la oferta. Mismo lenguaje que el
+   revelado a propósito: no tiene que parecer una publicidad metida en la
+   app, tiene que parecer la continuación de lo que acaba de pasar. */
+#oferta{position:fixed;inset:0;z-index:96;overflow:auto;-webkit-overflow-scrolling:touch;
+  background:radial-gradient(120% 70% at 50% 0%,#161F45 0%,#090D1C 55%,#04060D 100%);
+  opacity:0;transform:translateY(18px);transition:opacity .38s var(--ease),transform .38s var(--ease)}
+#oferta.on{opacity:1;transform:translateY(0)}
+#oferta .ow{max-width:460px;margin:0 auto;padding:calc(40px + env(safe-area-inset-top)) 22px calc(34px + env(safe-area-inset-bottom))}
+#oferta .olab{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--oro);
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin:0 0 14px}
+#oferta .olab svg{width:15px;height:15px}
+#oferta h1{text-align:center;font-size:34px;line-height:40px;color:var(--oro);margin:0 0 10px}
+#oferta .osub{text-align:center;color:var(--tx2);margin:0 0 26px;font-size:15px;line-height:23px}
+#oferta .olista{margin:0 0 22px}
+#oferta .oit{display:flex;gap:13px;align-items:flex-start;padding:14px 15px;margin:0 0 9px;
+  border-radius:var(--r);background:var(--card);border:1px solid var(--linea);
+  opacity:0;transform:translateY(10px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+#oferta .oit.on{opacity:1;transform:translateY(0)}
+#oferta .oic{flex:0 0 26px;color:var(--oro);display:flex;padding-top:2px}
+#oferta .oic svg{width:19px;height:19px}
+#oferta .oit b{display:block;font-size:15px;margin:0 0 3px}
+#oferta .oit small{display:block;color:var(--tx2);font-size:13px;line-height:20px}
+#oferta .osobre{display:flex;gap:13px;align-items:center;padding:15px;margin:0 0 20px;
+  border-radius:var(--r);border:1px dashed rgba(245,214,123,.34);background:rgba(245,214,123,.06)}
+#oferta .osel{flex:0 0 26px;color:var(--oro);display:flex}
+#oferta .osobre p{margin:0;font-size:14px;line-height:21px;color:#EDE2C6}
+#oferta .olink{display:block;width:100%;margin:14px 0 0;background:none;border:0;
+  color:var(--tx2);font-size:14px;text-decoration:underline;cursor:pointer;font-family:inherit}
+#oferta .onota{text-align:center;color:var(--tx2);font-size:11px;line-height:17px;margin:22px 0 0;opacity:.75}
+.otar{border-color:rgba(245,214,123,.24);background:linear-gradient(180deg,rgba(245,214,123,.08),rgba(255,255,255,.035))}
+@media (min-width:430px){ #oferta h1{font-size:38px;line-height:44px} }
+
 /* el nombre del retrato: entra solo, después de las etiquetas */
 #revelado .rnom{margin:0 0 22px;opacity:0;transform:translateY(10px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
 #revelado .rnom.on{opacity:1;transform:translateY(0)}
