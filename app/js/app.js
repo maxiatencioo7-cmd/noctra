@@ -758,9 +758,6 @@ function hojaPerfil(){
      <p class="small muted" style="margin:8px 0 0">Ninguno viene activado por defecto salvo los que elijas. Nada de madrugada, nada de "volvé a la app".</p></div>
    <button class="btn" id="guardarP">Guardar</button>
    <div class="sep"></div>
-   <div class="card"><div class="lab">El retrato</div>
-     <p class="small muted" style="margin:8px 0 12px">Si la cara no se parece a lo que tenías en la cabeza, podés volver a elegir los rasgos y se dibuja de nuevo.</p>
-     <button class="btn ghost" id="rehacer" style="margin:0">${I.retrato} Rehacer los rasgos</button></div>
    ${P.corto?`<div class="card"><div class="lab">Tu lectura</div>
      <p class="small muted" style="margin:8px 0 12px">Para dibujar el retrato alcanzó con unas pocas preguntas. La lectura y lo que te contesta Maia se vuelven tuyas de verdad cuando respondés el resto: son diez y no tocan el retrato, que ya quedó como está.</p>
      <button class="btn ghost" id="completar" style="margin:0">${I.lectura} Completar mi lectura</button></div>`:""}
@@ -779,11 +776,6 @@ function hojaPerfil(){
     D.nombre=$("#un",p).value.trim(); D.nacimiento.hora=$("#uh",p).value;
     D.nacimiento.ciudad=$("#uc",p).value.trim(); D.notif.hora=$("#uho",p).value||"09:00";
     guardar(); U.cerrarHoja(); pintar(); U.toast("Guardado");
-  };
-  const reh=$("#rehacer",p);
-  if(reh) reh.onclick=()=>{
-    U.cerrarHoja();
-    pedirRasgos(()=>{ pintar(); window.NOCTRA_RASGOS.dibujar(RETRATO,()=>revelado(true,true)); });
   };
   const comp=$("#completar",p);
   if(comp) comp.onclick=()=>{
@@ -925,8 +917,8 @@ function revelado(revisita,auto){
     ${NOMBRE?`<div class="rnom" id="rnom"><span class="lab">El nombre</span><b>${esc(NOMBRE)}</b></div>`:""}
     <button class="btn" id="rev">${I.estrella} Revelar</button>
     <div id="racts" style="display:none">
-      <button class="btn" id="rdesc" style="margin:0 0 10px">${I.descarga} Guardar en el teléfono</button>
-      <button class="btn ghost" id="rcomp" style="margin:0 0 10px">${I.compartir} Compartir</button>
+      <button class="btn" id="rdesc">${I.descarga} Guardar en el teléfono</button>
+      <button class="btn ghost" id="rcomp">${I.compartir} Compartir</button>
       <button class="btn ghost" id="rlec">${I.lectura} Ver mi lectura</button>
     </div></div>`;
   document.body.appendChild(d);
@@ -1008,23 +1000,10 @@ function revisarAvisos(){
 }
 
 /* ================= arranque ================= */
-/* Los rasgos se piden siempre, no sólo cuando falta el perfil del test.
-   Después van la pantalla del dibujo y recién ahí el botón de revelar. */
-function pedirRasgos(despues){
-  const g=(P.generoRetrato==="f"||P.generoRetrato==="m")?P.generoRetrato:(P.genero==="m"?"f":"m");
-  window.NOCTRA_RASGOS.abrir(g,r=>{
-    D.rasgos=r; P.rasgos=r; guardar();
-    RETRATO=rutaRetrato(); NOMBRE=nombreRetrato();
-    despues();
-  });
-}
-function dibujarYRevelar(){
-  window.NOCTRA_RASGOS.dibujar(RETRATO,()=>revelado(false,true));
-}
+/* Directo a la pantalla del dibujo y de ahí al botón de revelar. */
 function primeraVez(){
   if(!window.NOCTRA_RASGOS) return revelado(false);
-  if(!D.rasgos) return pedirRasgos(dibujarYRevelar);
-  dibujarYRevelar();
+  window.NOCTRA_RASGOS.dibujar(RETRATO,()=>revelado(false,true));
 }
 
 function arrancar(){

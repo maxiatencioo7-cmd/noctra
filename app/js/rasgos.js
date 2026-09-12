@@ -1,83 +1,9 @@
-/* Noctra — los rasgos del retrato.
-   Se piden SIEMPRE al entrar a la app, aunque el perfil del test haya
-   llegado completo. Son cuatro preguntas y ninguna repite el test: el test
-   ya definió a quién buscás (género, franja de edad, origen); acá se define
-   cómo se dibuja esa cara. Después de responder viene la pantalla del
-   dibujo y recién ahí el botón de revelar. */
+/* Noctra — la pantalla del dibujo.
+   No se pregunta nada: el test ya definió a quién buscás (género, franja de
+   edad, origen) y con eso alcanza para elegir la cara. Se entra directo al
+   dibujo y de ahí al botón de revelar. */
 (function(){
 const U=window.NOCTRA_UI, I=U.I, esc=U.esc;
-
-/* ---------- las preguntas ---------- */
-/* "sorpresa" siempre existe y no penaliza nada: quien no tiene una imagen
-   en la cabeza no debería quedar peor servido que quien sí la tiene. */
-const LIBRE=["sorpresa","Que lo decida el trazo","✧"];
-
-const COMUNES=[
-  {k:"pelo", titulo:"El pelo, ¿cómo lo ves?",
-   sub:"No hace falta que lo tengas clarísimo. Elegí lo primero que te aparezca.",
-   opts:[["lacio","Lacio","│"],["ondulado","Ondulado","∿"],["enrulado","Enrulado","◠"],LIBRE]},
-  {k:"tono", titulo:"¿Y el tono?",
-   sub:"Es un dibujo a lápiz: lo que cambia es cuánto pesa el trazo.",
-   opts:[["claro","Claro","○"],["castano","Castaño","◐"],["oscuro","Oscuro","●"],LIBRE]}
-];
-
-const SOLO_M={k:"barba", titulo:"La barba",
-  sub:"Es lo que más cambia una cara dibujada.",
-  opts:[["si","Con barba","▓"],["apenas","Apenas marcada","▒"],["no","Sin barba","░"],LIBRE]};
-
-const SOLO_F={k:"largo", titulo:"El largo del pelo",
-  sub:"Es lo que más cambia una cara dibujada.",
-  opts:[["corto","Corto","▁"],["hombros","A los hombros","▄"],["largo","Largo","█"],LIBRE]};
-
-const MIRADA={k:"mirada", titulo:"La mirada, cuando te encuentra",
-  sub:"Última. De acá sale el gesto de la boca y de los ojos.",
-  opts:[["calida","Cálida, de sonrisa fácil","◡"],["serena","Serena, de las que no apuran","—"],
-        ["picara","Con algo de picardía","◠"],LIBRE]};
-
-function set(g){ return COMUNES.concat([ g==="f"?SOLO_F:SOLO_M, MIRADA ]); }
-
-/* ---------- las preguntas, en pantalla ---------- */
-function abrir(genero, alTerminar){
-  const PASOS=set(genero);
-  const R={};
-  let i=0;
-
-  const caja=document.createElement("div");
-  caja.id="rasgos";
-  document.body.appendChild(caja);
-
-  const barra=n=>`<div class="rbar">${PASOS.map((_,k)=>
-    `<i class="${k<n?"ya":k===n?"hoy":""}"></i>`).join("")}</div>`;
-
-  function paso(){
-    const q=PASOS[i];
-    caja.innerHTML=`<div class="rwrap">
-      ${barra(i)}
-      <p class="rkicker">Para el trazo</p>
-      <h2>${esc(q.titulo)}</h2>
-      <p class="muted small rsub">${esc(q.sub)}</p>
-      ${q.opts.map(o=>`<button class="pill ropt" data-v="${esc(o[0])}">
-        <span class="rglyph">${esc(o[2]||"")}</span><span>${esc(o[1])}</span></button>`).join("")}
-      ${i>0?`<button class="pill ratras">${I.atras} Volver</button>`:""}
-    </div>`;
-    caja.scrollTop=0;
-
-    caja.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{
-      R[q.k]=b.dataset.v;
-      b.classList.add("on");
-      setTimeout(()=>{ i++; i<PASOS.length ? paso() : cerrar(); },170);
-    });
-    const at=caja.querySelector(".ratras");
-    if(at) at.onclick=()=>{ i=Math.max(0,i-1); paso(); };
-  }
-
-  function cerrar(){
-    caja.remove();
-    alTerminar(R);
-  }
-
-  paso();
-}
 
 /* ---------- la pantalla del dibujo ---------- */
 /* Un cielo propio (no el del fondo de la app) con nebulosa, polvo de
@@ -247,5 +173,5 @@ function cielo(cv){
   return function(){ vivo=false; cancelAnimationFrame(raf); removeEventListener("resize",medir); };
 }
 
-window.NOCTRA_RASGOS={ abrir:abrir, dibujar:dibujar };
+window.NOCTRA_RASGOS={ dibujar:dibujar };
 })();
