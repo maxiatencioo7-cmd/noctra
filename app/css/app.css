@@ -116,12 +116,14 @@ label.f>span{display:block;margin:0 0 7px}
 .marco .firma{position:absolute;left:14px;bottom:12px;font-family:"Fraunces",serif;font-size:13px;color:rgba(51,51,58,.72);letter-spacing:.02em}
 
 /* revelado */
-#revelado{position:fixed;inset:0;z-index:90;background:radial-gradient(120% 80% at 50% 12%,#131C3E 0%,#080B18 55%,#04060D 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px}
-#revelado .rw{width:100%;max-width:380px;text-align:center}
-#revelado .rimg{position:relative;border-radius:var(--r-img);overflow:visible;margin:0 0 22px}
+#revelado{position:fixed;inset:0;z-index:90;background:radial-gradient(120% 80% at 50% 12%,#131C3E 0%,#080B18 55%,#04060D 100%);display:block;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:22px 26px calc(22px + env(safe-area-inset-bottom,0px))}
+/* min-height + centrado adentro: centra cuando entra en pantalla, y cuando no
+   entra la caja crece y la pantalla scrollea de verdad en vez de cortar arriba */
+#revelado .rw{width:100%;max-width:380px;margin:0 auto;text-align:center;min-height:100%;display:flex;flex-direction:column;justify-content:center}
+#revelado .rimg{position:relative;border-radius:var(--r-img);overflow:visible;margin:0 auto 16px;width:100%;max-width:min(380px,38vh)}
 #revelado .rimg img{border-radius:var(--r-img);filter:blur(24px);transform:scale(1.04);transition:filter 3s cubic-bezier(.12,.7,.2,1),transform 3s cubic-bezier(.12,.7,.2,1)}
 #revelado.go .rimg img{filter:blur(0);transform:scale(1)}
-#revelado h1{margin:0 0 22px;font-size:26px;line-height:34px}
+#revelado h1{margin:0 0 16px;font-size:25px;line-height:32px}
 /* El Segundo Trazo — la pantalla de la oferta. Mismo lenguaje que el
    revelado a propósito: no tiene que parecer una publicidad metida en la
    app, tiene que parecer la continuación de lo que acaba de pasar. */
@@ -195,10 +197,23 @@ label.f>span{display:block;margin:0 0 7px}
 @media (min-width:430px){ #oferta h1{font-size:38px;line-height:44px} }
 
 /* el nombre del retrato: entra solo, después de las etiquetas */
-#revelado .rnom{margin:0 0 22px;opacity:0;transform:translateY(10px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+#revelado .rnom{margin:0 0 16px;opacity:0;transform:translateY(10px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
 #revelado .rnom.on{opacity:1;transform:translateY(0)}
 #revelado .rnom .lab{display:block;margin:0 0 5px}
-#revelado .rnom b{display:block;font-family:"Fraunces","Iowan Old Style","Times New Roman",Georgia,serif;font-weight:700;font-size:34px;line-height:40px;letter-spacing:-.01em;color:var(--oro)}
+#revelado #racts .btn{margin:0 0 9px}
+#revelado #racts .btn:last-child{margin:0}
+/* Teléfonos bajos: el retrato y los títulos ceden lo necesario para que
+   "Ver mi lectura" y "Compartir" queden a la vista sin tener que bajar. */
+@media (max-height:700px){
+  #revelado{padding:16px 22px calc(16px + env(safe-area-inset-bottom,0px))}
+  #revelado h1{margin:0 0 12px;font-size:21px;line-height:27px}
+  #revelado .rimg{max-width:min(380px,34vh);margin:0 auto 12px}
+  #revelado .rnom{margin:0 0 12px}
+  #revelado .rnom b{font-size:26px;line-height:31px}
+  #revelado .rnom .lab{margin:0 0 3px}
+  #revelado #racts .btn{margin:0 0 7px}
+}
+#revelado .rnom b{display:block;font-family:"Fraunces","Iowan Old Style","Times New Roman",Georgia,serif;font-weight:700;font-size:31px;line-height:37px;letter-spacing:-.01em;color:var(--oro)}
 .etq{position:absolute;padding:8px 13px;border-radius:var(--r-pill);background:rgba(10,17,40,.86);border:1px solid rgba(245,214,123,.34);color:var(--oro);font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;opacity:0;transform:translateY(8px);transition:opacity .5s var(--ease),transform .5s var(--ease);white-space:nowrap;backdrop-filter:blur(8px)}
 .etq.on{opacity:1;transform:translateY(0)}
 .etq.e1{left:-6px;top:16%}
