@@ -101,37 +101,53 @@ async function tokenAdmin() {
   /* un minuto de margen antes del vencimiento real */
   if (tk.valor && Date.now() < tk.vence - 60000) return { token: tk.valor };
 
-  try {
-    const res = await fetch('https://' + TIENDA + '/admin/oauth/access_token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({
-        client_id: id,
-        client_secret: secreto,
-        grant_type: 'client_credentials',
-      }),
-    });
-    const texto = await res.text();
-    if (!res.ok) {
-      console.warn('[acceso] client_credentials ' + res.status + ' ' + texto.slice(0, 200));
-      return { error: 'credenciales_' + res.status };
+  /* Shopify acepta el cuerpo como JSON o como formulario según el endpoint y
+     la versión; se prueban los dos antes de darlo por perdido. */
+  const cuerpos = [
+    { tipo: 'application/json',
+      body: JSON.stringify({ client_id: id, client_secret: secreto, grant_type: 'client_credentials' }) },
+    { tipo: 'application/x-www-form-urlencoded',
+      body: 'grant_type=client_credentials&client_id=' + encodeURIComponent(id)
+            + '&client_secret=' + encodeURIComponent(secreto) },
+  ];
+
+  let ultimo = '';
+  for (let i = 0; i < cuerpos.length; i++) {
+    try {
+      const res = await fetch('https://' + TIENDA + '/admin/oauth/access_token', {
+        method: 'POST',
+        headers: { 'Content-Type': cuerpos[i].tipo, Accept: 'application/json' },
+        body: cuerpos[i].body,
+      });
+      const texto = await res.text();
+      if (!res.ok) {
+        /* El cuerpo del error de Shopify no trae credenciales: dice cosas como
+           "invalid_client" o "application_cannot_be_found". Se guarda para
+           poder diagnosticar sin tener que mirar los logs de Vercel. */
+        ultimo = res.status + ' ' + texto.replace(/\s+/g, ' ').slice(0, 160);
+        console.warn('[acceso] client_credentials ' + ultimo);
+        continue;
+      }
+      let j = {};
+      try { j = JSON.parse(texto); } catch (e) {}
+      if (!j.access_token) { ultimo = 'ok pero sin access_token'; continue; }
+      /* Shopify devuelve expires_in en segundos; si no viene, se asume una hora */
+      const dura = (parseInt(j.expires_in, 10) || 3600) * 1000;
+      tk = { valor: j.access_token, vence: Date.now() + dura };
+      return { token: tk.valor };
+    } catch (e) {
+      ultimo = 'fetch: ' + (e && e.message);
+      console.warn('[acceso] client_credentials falló ' + ultimo);
     }
-    let j = {};
-    try { j = JSON.parse(texto); } catch (e) {}
-    if (!j.access_token) return { error: 'sin_access_token' };
-    /* Shopify devuelve expires_in en segundos; si no viene, se asume una hora */
-    const dura = (parseInt(j.expires_in, 10) || 3600) * 1000;
-    tk = { valor: j.access_token, vence: Date.now() + dura };
-    return { token: tk.valor };
-  } catch (e) {
-    console.warn('[acceso] client_credentials falló ' + (e && e.message));
-    return { error: 'credenciales_fetch' };
   }
+  return { error: 'credenciales', detalle: ultimo,
+           largoId: id.length, largoSecreto: secreto.length };
 }
 
 async function ordenes() {
   const t = await tokenAdmin();
-  if (t.error) return { error: t.error };
+  if (t.error) return { error: t.error, detalle: t.detalle,
+                        largoId: t.largoId, largoSecreto: t.largoSecreto };
   const token = t.token;
   if (cache.ordenes && Date.now() - cache.t < 60000) return { lista: cache.ordenes };
 
@@ -210,7 +226,15 @@ export default async function handler(request) {
   }
 
   const r = await ordenes();
-  if (r.error) return responder({ acceso: false, via: 'error', motivo: r.error });
+  if (r.error) {
+    /* El detalle sólo se muestra con ?debug=1 y nunca contiene credenciales:
+       es el mensaje de error que devuelve Shopify, más el largo de las claves
+       para detectar espacios pegados al copiar. */
+    const extra = u.searchParams.get('debug') === '1'
+      ? { detalle: r.detalle, largoId: r.largoId, largoSecreto: r.largoSecreto }
+      : {};
+    return responder(Object.assign({ acceso: false, via: 'error', motivo: r.error }, extra));
+  }
 
   const match = r.lista.find((o) => {
     if (o.test) return false;
