@@ -1,4 +1,4 @@
-/* Noctra — app. Cinco pestañas, revelado, lectura, encuentro, diario, Maia. */
+js/app.js/* Noctra — app. Cinco pestañas, revelado, lectura, encuentro, diario, Maia. */
 (function(){
 const AS=window.NOCTRA_ASTRO, DT=window.NOCTRA_DATOS, LEC=window.NOCTRA_LECTURA,
       U=window.NOCTRA_UI, MAIA=window.NOCTRA_MAIA;
