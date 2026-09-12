@@ -24,8 +24,13 @@
  *   c=<código>            — manual de Maxi, para regalos y soporte
  *
  * Nunca devuelve datos del comprador: sólo ok/no, y la ciudad de la IP.
- * Sin token de Shopify cargado devuelve acceso:false y motivo "sin_token",
- * nunca true: si algo se rompe, el pack queda cerrado, no abierto.
+ * Sin credenciales de Shopify cargadas devuelve acceso:false y motivo
+ * "sin_token", nunca true: si algo se rompe, el pack queda cerrado, no
+ * abierto.
+ *
+ * Credenciales (ver tokenAdmin): SHOPIFY_API_KEY + SHOPIFY_API_SECRET de la
+ * app del Dev Dashboard, o un SHOPIFY_ADMIN_TOKEN suelto si alguna vez hay
+ * uno.
  */
 
 export const config = { runtime: 'edge' };
@@ -67,10 +72,67 @@ function geo(request) {
 
 /* ─── Shopify ──────────────────────────────────────────────────────── */
 let cache = { t: 0, ordenes: null };
+let tk = { valor: '', vence: 0 };
+
+/* El token de la Admin API.
+ *
+ * Dos caminos, y el primero que esté configurado gana:
+ *
+ *   1. SHOPIFY_ADMIN_TOKEN — un "shpat_" pegado a mano. Es lo que daban las
+ *      apps personalizadas del admin viejo. Shopify las discontinuó, así que
+ *      queda sólo por compatibilidad.
+ *
+ *   2. SHOPIFY_API_KEY + SHOPIFY_API_SECRET — las credenciales de la app del
+ *      Dev Dashboard. Con ellas se pide un token con el "client credentials
+ *      grant", que Shopify habilita para apps que actúan sobre tiendas de la
+ *      propia organización. No hay que copiar ningún token a mano y, cuando
+ *      vence, se renueva solo.
+ *
+ * El token vive en memoria de la función, no en disco: si Vercel recicla la
+ * instancia se vuelve a pedir, que cuesta una llamada. */
+async function tokenAdmin() {
+  const directo = process.env.SHOPIFY_ADMIN_TOKEN;
+  if (directo) return { token: directo };
+
+  const id = process.env.SHOPIFY_API_KEY;
+  const secreto = process.env.SHOPIFY_API_SECRET;
+  if (!id || !secreto) return { error: 'sin_token' };
+
+  /* un minuto de margen antes del vencimiento real */
+  if (tk.valor && Date.now() < tk.vence - 60000) return { token: tk.valor };
+
+  try {
+    const res = await fetch('https://' + TIENDA + '/admin/oauth/access_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        client_id: id,
+        client_secret: secreto,
+        grant_type: 'client_credentials',
+      }),
+    });
+    const texto = await res.text();
+    if (!res.ok) {
+      console.warn('[acceso] client_credentials ' + res.status + ' ' + texto.slice(0, 200));
+      return { error: 'credenciales_' + res.status };
+    }
+    let j = {};
+    try { j = JSON.parse(texto); } catch (e) {}
+    if (!j.access_token) return { error: 'sin_access_token' };
+    /* Shopify devuelve expires_in en segundos; si no viene, se asume una hora */
+    const dura = (parseInt(j.expires_in, 10) || 3600) * 1000;
+    tk = { valor: j.access_token, vence: Date.now() + dura };
+    return { token: tk.valor };
+  } catch (e) {
+    console.warn('[acceso] client_credentials falló ' + (e && e.message));
+    return { error: 'credenciales_fetch' };
+  }
+}
 
 async function ordenes() {
-  const token = process.env.SHOPIFY_ADMIN_TOKEN;
-  if (!token) return { error: 'sin_token' };
+  const t = await tokenAdmin();
+  if (t.error) return { error: t.error };
+  const token = t.token;
   if (cache.ordenes && Date.now() - cache.t < 60000) return { lista: cache.ordenes };
 
   const desde = new Date(Date.now() - DIAS * 86400000).toISOString();
