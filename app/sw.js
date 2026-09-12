@@ -1,8 +1,8 @@
 /* Noctra — service worker.
    Imágenes e íconos: primero la caché (no cambian).
    Código y páginas: primero la red, con la caché como respaldo sin señal. */
-const CACHE="noctra-app-v9";
-const ARCHIVOS=["./","./index.html","./css/app.css","../js/perfil-codigo.js","./js/astro.js","./js/datos.js","./js/lectura.js","./js/ui.js","./js/maia.js","./js/preguntas.js","./js/retratos.js","./js/rasgos.js","./js/nombres.js","./js/oferta.js","./js/app.js","./manifest.webmanifest","./icons/icon.svg","./icons/icon-192.png","./icons/icon-512.png"];
+const CACHE="noctra-app-v10";
+const ARCHIVOS=["./","./index.html","./css/app.css","../js/perfil-codigo.js","./js/astro.js","./js/datos.js","./js/lectura.js","./js/ui.js","./js/maia.js","./js/preguntas.js","./js/retratos.js","./js/rasgos.js","./js/nombres.js","./js/plan.js","./js/acceso.js","./js/oferta.js","./js/app.js","./manifest.webmanifest","./icons/icon.svg","./icons/icon-192.png","./icons/icon-512.png"];
 const inmutable=u=>/\/(assets|icons)\//.test(u.pathname);
 
 self.addEventListener("install",e=>{
