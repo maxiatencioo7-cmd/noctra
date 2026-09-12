@@ -5,11 +5,41 @@
 const U=window.NOCTRA_UI, I=U.I, esc=U.esc;
 const KEY="noctra_v2";
 const MULTI=["cualidades","futuro"];
-const PASOS=[
-  {k:"genero"},{k:"interes"},{k:"edad"},{k:"etnia"},{k:"fecha"},
+
+/* Sólo se piden las que hacen falta para dibujar el retrato. Las otras diez
+   del quiz alimentan la lectura y el chat, no el dibujo: pedirlas acá sería
+   cobrarle quince preguntas a alguien que YA PAGÓ. Se ofrecen después del
+   revelado, cuando ya tiene el retrato en la mano.
+   Medido sobre 388.800 perfiles: con estas cinco, la cara y el nombre salen
+   idénticos a los que habrían salido con el quiz entero. */
+const CORTAS=[
+  {k:"nombre"},{k:"genero"},{k:"interes"},{k:"edad"},{k:"etnia"},{k:"fecha"}
+];
+
+/* Las diez que quedaron afuera. Se ofrecen desde el perfil, después del
+   revelado, para quien quiera que la lectura y Maia hablen de ella y no en
+   general. No tocan el retrato: la cara ya quedó decidida. */
+const LARGAS=[
   {k:"cualidades"},{k:"apariencia"},{k:"decision"},{k:"motivo"},{k:"dificultad"},
   {k:"lenguaje"},{k:"futuro"},{k:"energia"},{k:"opuestos"},{k:"experiencias"}
 ];
+
+/* El quiz toma el nombre en el checkout, así que esta pregunta no existe en
+   el archivo de contenidos y el texto vive acá. Va primera porque es la más
+   fácil de todas, y porque desde ahí la app ya puede hablarle por su nombre. */
+const PROPIAS={
+  nombre:{titulo:"¿Cómo te llamás?", sub:"Para que el retrato salga a tu nombre."}
+};
+
+/* Las diez que no se piden se completan con valores neutros: sin esto la
+   lectura saldría rota, y además la app no reconocería el perfil. Queda
+   marcado como corto para poder ofrecer completarlo más adelante. */
+const NEUTRO={
+  cualidades:["Leal"], apariencia:"algo", decision:"emociones",
+  motivo:"comunicacion", dificultad:"abrirme", lenguaje:"palabras",
+  futuro:["Crear lindos recuerdos"], energia:"calma", opuestos:3,
+  experiencias:"tranquilos"
+};
 
 function cargarContenido(){
   return new Promise((ok,err)=>{
@@ -22,14 +52,16 @@ function cargarContenido(){
   });
 }
 
-function abrir(){
-  cargarContenido().then(pintar).catch(()=>{
+function abrir(modo){
+  const largas = modo==="largas";
+  cargarContenido().then(C=>pintar(C,largas)).catch(()=>{
     U.toast("No se pudieron cargar las preguntas. Probá de nuevo en un momento.");
   });
 }
 
-function pintar(C){
+function pintar(C,largas){
   const Q=C.preguntas, MESES=C.meses;
+  const PASOS=largas?LARGAS:CORTAS;
   const R={};                       // respuestas
   let i=0;
 
@@ -42,10 +74,17 @@ function pintar(C){
     PASOS.map((_,k)=>`<i style="display:block;width:${k===n?18:6}px;height:6px;border-radius:99px;background:${k<n?"rgba(245,214,123,.55)":k===n?"var(--oro)":"rgba(255,255,255,.14)"};transition:all .25s"></i>`).join("")}</div>`;
 
   function paso(){
-    const p=PASOS[i], q=Q[p.k]||{};
+    const p=PASOS[i], q=PROPIAS[p.k]||Q[p.k]||{};
     let cuerpo="";
 
-    if(p.k==="fecha"){
+    if(p.k==="nombre"){
+      cuerpo=`<input id="nom" type="text" autocomplete="given-name" maxlength="40"
+        placeholder="Tu nombre" value="${esc(R.nombre||"")}"
+        style="width:100%;padding:15px 16px;font-size:16px;border-radius:var(--r-pill);
+        border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);
+        color:var(--tx);outline:none">`;
+    }
+    else if(p.k==="fecha"){
       const hoy=new Date().getFullYear();
       const sel=(id,desde,hasta,val,fmt)=>{let o="";for(let v=desde;v<=hasta;v++)o+=`<option value="${v}" ${v===val?"selected":""}>${fmt?fmt(v):v}</option>`;
         return `<select id="${id}" style="flex:1">${o}</select>`;};
@@ -86,7 +125,17 @@ function pintar(C){
     const multi=MULTI.indexOf(p.k)>=0;
     const pie=caja.querySelector("#pie");
 
-    if(p.k==="fecha"){
+    if(p.k==="nombre"){
+      pie.innerHTML=`<button class="btn" id="seguir">Continuar</button>`;
+      const inp=caja.querySelector("#nom");
+      /* se puede seguir sin nombre: la app funciona igual, sólo pierde el
+         trato personal. Bloquear acá costaría más de lo que suma. */
+      const seguir=()=>{ R.nombre=(inp.value||"").trim().slice(0,40); avanzar(); };
+      pie.querySelector("#seguir").onclick=seguir;
+      inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); seguir(); } });
+      setTimeout(()=>{ try{ inp.focus(); }catch(e){} },80);
+    }
+    else if(p.k==="fecha"){
       pie.innerHTML=`<button class="btn" id="seguir">Continuar</button>`;
       pie.querySelector("#seguir").onclick=()=>{
         R.fecha={d:+caja.querySelector("#fd").value,m:+caja.querySelector("#fm").value,y:+caja.querySelector("#fy").value};
@@ -127,11 +176,23 @@ function pintar(C){
   }
 
   function guardar(){
-    const a=Object.assign({},R);
-    a.generoRetrato = a.interes==="x" ? (a.genero==="m"?"f":"m") : (a.interes||(a.genero==="m"?"f":"m"));
-    a.pelo="a";
+    const nombre=String(R.nombre||"").trim().slice(0,40);
+    let a;
+    if(largas){
+      /* completando la lectura: sólo entran estas diez. Lo que decide el
+         retrato no se toca, porque la cara ya está revelada. */
+      a=Object.assign({},R);
+      a.corto=false;
+    }else{
+      a=Object.assign({},NEUTRO,R);
+      delete a.nombre;               /* el nombre es de la persona, no del retrato */
+      a.generoRetrato = a.interes==="x" ? (a.genero==="m"?"f":"m") : (a.interes||(a.genero==="m"?"f":"m"));
+      a.pelo="a";
+      a.corto=true;                  /* para ofrecerle completar la lectura después */
+    }
     let s={}; try{ s=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){}
     s.a=Object.assign({},s.a||{},a);
+    if(nombre) s.nombre=nombre;
     try{ localStorage.setItem(KEY,JSON.stringify(s)); }catch(e){}
     caja.innerHTML=`<div style="max-width:420px;margin:0 auto;padding:120px 24px;text-align:center">
       <div style="color:var(--oro);display:flex;justify-content:center;margin:0 0 18px">${I.estrella}</div>

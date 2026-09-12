@@ -69,15 +69,18 @@ function camada(edad){
   return "g5";
 }
 
-/* Semilla propia, distinta de la del retrato. Si usara la misma, el nombre
-   quedaría atado al mismo número que ya eligió la cara y ciertos retratos
-   caerían siempre en el mismo nombre. El archivo del retrato entra en la
-   cuenta para que la cara y el nombre viajen juntos. */
+/* Semilla propia, distinta de la del retrato: si usara la misma, ciertos
+   retratos caerían siempre en el mismo nombre.
+
+   Usa SÓLO lo que preguntan las dos vías de entrada: el quiz completo de
+   antes de la compra y el test corto de adentro de la app. Si tomara las
+   preguntas largas, la misma persona entrando desde otro teléfono vería
+   otro nombre —medido: pasaba el 93,7% de las veces—. La fecha de
+   nacimiento sola da unas quince mil combinaciones, de sobra para repartir
+   entre dieciséis nombres sin perder variedad. */
 function semilla(p, archivo){
   var f=p.fecha||{};
-  var s=["n", archivo||"", p.energia,p.apariencia,p.decision,p.motivo,p.dificultad,
-         p.lenguaje,p.experiencias,p.opuestos,p.pelo,p.etnia,
-         f.d, f.m, f.y].join("|");
+  var s=["n", archivo||"", p.etnia, p.edad, f.d, f.m, f.y].join("|");
   var h=0x811C9DC5;
   for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=(h*16777619)>>>0; }
   /* un paso extra de mezcla: sin esto, semillas parecidas caen en el mismo

@@ -17,7 +17,10 @@ function leerQuiz(){
       cualidades:(a.cualidades||[]).map(x=>gener(x,a.generoRetrato||(a.interes==="x"?(a.genero==="m"?"f":"m"):a.interes))), apariencia:a.apariencia, decision:a.decision,
       motivo:a.motivo, dificultad:a.dificultad, lenguaje:a.lenguaje,
       futuro:a.futuro||[], energia:a.energia, opuestos:a.opuestos, experiencias:a.experiencias,
-      pelo:a.pelo||"a", ciudad:s.city||""
+      pelo:a.pelo||"a", ciudad:s.city||"",
+      /* true cuando el perfil se armó con el test corto de adentro de la app:
+         alcanza para el retrato, pero la lectura sale en general */
+      corto:!!a.corto
     };
   }catch(e){ return null; }
 }
@@ -30,7 +33,7 @@ const DEMO={nombre:"",email:"",genero:"f",generoRetrato:"m",interes:"m",edad:"30
 /* ---------- estado propio de la app ---------- */
 const vacio={
   v:1, creado:0, nombre:"", nacimiento:{hora:"",ciudad:""},
-  revelado:false, rasgos:null, leidas:{}, favoritas:{}, diario:[], personas:[], chat:[],
+  revelado:false, rasgos:null, nombrePareja:null, leidas:{}, favoritas:{}, diario:[], personas:[], chat:[],
   maiaVisto:false, notif:{ventanas:true,lunas:true,bocetos:true,diaria:false,hora:"09:00"},
   rituales:{}, archivo:[], ultimaDiaria:""
 };

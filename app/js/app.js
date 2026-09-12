@@ -39,7 +39,28 @@ function nombreRetrato(){
   if(!window.NOCTRA_NOMBRES) return "";
   var fi=window.NOCTRA_RETRATOS&&window.NOCTRA_RETRATOS.ficha
        ? window.NOCTRA_RETRATOS.ficha(P) : null;
-  try{ return window.NOCTRA_NOMBRES.elegir(P,fi)||""; }catch(e){ return ""; }
+  try{
+    /* Una vez revelado, el nombre no se mueve más: que a alguien le cambie
+       el nombre de su alma gemela entre una visita y otra rompe el producto.
+       Queda guardado junto a su camada de edad, porque rehacer los rasgos
+       puede correr la cara a otra franja —pasa en 22 de 40 combinaciones— y
+       ahí un nombre congelado quedaría fuera de época. Si eso ocurre, se
+       recalcula. */
+    var cam=fi&&window.NOCTRA_NOMBRES.camada?window.NOCTRA_NOMBRES.camada(fi.edad):null;
+    var g=D.nombrePareja;
+    if(g && g.n && (!cam || g.c===cam)) return g.n;
+    return window.NOCTRA_NOMBRES.elegir(P,fi)||"";
+  }catch(e){ return ""; }
+}
+/* Se llama al revelar: desde ese momento el nombre queda fijo. */
+function fijarNombre(){
+  try{
+    if(!NOMBRE || !window.NOCTRA_NOMBRES) return;
+    var fi=window.NOCTRA_RETRATOS&&window.NOCTRA_RETRATOS.ficha
+         ? window.NOCTRA_RETRATOS.ficha(P) : null;
+    if(!fi) return;
+    D.nombrePareja={ n:NOMBRE, c:window.NOCTRA_NOMBRES.camada(fi.edad) };
+  }catch(e){}
 }
 let NOMBRE=nombreRetrato();
 
@@ -576,6 +597,9 @@ function hojaPerfil(){
    <div class="card"><div class="lab">El retrato</div>
      <p class="small muted" style="margin:8px 0 12px">Si la cara no se parece a lo que tenías en la cabeza, podés volver a elegir los rasgos y se dibuja de nuevo.</p>
      <button class="btn ghost" id="rehacer" style="margin:0">${I.retrato} Rehacer los rasgos</button></div>
+   ${P.corto?`<div class="card"><div class="lab">Tu lectura</div>
+     <p class="small muted" style="margin:8px 0 12px">Para dibujar el retrato alcanzó con unas pocas preguntas. La lectura y lo que te contesta Maia se vuelven tuyas de verdad cuando respondés el resto: son diez y no tocan el retrato, que ya quedó como está.</p>
+     <button class="btn ghost" id="completar" style="margin:0">${I.lectura} Completar mi lectura</button></div>`:""}
    <button class="btn ghost" id="exportar" style="margin:0 0 10px">${I.descarga} Exportar todo</button>
    <button class="btn ghost" id="borrar" style="margin:0 0 16px;color:var(--err);border-color:rgba(240,138,138,.35)">Borrar mi cuenta y todo el contenido</button>
    <div class="card"><div class="lab">Legales</div>
@@ -596,6 +620,11 @@ function hojaPerfil(){
   if(reh) reh.onclick=()=>{
     U.cerrarHoja();
     pedirRasgos(()=>{ pintar(); window.NOCTRA_RASGOS.dibujar(RETRATO,()=>revelado(true,true)); });
+  };
+  const comp=$("#completar",p);
+  if(comp) comp.onclick=()=>{
+    U.cerrarHoja();
+    window.NOCTRA_PREGUNTAS&&window.NOCTRA_PREGUNTAS.abrir("largas");
   };
   $("#exportar",p).onclick=exportar;
   $("#borrar",p).onclick=()=>{
@@ -750,7 +779,7 @@ function revelado(revisita,auto){
     setTimeout(()=>{
       U.chispas(2400);
       const a=$("#racts",d);a.style.display="block";a.classList.add("enter");
-      if(!revisita){D.revelado=true;guardar();}
+      if(!revisita){D.revelado=true;fijarNombre();guardar();}
     },3100);
   };
   const brev=$("#rev",d);
