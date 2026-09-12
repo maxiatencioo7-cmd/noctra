@@ -33,7 +33,13 @@ const DEMO={nombre:"",email:"",genero:"f",generoRetrato:"m",interes:"m",edad:"30
 /* ---------- estado propio de la app ---------- */
 const vacio={
   v:1, creado:0, nombre:"", nacimiento:{hora:"",ciudad:""},
-  revelado:false, rasgos:null, nombrePareja:null, ofertaVista:false, segundoTrazo:false, leidas:{}, favoritas:{}, diario:[], personas:[], chat:[],
+  revelado:false, rasgos:null, nombrePareja:null, ofertaVista:false,
+  /* segundoTrazo: espejo local de lo que contesta /api/acceso sobre el pack.
+     Nunca es la prueba de la compra, sólo evita esperar la red para pintar.
+     Ver js/acceso.js. */
+  segundoTrazo:false, compraPack:null, negativos:0,
+  ciudadIP:"", ciudadManual:"",
+  leidas:{}, favoritas:{}, diario:[], personas:[], chat:[],
   maiaVisto:false, notif:{ventanas:true,lunas:true,bocetos:true,diaria:false,hora:"09:00"},
   rituales:{}, archivo:[], ultimaDiaria:""
 };

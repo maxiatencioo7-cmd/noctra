@@ -31,8 +31,19 @@ var SELLO='<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="c
 
 var PACK={
   nombre:"Cuándo, Dónde y Cómo",
-  bajada:"Todo lo que falta después de saber quién."
+  precio:7790,
+  /* El retrato salió 9.799. Que el segundo cueste menos que el primero es
+     verdad y se dice: un ancla real no necesita inventarse, y una inventada
+     se descubre en dos clics. */
+  ancla:9799,
+  /* Se aclara la moneda en todos lados. La app se ve igual desde Argentina
+     que desde España o México, y un "$7.790" sin moneda lo lee cada uno con
+     la suya: el que cree que son dólares no compra, y el que compra creyendo
+     que eran otros pesos pide el reembolso. */
+  moneda:"ARS"
 };
+function miles(n){ return "$" + String(n).replace(/\B(?=(\d{3})+(?!\d))/g,"."); }
+function plata(n){ return miles(n) + " " + PACK.moneda; }
 
 /* Las cinco. El orden no es decorativo: arranca por lo que más se quiere
    saber y cierra por lo que mejor se comparte. */
@@ -107,27 +118,42 @@ function irAlCheckout(){
 }
 
 /* La pantalla grande. Se muestra una sola vez sola, después queda en la
-   pestaña Retrato para el que quiera volver. */
+   pestaña Retrato para el que quiera volver.
+
+   El orden es el de una carta de venta y no el de un catálogo: primero el
+   gancho —lo que ya sabe y lo que todavía no—, después las cinco cosas
+   cerradas con candado, recién ahí el precio, y al final el botón. Poner el
+   precio antes de que entienda qué compra es la forma más rápida de que
+   cierre la pantalla. */
 function abrir(nom, ciudad){
   if(document.getElementById("oferta")) return;
   var P=partes(nom, ciudad);
   var d=document.createElement("div");
   d.id="oferta";
+  var quien=nom?esc(nom):"esa persona";
   d.innerHTML='<div class="ow">'
     +'<div class="olab">'+I.estrella+' Hay algo más</div>'
-    +'<h1>'+esc(PACK.nombre)+'</h1>'
-    +'<p class="osub">'+esc(PACK.bajada)+'</p>'
+    +'<h1>Ya sabés quién es'+(nom?(" "+quien):"")+'.<br><em>Ahora falta cuándo.</em></h1>'
+    +'<p class="osub">'+(nom?("El retrato te dio la cara de "+quien+". Lo que todavía no sabés es cuándo y dónde se cruzan — y eso ya está escrito en tu carta."):"El retrato te dio la cara. Lo que todavía no sabés es cuándo y dónde se cruzan — y eso ya está escrito en tu carta.")+'</p>'
+    +'<div class="opack">'+I.candado+' '+esc(PACK.nombre)+'</div>'
     +'<div class="olista">'
-    + P.map(function(x){ return '<div class="oit"><span class="oic">'+x.i+'</span>'
+    + P.map(function(x){ return '<div class="oit"><span class="oic">'+I.candado+'</span>'
         +'<div><b>'+x.t+'</b><small>'+x.d+'</small></div></div>'; }).join("")
     +'</div>'
     +'<div class="osobre"><div class="osel">'+SELLO+'</div>'
-    +'<p>'+(nom?("La fecha de "+esc(nom)+" ya está escrita."):"La fecha ya está escrita.")
+    +'<p>'+(nom?("La fecha de "+quien+" ya está escrita."):"La fecha ya está escrita.")
     +' Se abre cuando vos quieras.</p></div>'
-    +'<button class="btn" id="oyes">'+I.estrella+' '
-    + (nom?("Quiero saber cuándo llega "+esc(nom)):"Quiero saber cuándo")+'</button>'
+    +'<div class="oprecio">'
+      +'<div class="opl">Pago único, en pesos</div>'
+      +'<div class="opn">'+miles(PACK.precio)+'<i>'+PACK.moneda+'</i></div>'
+      +'<div class="opa">El retrato salió '+plata(PACK.ancla)+'. Este sale menos.</div>'
+    +'</div>'
+    +'<button class="btn obig" id="oyes">'
+      +'<span>'+(nom?("Quiero saber cuándo llega "+quien):"Quiero saber cuándo")+'</span>'
+      +'<i>'+plata(PACK.precio)+'</i></button>'
     +'<button class="olink" id="ono">Ahora no, me quedo con el retrato</button>'
-    +'<p class="onota">Noctra es contenido interpretativo, con fines de entretenimiento.</p>'
+    +'<p class="onota">Un solo pago de '+plata(PACK.precio)+'. No es suscripción: no hay renovación ni cobros después.<br>'
+    +'Noctra es contenido interpretativo, con fines de entretenimiento.</p>'
     +'</div>';
   document.body.appendChild(d);
   requestAnimationFrame(function(){ d.classList.add("on"); });
@@ -145,11 +171,15 @@ function abrir(nom, ciudad){
    vez que entra vende más que cualquier recordatorio. */
 function tarjeta(nom){
   if(comprada()) return "";
+  var quien=nom?esc(nom):null;
   return '<div class="card otar">'
-    +'<div class="lab" style="color:var(--oro)">'+PACK.nombre+'</div>'
-    +'<p style="margin:8px 0 12px">'+(nom?("Ya sabés quién es y cómo se llama. Falta cuándo, dónde, y cómo vas a reconocer a "+esc(nom)+" el día que pase."):"Ya sabés quién es. Falta cuándo, dónde y cómo vas a reconocerlo.")+'</p>'
-    +'<button class="btn" data-act="oferta" style="margin:0">'+I.estrella+' Ver qué incluye</button></div>';
+    +'<div class="otag">'+I.candado+' Falta una cosa</div>'
+    +'<div class="oth">'+(quien?("¿Cuándo llega "+quien+"?"):"¿Cuándo llega?")+'</div>'
+    +'<p class="otp">'+(quien?("Tenés su cara y su nombre. Falta el día, el lugar, y cómo vas a reconocer a "+quien+" cuando lo tengas enfrente."):"Tenés su cara y su nombre. Falta el día, el lugar y cómo vas a reconocerlo.")+'</p>'
+    +'<div class="otf"><span class="otpre">'+miles(PACK.precio)+'</span><span class="otu">'+PACK.moneda+' · pago único</span></div>'
+    +'<button class="btn obig" data-act="oferta" style="margin:12px 0 0">'
+      +'<span>Ver '+esc(PACK.nombre)+'</span><i>'+plata(PACK.precio)+'</i></button></div>';
 }
 
-window.NOCTRA_OFERTA={ abrir:abrir, tarjeta:tarjeta, pack:PACK, checkout:function(u){ CHECKOUT=u||CHECKOUT; return CHECKOUT; } };
+window.NOCTRA_OFERTA={ abrir:abrir, tarjeta:tarjeta, pack:PACK, plata:plata, miles:miles, checkout:function(u){ CHECKOUT=u||CHECKOUT; return CHECKOUT; } };
 })();
