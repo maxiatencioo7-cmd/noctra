@@ -137,7 +137,13 @@ function vRetrato(){
       <button class="pill" data-act="revivir">${I.estrella} Ver el revelado</button>
     </div>
   </div>
-  ${window.NOCTRA_OFERTA&&D.revelado?`<div class="sep"></div>${window.NOCTRA_OFERTA.tarjeta(NOMBRE)}`:""}
+  ${D.revelado?(abierto()
+    ? `<div class="sep"></div><div class="card otar abierta">
+        <div class="otag">${I.abierto} Tu pack</div>
+        <div class="oth">Cuándo, Dónde y Cómo</div>
+        <p class="otp">La ventana, el lugar, el mapa de ${ciudad()?esc(ciudad()):"tu ciudad"}, la señal y por qué vos. Ya está desbloqueado.</p>
+        <button class="btn obig" data-act="verPlan" style="margin:12px 0 0"><span>Abrir el pack</span></button></div>`
+    : (window.NOCTRA_OFERTA?`<div class="sep"></div>${window.NOCTRA_OFERTA.tarjeta(NOMBRE)}`:"")):""}
   <div class="sep"></div>
   <div class="lab" style="margin:0 0 10px">De dónde salió cada rasgo</div>
   ${tarjetasDato()}
@@ -218,13 +224,15 @@ function vLectura(){
 function postLectura(){}
 
 /* ================= 3. ENCUENTRO ================= */
-let segEnc="ventanas";
+/* Arranca en el pack: cerrado es la pantalla de venta, abierto es lo que
+   compró. En los dos casos es lo primero que tiene que ver acá. */
+let segEnc="plan";
 function vEncuentro(){
   return `<h1 style="margin:0 0 14px">Encuentro</h1>
   <div class="scroll-x" style="margin-bottom:16px">
-    ${[["ventanas","Ventanas"],["compat","Compatibilidad"],["rituales","Rituales"]].map(([k,n])=>`<button class="pill ${segEnc===k?"on":""}" data-act="seg" data-id="${k}">${n}</button>`).join("")}
+    ${[["plan","Cuándo y dónde"],["ventanas","Ventanas"],["compat","Compatibilidad"],["rituales","Rituales"]].map(([k,n])=>`<button class="pill ${segEnc===k?"on":""}" data-act="seg" data-id="${k}">${k==="plan"&&!abierto()?I.candado+" ":""}${n}</button>`).join("")}
   </div>
-  ${segEnc==="ventanas"?encVentanas():segEnc==="compat"?encCompat():encRituales()}`;
+  ${segEnc==="plan"?encPlan():segEnc==="ventanas"?encVentanas():segEnc==="compat"?encCompat():encRituales()}`;
 }
 function encVentanas(){
   const vs=AS.ventanas(SIGNO), base=hoy();
@@ -265,6 +273,157 @@ function encRituales(){
         <span style="color:${hecho?"var(--ok)":"var(--tx2)"};display:flex">${hecho?I.check:I.atras.replace('d="M14.6 5.4 8 12l6.6 6.6"','d="M9.4 5.4 16 12l-6.6 6.6"')}</span>
       </div></div>`;}).join("")}`;
 }
+
+/* ---------- Cuándo, Dónde y Cómo ----------
+   El contenido del pack. Quién lo puede ver lo decide el servidor
+   (js/acceso.js → /api/acceso), nunca esta pantalla: acá sólo se pinta.
+   El contenido lo arma js/plan.js con las mismas respuestas que dieron el
+   retrato, así no puede contradecir a la lectura. */
+function abierto(){ return !!(window.NOCTRA_ACCESO && window.NOCTRA_ACCESO.abierto()); }
+function ciudad(){ return (window.NOCTRA_ACCESO && window.NOCTRA_ACCESO.ciudad()) || P.ciudad || ""; }
+let PLAN=null, mostradoPack=false;
+function plan(){
+  if(!window.NOCTRA_PLAN) return null;
+  /* se recalcula si cambió la ciudad: la tercera sección depende de ella */
+  if(PLAN && PLAN._c===ciudad()) return PLAN;
+  PLAN=window.NOCTRA_PLAN.generar(P, ciudad(), NOMBRE, hoy());
+  PLAN._c=ciudad();
+  return PLAN;
+}
+const rango=(a,b)=>window.NOCTRA_PLAN.dia(a)+" al "+window.NOCTRA_PLAN.dia(b);
+
+function planCerrado(){
+  const n=NOMBRE?esc(NOMBRE):null;
+  const O=window.NOCTRA_OFERTA;
+  const pk=(O&&O.pack)||{nombre:"Cuándo, Dónde y Cómo",precio:7790,moneda:"ARS"};
+  /* el precio y la moneda salen de un solo lado (js/oferta.js): si mañana
+     cambian, no hay que acordarse de tocarlos acá también */
+  const pl=v=>O&&O.plata?O.plata(v):("$"+String(v).replace(/\B(?=(\d{3})+(?!\d))/g,".")+" ARS");
+  const pm=v=>O&&O.miles?O.miles(v):("$"+String(v).replace(/\B(?=(\d{3})+(?!\d))/g,"."));
+  /* lleva también .otar para heredar la tipografía y el precio de la
+     tarjeta de venta del retrato: es el mismo objeto, en otro lugar */
+  return `<div class="card otar plcerr">
+    <div class="otag">${I.candado} Cerrado</div>
+    <div class="oth" style="margin:8px 0 6px">${n?"¿Cuándo llega "+n+"?":"¿Cuándo llega?"}</div>
+    <p class="otp">Las ventanas de arriba te dicen en qué meses estás más en circulación. Esto es otra cosa: el rango exacto${n?" en que se cruzan con "+n:""}, en qué clase de lugar, sobre el mapa de ${ciudad()?esc(ciudad()):"tu ciudad"}, cómo reconocerlo y qué tenés que estar haciendo antes.</p>
+    <div class="otf"><span class="otpre">${pm(pk.precio)}</span><span class="otu">${esc(pk.moneda||"ARS")} · pago único</span></div>
+    <button class="btn obig" data-act="oferta" style="margin:12px 0 0"><span>Ver ${esc(pk.nombre)}</span><i>${pl(pk.precio)}</i></button>
+    <button class="olink" data-act="desbloquear" style="margin:10px 0 0">Ya lo compré — desbloquear</button>
+  </div>`;
+}
+
+function planSeccion(n,ic,tit,cuerpo){
+  return `<div class="card plsec">
+    <div class="plh"><span class="plnum">${n}</span><span class="plic">${ic}</span><b>${esc(tit)}</b></div>
+    ${cuerpo}</div>`;
+}
+function encPlan(){
+  if(!abierto()) return planCerrado();
+  const L=plan();
+  if(!L||!L.fecha) return `<div class="vacio">${I.cal}<p class="small">No pude armar el plan. Volvé a entrar en un rato.</p></div>`;
+  const F=L.fecha, LU=L.lugar, MA=L.mapa, SE=L.senal, VO=L.vos;
+  const n=NOMBRE?esc(NOMBRE):"";
+  const q=n||"esa persona";
+
+  return `<div class="plcab">
+    <div class="lab" style="color:var(--oro)">${I.abierto} Tu pack · desbloqueado</div>
+    <h2 style="margin:6px 0 6px">Cuándo, Dónde y Cómo</h2>
+    <p class="small muted" style="margin:0">Armado con las mismas respuestas que dieron el retrato. No cambia entre visitas: es tuyo y es siempre el mismo.</p>
+  </div>
+
+  <div class="plfilas">
+    <div><span class="lab">Ventana</span><b>${esc(window.NOCTRA_PLAN.diaCorto(F.desde))} — ${esc(window.NOCTRA_PLAN.diaCorto(F.hasta))}</b></div>
+    <div><span class="lab">Día</span><b>${esc(LU.dia)}</b></div>
+    <div><span class="lab">Zona</span><b>${MA.ciudad?esc(MA.ciudad):"—"}</b></div>
+  </div>
+
+  ${planSeccion(1,I.cal,"La fecha",`
+    <div class="plgran">${esc(rango(F.desde,F.hasta))}</div>
+    <p class="small muted" style="margin:0 0 12px">${F.dentro?("Ya está abierta"+(F.quedan>0?": te quedan "+F.quedan+" días.":" y cierra hoy.")):("Faltan "+F.faltan+" días para que abra.")} ${esc(F.motivo)}</p>
+    <div class="plpaso"><span>${I.estrella}</span><div><b>El día de más peso</b><small>${esc(window.NOCTRA_PLAN.dia(F.pico))} — ${esc(F.fase)}. Si tenés que elegir un solo día para salir de tu casa, es ese.</small></div></div>
+    <div class="plpaso"><span>${I.reloj}</span><div><b>${F.dentro?"Estás adentro":"La antesala"}</b><small>${F.dentro
+      ?"La ventana ya arrancó, así que la preparación se hace sobre la marcha: los tres movimientos de la sección 2 son para esta semana, no para más adelante."
+      :"Desde el "+esc(window.NOCTRA_PLAN.dia(F.antesala))+". Lo que pase en la ventana depende casi todo de lo que hayas movido en estas dos semanas previas: son las que hay que usar."}</small></div></div>
+    ${F.otras.length?`<div class="plotras"><div class="lab">Si esta se pasa</div>
+      ${F.otras.map(o=>`<div class="small"><b style="color:var(--oro)">${esc(rango(o.desde,o.hasta))}</b> — Sol en ${esc(o.signo)}${o.fuerza===3?" · fuerte":""}</div>`).join("")}</div>`:""}
+    <p class="plnota">Una ventana no promete a nadie: marca el tramo en que es más probable que estés disponible y en circulación. Lo que la vuelve verdad es que salgas.</p>`)}
+
+  ${planSeccion(2,I.encuentro,"El lugar",`
+    <p style="margin:0 0 12px">Va a pasar <b>${esc(LU.clase)}</b>, con ${esc(LU.situacion)}.</p>
+    <div class="lab">Los tres más probables</div>
+    <ul class="pllista">${LU.sitios.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+    <div class="plpaso"><span>${I.reloj}</span><div><b>${esc(LU.dia.charAt(0).toUpperCase()+LU.dia.slice(1))}, ${esc(LU.franja)}</b><small>${esc(LU.horas)}. Es la franja que te corresponde por elemento, y la que menos se superpone con tus obligaciones.</small></div></div>
+    <div class="lab" style="margin:16px 0 8px">Qué tenés que estar haciendo</div>
+    ${LU.haciendo.map((x,i)=>`<div class="plpaso"><span class="pln">${i+1}</span><div><small>${esc(x)}</small></div></div>`).join("")}
+    <p class="plnota">${I.info} <b>Lo que lo bloquea:</b> ${esc(LU.evitar)}</p>`)}
+
+  ${planSeccion(3,I.brujula,MA.ciudad?("En "+MA.ciudad):"En tu ciudad",`
+    <p style="margin:0 0 12px">Leído sobre tu mapa: el rumbo que te corresponde por elemento (${esc(MA.elemento)}) es el <b>${esc(MA.rumbo)}</b> — ${esc(MA.rumboNota)} — y el radio donde se concentra es de unas <b>${MA.radio} cuadras</b> alrededor de donde hacés tu vida.</p>
+    <div class="lab">Los tres puntos del radio</div>
+    ${MA.zonas.map((z,i)=>`<div class="plpaso"><span class="pln">${i+1}</span><div><b>${esc(z[0])}</b><small>${esc(z[1])}</small></div></div>`).join("")}
+    <p class="plnota">${esc(MA.nota)}</p>
+    ${MA.ciudad?`<button class="pill" data-act="ciudadPlan" style="margin:10px 0 0">Cambiar la ciudad</button>`:`<button class="btn ghost" data-act="ciudadPlan" style="margin:10px 0 0">${I.mas} Cargar mi ciudad</button>`}`)}
+
+  ${planSeccion(4,I.ojo,"La señal",`
+    <p style="margin:0 0 12px">Para reconocer a ${esc(q)} cuando lo tengas enfrente, y no dejarlo pasar.</p>
+    <div class="lab">Lo que vas a ver primero</div>
+    ${SE.fisicas.map(x=>`<div class="plpaso"><span>${I.ojo}</span><div><small>${esc(x)}</small></div></div>`).join("")}
+    <div class="lab" style="margin:16px 0 8px">Lo que vas a notar después</div>
+    ${SE.gestos.map(x=>`<div class="plpaso"><span>${I.corazon}</span><div><small>${esc(x)}</small></div></div>`).join("")}
+    <div class="plpaso" style="margin-top:16px"><span>${I.estrella}</span><div><b>Cómo va a pasar</b><small>${esc(SE.circunstancia)}</small></div></div>
+    <p class="plnota">${I.info} <b>Lo que NO es ${esc(q)}:</b> ${esc(SE.noEs)}</p>`)}
+
+  ${planSeccion(5,I.corazon,"Por qué vos",`
+    <p style="margin:0 0 12px">Lo que ya tenés y te vuelve inconfundible${n?" para "+n:""}. Sale de lo que contestaste, no de un molde.</p>
+    ${VO.tenes.map(x=>`<div class="plpaso"><span>${I.check}</span><div><small>${esc(x)}</small></div></div>`).join("")}
+    <div class="lab" style="margin:16px 0 8px">Tres cosas para hacer en la antesala</div>
+    ${VO.hacer.map((x,i)=>`<div class="plpaso"><span class="pln">${i+1}</span><div><small>${esc(x)}</small></div></div>`).join("")}
+    <div class="plsoltar"><b>${esc(VO.soltar[0])}</b><small>${esc(VO.soltar[1])}</small></div>
+    <p class="plnota">${esc(VO.cierre)}</p>`)}
+
+  <p class="small muted center" style="margin:18px 0 4px">Contenido interpretativo, con fines de entretenimiento. Ninguna de las cinco secciones requiere creer en nada: todas se pueden ejecutar.</p>`;
+}
+
+/* Para el que compró desde otro teléfono o borró los datos del sitio. */
+function hojaDesbloquear(){
+  U.hoja(`<h2 style="margin:0 0 6px">Desbloquear el pack</h2>
+  <p class="small muted">Si ya lo compraste y no se abrió solo, es porque lo pagaste desde otro teléfono o se borraron los datos del sitio. Poné el mail con el que pagaste y el número de pedido (está en el mail de confirmación, arriba de todo, con forma de <b>#1234</b>).</p>
+  <label class="lab">Mail de la compra</label>
+  <input id="dsmail" type="email" inputmode="email" autocomplete="email" placeholder="tumail@ejemplo.com">
+  <label class="lab" style="margin-top:12px">Número de pedido</label>
+  <input id="dsorden" type="text" inputmode="numeric" placeholder="#1234">
+  <div id="dsmsg" class="small" style="margin:12px 0 0;min-height:18px"></div>
+  <button class="btn" id="dsok" style="margin:12px 0 8px">${I.candado} Desbloquear</button>
+  <button class="btn ghost" data-cerrar>Cerrar</button>`);
+  const msg=$("#dsmsg"), b=$("#dsok");
+  b.onclick=()=>{
+    const e=($("#dsmail").value||"").trim(), o=($("#dsorden").value||"").trim();
+    if(!e||!o){ msg.style.color="var(--tx2)"; msg.textContent="Me faltan los dos datos."; return; }
+    b.disabled=true; msg.style.color="var(--tx2)"; msg.textContent="Buscando el pedido…";
+    window.NOCTRA_ACCESO.manual(e,o,(ok,j)=>{
+      b.disabled=false;
+      if(ok){ U.cerrarHoja&&U.cerrarHoja(); segEnc="plan"; ir("encuentro"); U.toast("Listo, el pack está abierto"); return; }
+      msg.style.color="var(--tx2)";
+      msg.textContent=(j&&j.motivo==="sin_token")
+        ? "No puedo verificar compras en este momento. Escribinos y lo abrimos a mano."
+        : "No encontré un pedido pagado con esos datos. Revisá el mail y el número, o escribinos.";
+    });
+  };
+}
+/* La ciudad la puede corregir a mano: la IP falla seguido en datos móviles. */
+function hojaCiudad(){
+  U.hoja(`<h2 style="margin:0 0 6px">Tu ciudad</h2>
+  <p class="small muted">La uso para la tercera sección del plan. La leí de tu conexión${ciudad()?' y me dio "'+esc(ciudad())+'"':", pero no pude"}. Si no es donde hacés tu vida, corregila: el rumbo y el radio se recalculan.</p>
+  <input id="ciu" type="text" placeholder="Rosario" value="${esc(D.ciudadManual||"")}">
+  <button class="btn" id="ciuok" style="margin:14px 0 8px">Guardar</button>
+  <button class="btn ghost" data-cerrar>Cerrar</button>`);
+  $("#ciuok").onclick=()=>{
+    D.ciudadManual=($("#ciu").value||"").trim().slice(0,60);
+    guardar(); PLAN=null; U.cerrarHoja&&U.cerrarHoja(); pintar();
+    U.toast(D.ciudadManual?"Listo, recalculado sobre "+D.ciudadManual:"Vuelvo a usar la de tu conexión");
+  };
+}
+
 function postEncuentro(){}
 
 /* ================= 4. DIARIO ================= */
@@ -365,7 +524,10 @@ function acciones(act,b,e){
     case "pdf": return armarPDF();
     case "senales": return hojaSenales();
     case "natal": return hojaNatal();
-    case "oferta": return window.NOCTRA_OFERTA&&window.NOCTRA_OFERTA.abrir(NOMBRE,P.ciudad);
+    case "oferta": return window.NOCTRA_OFERTA&&window.NOCTRA_OFERTA.abrir(NOMBRE,ciudad());
+    case "verPlan": segEnc="plan"; return ir("encuentro");
+    case "desbloquear": return hojaDesbloquear();
+    case "ciudadPlan": return hojaCiudad();
     case "ampliar": return hojaImagen(RETRATO);
     case "revivir": return revelado(true);
     case "descargar": return descargarRetrato();
@@ -789,9 +951,9 @@ function revelado(revisita,auto){
         setTimeout(()=>{
           if(document.getElementById("revelado")){
             D.ofertaVista=true; guardar();
-            window.NOCTRA_OFERTA.abrir(NOMBRE, P.ciudad);
+            window.NOCTRA_OFERTA.abrir(NOMBRE, ciudad());
           }
-        },5200);
+        },4500);
       }
     },3100);
   };
@@ -868,6 +1030,15 @@ function primeraVez(){
 function arrancar(){
   U.cielo($("#cielo"));
   pintar();
+  /* Cuando el servidor confirma la compra —al volver del checkout, o al
+     abrir la app en otro teléfono— la pantalla se rehace sola. Es lo que
+     hace que el que pagó no tenga que tocar nada. */
+  if(window.NOCTRA_ACCESO) window.NOCTRA_ACCESO.alCambiar(cambio=>{
+    if(!cambio) return;
+    const recien = D.segundoTrazo && !mostradoPack;
+    PLAN=null; pintar();
+    if(recien){ mostradoPack=true; U.toast("Tu pack está listo en Encuentro"); }
+  });
   if(!D.revelado && !DT.esDemo) setTimeout(primeraVez,220);
   setTimeout(revisarAvisos,1200);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)revisarAvisos();});
