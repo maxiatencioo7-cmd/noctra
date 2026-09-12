@@ -137,6 +137,7 @@ function vRetrato(){
       <button class="pill" data-act="revivir">${I.estrella} Ver el revelado</button>
     </div>
   </div>
+  ${window.NOCTRA_OFERTA&&D.revelado?`<div class="sep"></div>${window.NOCTRA_OFERTA.tarjeta(NOMBRE)}`:""}
   <div class="sep"></div>
   <div class="lab" style="margin:0 0 10px">De dónde salió cada rasgo</div>
   ${tarjetasDato()}
@@ -364,6 +365,7 @@ function acciones(act,b,e){
     case "pdf": return armarPDF();
     case "senales": return hojaSenales();
     case "natal": return hojaNatal();
+    case "oferta": return window.NOCTRA_OFERTA&&window.NOCTRA_OFERTA.abrir(NOMBRE,P.ciudad);
     case "ampliar": return hojaImagen(RETRATO);
     case "revivir": return revelado(true);
     case "descargar": return descargarRetrato();
@@ -780,6 +782,17 @@ function revelado(revisita,auto){
       U.chispas(2400);
       const a=$("#racts",d);a.style.display="block";a.classList.add("enter");
       if(!revisita){D.revelado=true;fijarNombre();guardar();}
+      /* El Segundo Trazo. Entra unos segundos después de los botones, no
+         encima: primero que se quede con lo que compró, después le
+         ofrecemos lo que sigue. Sólo la primera vez y sólo si no lo compró. */
+      if(!revisita && window.NOCTRA_OFERTA && !D.segundoTrazo && !D.ofertaVista){
+        setTimeout(()=>{
+          if(document.getElementById("revelado")){
+            D.ofertaVista=true; guardar();
+            window.NOCTRA_OFERTA.abrir(NOMBRE, P.ciudad);
+          }
+        },5200);
+      }
     },3100);
   };
   const brev=$("#rev",d);
