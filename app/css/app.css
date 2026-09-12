@@ -127,15 +127,22 @@ label.f>span{display:block;margin:0 0 7px}
    app, tiene que parecer la continuación de lo que acaba de pasar. */
 #oferta{position:fixed;inset:0;z-index:96;overflow:auto;-webkit-overflow-scrolling:touch;
   background:radial-gradient(120% 70% at 50% 0%,#161F45 0%,#090D1C 55%,#04060D 100%);
-  opacity:0;transform:translateY(18px);transition:opacity .38s var(--ease),transform .38s var(--ease)}
-#oferta.on{opacity:1;transform:translateY(0)}
+  transform:translateY(100%);transition:transform .62s cubic-bezier(.16,.84,.28,1);
+  box-shadow:0 -24px 70px rgba(0,0,0,.6)}
+#oferta.on{transform:translateY(0)}
+@media (prefers-reduced-motion:reduce){ #oferta{transition:none} }
 #oferta .ow{max-width:460px;margin:0 auto;padding:calc(40px + env(safe-area-inset-top)) 22px calc(34px + env(safe-area-inset-bottom))}
 #oferta .olab{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--oro);
   font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin:0 0 14px}
 #oferta .olab svg{width:15px;height:15px}
-#oferta h1{text-align:center;font-size:34px;line-height:40px;color:var(--oro);margin:0 0 10px}
-#oferta .osub{text-align:center;color:var(--tx2);margin:0 0 26px;font-size:15px;line-height:23px}
-#oferta .olista{margin:0 0 22px}
+#oferta h1{text-align:center;font-size:31px;line-height:38px;color:var(--tx);margin:0 0 10px}
+#oferta h1 em{font-style:normal;color:var(--oro)}
+#oferta .osub{text-align:center;color:var(--tx2);margin:0 0 20px;font-size:15px;line-height:23px}
+/* el nombre del pack, como una placa: separa la promesa del producto */
+#oferta .opack{text-align:center;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  font-weight:700;color:var(--oro);padding:9px 0;margin:0 0 18px;
+  border-top:1px solid rgba(245,214,123,.2);border-bottom:1px solid rgba(245,214,123,.2)}
+#oferta .olista{margin:0 0 18px}
 #oferta .oit{display:flex;gap:13px;align-items:flex-start;padding:14px 15px;margin:0 0 9px;
   border-radius:var(--r);background:var(--card);border:1px solid var(--linea);
   opacity:0;transform:translateY(10px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
@@ -148,10 +155,38 @@ label.f>span{display:block;margin:0 0 7px}
   border-radius:var(--r);border:1px dashed rgba(245,214,123,.34);background:rgba(245,214,123,.06)}
 #oferta .osel{flex:0 0 26px;color:var(--oro);display:flex}
 #oferta .osobre p{margin:0;font-size:14px;line-height:21px;color:#EDE2C6}
+/* el precio. Va antes del botón y no adentro de una tarjeta cualquiera:
+   es la objeción que queda por resolver, así que se muestra de frente. */
+#oferta .oprecio{text-align:center;margin:0 0 18px;padding:18px 14px;border-radius:var(--r);
+  background:linear-gradient(180deg,rgba(245,214,123,.11),rgba(245,214,123,.03));
+  border:1px solid rgba(245,214,123,.3)}
+#oferta .opl{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--tx2)}
+#oferta .opn{font-family:"Fraunces","Iowan Old Style",Georgia,serif;font-weight:700;
+  font-size:46px;line-height:54px;color:var(--oro);margin:2px 0 4px;letter-spacing:-.02em}
+#oferta .opa{font-size:13px;line-height:20px;color:var(--tx2)}
+/* botón con el precio adentro: saca la duda de "cuánto sale" del medio */
+.btn.obig{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:16px 18px;font-size:15px;line-height:20px;text-align:left}
+.btn.obig span{flex:1}
+.btn.obig i{font-style:normal;font-weight:700;font-size:15px;padding:5px 11px;border-radius:var(--r-pill);
+  background:rgba(20,16,7,.16);white-space:nowrap}
 #oferta .olink{display:block;width:100%;margin:14px 0 0;background:none;border:0;
   color:var(--tx2);font-size:14px;text-decoration:underline;cursor:pointer;font-family:inherit}
 #oferta .onota{text-align:center;color:var(--tx2);font-size:11px;line-height:17px;margin:22px 0 0;opacity:.75}
-.otar{border-color:rgba(245,214,123,.24);background:linear-gradient(180deg,rgba(245,214,123,.08),rgba(255,255,255,.035))}
+/* la tarjeta que queda en la pestaña Retrato. Tiene que cortar la página:
+   es lo único que vende cuando la persona vuelve una semana después. */
+.otar{border-color:rgba(245,214,123,.4);
+  background:linear-gradient(180deg,rgba(245,214,123,.13),rgba(245,214,123,.03));
+  box-shadow:0 0 0 1px rgba(245,214,123,.08),0 14px 40px rgba(0,0,0,.35)}
+.otar .otag{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;font-weight:700;color:var(--oro);margin:0 0 9px}
+.otar .otag svg{width:14px;height:14px}
+.otar .oth{font-family:"Fraunces","Iowan Old Style",Georgia,serif;font-weight:700;
+  font-size:25px;line-height:31px;color:var(--tx);margin:0 0 8px}
+.otar .otp{margin:0 0 13px;font-size:14px;line-height:21px;color:var(--tx2)}
+.otar .otf{display:flex;align-items:baseline;gap:8px}
+.otar .otpre{font-family:"Fraunces",Georgia,serif;font-weight:700;font-size:28px;color:var(--oro)}
+.otar .otu{font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--tx2)}
 @media (min-width:430px){ #oferta h1{font-size:38px;line-height:44px} }
 
 /* el nombre del retrato: entra solo, después de las etiquetas */
@@ -336,4 +371,79 @@ label.f>span{display:block;margin:0 0 7px}
   #dibujo,#dibujo .drevelar{animation:none}
   #dibujo .dneb,#dibujo .dbarrido{animation:none}
   #dibujo .dfrase{transition:none;opacity:1;transform:none}
+}
+
+/* ---------- Cuándo, Dónde y Cómo: el pack adentro de Encuentro ---------- */
+/* Cerrado: la misma tarjeta de venta, con la salida para el que ya compró
+   y no se le abrió solo. */
+.plcerr .olink{display:block;width:100%;background:none;border:0;color:var(--tx2);
+  font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;
+  padding:8px 0;cursor:pointer}
+.otar.abierta{border-color:rgba(123,216,164,.34);
+  background:linear-gradient(165deg,rgba(123,216,164,.1),rgba(255,255,255,.035) 60%)}
+.otar.abierta .otag{color:var(--ok)}
+
+/* Abierto */
+.plcab{margin:0 0 16px}
+.plcab .lab{display:flex;align-items:center;gap:6px}
+.plcab .lab svg{width:14px;height:14px}
+.plcab h2{font-family:"Fraunces","Iowan Old Style",Georgia,serif;font-weight:700;
+  font-size:27px;line-height:32px;color:var(--tx)}
+
+/* La tira de arriba: lo que quiere ver de un vistazo cada vez que entra. */
+.plfilas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 18px}
+.plfilas>div{padding:11px 10px;border:1px solid var(--linea);border-radius:14px;
+  background:var(--card);min-width:0}
+.plfilas .lab{display:block;margin:0 0 4px}
+.plfilas b{display:block;font-size:13px;line-height:17px;color:var(--oro);
+  overflow-wrap:anywhere}
+
+.plsec{margin:0 0 14px}
+.plh{display:flex;align-items:center;gap:9px;margin:0 0 12px}
+.plh b{font-family:"Fraunces",Georgia,serif;font-weight:700;font-size:19px;
+  line-height:24px;flex:1;min-width:0}
+.plnum{flex:0 0 24px;width:24px;height:24px;border-radius:50%;
+  border:1px solid rgba(245,214,123,.42);color:var(--oro);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700}
+.plic{display:flex;color:var(--oro)}
+.plic svg{width:18px;height:18px}
+
+.plgran{font-family:"Fraunces",Georgia,serif;font-weight:700;font-size:24px;
+  line-height:29px;color:var(--oro);margin:0 0 6px}
+
+/* Un paso: ícono o número a la izquierda, texto a la derecha. Se repite en
+   las cinco secciones para que todo el pack se lea igual. */
+.plpaso{display:flex;gap:11px;align-items:flex-start;padding:9px 0;
+  border-top:1px solid var(--linea)}
+.plpaso:first-of-type{border-top:0}
+.plpaso>span{flex:0 0 22px;display:flex;justify-content:center;color:var(--oro);
+  margin-top:1px}
+.plpaso>span svg{width:17px;height:17px}
+.plpaso .pln{width:22px;height:22px;border-radius:50%;background:rgba(245,214,123,.14);
+  align-items:center;font-size:11px;font-weight:700;margin-top:0}
+.plpaso b{display:block;font-size:14px;margin:0 0 3px}
+.plpaso small{display:block;font-size:13.5px;line-height:20px;color:var(--tx2)}
+
+.pllista{margin:8px 0 14px;padding:0 0 0 18px}
+.pllista li{font-size:14px;line-height:21px;margin:0 0 6px}
+.pllista li::marker{color:var(--oro)}
+
+.plotras{margin:14px 0 0;padding:12px 13px;border-radius:14px;
+  border:1px solid var(--linea);background:rgba(255,255,255,.03)}
+.plotras .small{margin:6px 0 0}
+
+.plsoltar{margin:16px 0 0;padding:13px 14px;border-radius:14px;
+  border:1px solid rgba(240,138,138,.26);background:rgba(240,138,138,.07)}
+.plsoltar b{display:block;font-size:14.5px;margin:0 0 5px;color:var(--tx)}
+.plsoltar small{display:block;font-size:13.5px;line-height:20px;color:var(--tx2)}
+
+.plnota{margin:14px 0 0;padding:11px 12px;border-radius:12px;
+  background:rgba(255,255,255,.035);border:1px solid var(--linea);
+  font-size:12.5px;line-height:19px;color:var(--tx2)}
+.plnota svg{width:14px;height:14px;vertical-align:-2px;margin-right:3px;color:var(--oro)}
+
+@media (max-width:360px){
+  .plfilas{grid-template-columns:1fr 1fr}
+  .plfilas>div:last-child{grid-column:1/-1}
 }
