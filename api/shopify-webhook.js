@@ -172,6 +172,54 @@ function sourceUrl(order) {
   return process.env.SITE_URL || 'https://noctrastral.online';
 }
 
+/* ¿Es una compra del upsell de adentro de la app?
+ *
+ * Importa para no contar dos veces al mismo comprador. La persona entra por
+ * un anuncio, compra el retrato, y despues compra el upsell desde la app. Esa
+ * segunda compra arrastra el mismo fbc/fbp/utm del click original —viaja asi a
+ * proposito, para poder medir cuanta plata genera cada anuncio—, pero si se
+ * manda como "Purchase" el anuncio muestra DOS ventas por UNA sola persona.
+ * El costo por compra se lee a la mitad de lo que es y las decisiones de
+ * presupuesto salen mal.
+ *
+ * Solucion: el upsell va como evento propio. Sigue llegando con la atribucion,
+ * asi que en el Administrador de Eventos se ve cuanta plata de upsell trajo
+ * cada campana, pero no suma en la columna "Compras". */
+function esUpsell(order) {
+  return attr(order, 'origen') === 'upsell_app';
+}
+
+/* Lo que realmente compro, para no rotular todo como "Retrato Noctra". */
+function nombreProductos(order) {
+  const items = order.line_items || [];
+  const ns = items.map((li) => (li && li.title) || '').filter(Boolean);
+  return ns.length ? ns.join(' + ') : 'Retrato Noctra';
+}
+
+/* ─── normalizacion para el match de Meta ──────────────────────────── */
+/* Meta cruza estos campos hasheados contra su base para saber a quien
+   pertenece la compra. Cuanto mas manda uno, mas ventas logra atribuir
+   cuando la cookie del navegador no llego —que es la mitad del problema en
+   iPhone—. Tienen que ir normalizados o el hash no coincide con el suyo. */
+const txtSimple = (v) => String(v || '').trim().toLowerCase();
+const sinEspacios = (v) => txtSimple(v).replace(/[\s.\-_]/g, '');
+function telefono(order) {
+  const crudo = order.phone
+    || (order.customer && order.customer.phone)
+    || (order.billing_address && order.billing_address.phone)
+    || (order.shipping_address && order.shipping_address.phone) || '';
+  let d = String(crudo).replace(/\D/g, '');
+  if (!d) return '';
+  /* Meta pide el numero con codigo de pais y sin el "+". Los argentinos casi
+     siempre lo cargan sin el 54; sin eso el hash no matchea nunca. */
+  const pais = (order.billing_address && order.billing_address.country_code)
+    || (order.shipping_address && order.shipping_address.country_code) || '';
+  if (String(pais).toUpperCase() === 'AR' && d.length >= 8 && d.length <= 11 && d.slice(0, 2) !== '54') {
+    d = '54' + d;
+  }
+  return d.length >= 8 ? d : '';
+}
+
 /* ─── Purchase → Meta ──────────────────────────────────────────────── */
 
 async function sendPurchase(order) {
@@ -182,6 +230,7 @@ async function sendPurchase(order) {
   const email = buyerEmail(order);
   const utms = orderUtms(order);
   const ids = metaIds(order, utms);
+  const upsell = esUpsell(order);
   const c = order.customer || {};
   const addr = order.billing_address || order.shipping_address || {};
 
@@ -194,11 +243,23 @@ async function sendPurchase(order) {
     .filter((li) => li && li.product_id != null)
     .map((li) => String(li.product_id));
 
+  /* Mercado Pago obliga a cargar direccion de facturacion, asi que ciudad,
+     provincia y codigo postal estan en TODAS las ordenes. Son justamente las
+     señales que Meta usa para atribuir cuando no le llego la cookie. Es dato
+     que ya estabamos pagando con friccion en el checkout y no usabamos. */
+  const tel = telefono(order);
   const user_data = {
     em: [await sha256(email)],
-    fn: c.first_name ? [await sha256(String(c.first_name).trim().toLowerCase())] : undefined,
-    ln: c.last_name ? [await sha256(String(c.last_name).trim().toLowerCase())] : undefined,
-    country: addr.country_code ? [await sha256(String(addr.country_code).trim().toLowerCase())] : undefined,
+    ph: tel ? [await sha256(tel)] : undefined,
+    fn: c.first_name ? [await sha256(sinEspacios(c.first_name))] : undefined,
+    ln: c.last_name ? [await sha256(sinEspacios(c.last_name))] : undefined,
+    ct: addr.city ? [await sha256(sinEspacios(addr.city))] : undefined,
+    st: (addr.province_code || addr.province)
+      ? [await sha256(sinEspacios(addr.province_code || addr.province))] : undefined,
+    zp: addr.zip ? [await sha256(sinEspacios(addr.zip))] : undefined,
+    country: addr.country_code ? [await sha256(txtSimple(addr.country_code))] : undefined,
+    /* un id estable de la persona ayuda a unir el retrato con su upsell */
+    external_id: c.id ? [await sha256(String(c.id))] : undefined,
     client_ip_address: order.client_details && order.client_details.browser_ip,
     client_user_agent: order.client_details && order.client_details.user_agent,
     fbc: ids.fbc,
@@ -212,7 +273,8 @@ async function sendPurchase(order) {
 
   const payload = {
     data: [{
-      event_name: 'Purchase',
+      /* el upsell NO va como Purchase: ver esUpsell() arriba */
+      event_name: upsell ? 'CompraUpsell' : 'Purchase',
       event_time: eventTime,
       event_id: 'shopify_' + order.id,
       action_source: 'website',
@@ -221,7 +283,7 @@ async function sendPurchase(order) {
       custom_data: {
         value,
         currency,
-        content_name: 'Retrato Noctra',
+        content_name: nombreProductos(order),
         content_type: 'product',
         content_ids: contentIds.length ? contentIds : undefined,
         order_id: String(order.id),
@@ -240,7 +302,9 @@ async function sendPurchase(order) {
       console.error('[shopify] CAPI error', res.status, JSON.stringify(json));
       return { ok: false, error: 'capi_' + res.status };
     }
-    return { ok: true, received: json.events_received, utm_source: utms.utm_source || null, has_fbc: !!ids.fbc, has_fbp: !!ids.fbp };
+    return { ok: true, evento: upsell ? 'CompraUpsell' : 'Purchase', received: json.events_received,
+             utm_source: utms.utm_source || null, has_fbc: !!ids.fbc, has_fbp: !!ids.fbp, has_ph: !!tel,
+             has_ct: !!addr.city, has_zp: !!addr.zip };
   } catch (err) {
     console.error('[shopify] CAPI exception', String(err));
     return { ok: false, error: 'capi_exception' };
@@ -313,6 +377,7 @@ async function sendUtmify(order, status) {
   if (!token) return { utmify: 'sin_token' };
 
   const utms = orderUtms(order);
+  const upsell = esUpsell(order);
   const total = centavos(order.total_price);
 
   /* La comisión del medio de pago no viaja en el webhook. Si cargás
@@ -353,15 +418,29 @@ async function sendUtmify(order, status) {
       quantity: it.quantity || 1,
       priceInCents: centavos(it.price),
     })),
-    trackingParameters: {
-      src: attr(order, 'src') || null,
-      sck: attr(order, 'sck') || null,
-      utm_source: utms.utm_source || null,
-      utm_campaign: utms.utm_campaign || null,
-      utm_medium: utms.utm_medium || null,
-      utm_content: utms.utm_content || null,
-      utm_term: utms.utm_term || null,
-    },
+    /* Atribucion.
+     *
+     * La compra del upsell llega con las utm del anuncio que trajo a esa
+     * persona, porque es la misma persona. Pero el anuncio ya se llevo el
+     * credito de la primera venta: si le sumamos esta, el panel muestra dos
+     * ventas donde hubo un solo comprador, y el costo por venta del anuncio
+     * se lee a la mitad.
+     *
+     * Entonces el upsell entra SIN utm. Sigue estando en el panel general
+     * —la plata es plata y suma a la facturacion del dia— pero no se le
+     * cuelga a ningun anuncio. Queda marcado en "src" para poder filtrarlo. */
+    trackingParameters: upsell
+      ? { src: 'upsell_app', sck: null, utm_source: null, utm_campaign: null,
+          utm_medium: null, utm_content: null, utm_term: null }
+      : {
+          src: attr(order, 'src') || null,
+          sck: attr(order, 'sck') || null,
+          utm_source: utms.utm_source || null,
+          utm_campaign: utms.utm_campaign || null,
+          utm_medium: utms.utm_medium || null,
+          utm_content: utms.utm_content || null,
+          utm_term: utms.utm_term || null,
+        },
     commission: {
       totalPriceInCents: total,
       gatewayFeeInCents: fee,
