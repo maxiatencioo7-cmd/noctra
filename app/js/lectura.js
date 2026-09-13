@@ -107,8 +107,9 @@ function generar(P){
   ].filter(Boolean)});
 
   /* 4 — SEÑALES DEL ENCUENTRO */
-  const vs=A.ventanas(signo);
-  const v0=vs[0];
+  /* la primera que todavia se puede prometer: ventanas() incluye el mes en
+     curso, cuyo bloque arranca el 8 y a mitad de mes ya quedo atras */
+  const v0=A.proximaVentana?A.proximaVentana(signo):A.ventanas(signo)[0];
   const MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
   S.push({id:"senales",titulo:"Señales del encuentro",texto:[
     v0?`Tu próxima ventana fuerte empieza alrededor del ${v0.inicio.getDate()} de ${MESES[v0.inicio.getMonth()]}. ${v0.motivo}`

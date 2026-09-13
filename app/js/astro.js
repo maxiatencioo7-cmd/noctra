@@ -82,6 +82,34 @@ function ventanas(signoSolar,desde){
   return out.slice(0,6);
 }
 
+/* Cuantos dias tiene que faltar, como minimo, para una ventana que se le
+   presenta a la persona como algo que VIENE.
+
+   El bloque de arriba arranca el 8 de cada mes, hoy incluido. Si alguien
+   entra el 13, "tu proxima ventana empieza el 8" es una fecha vencida, y es
+   lo primero que nota. Y aunque no estuviera vencida, prometerle una que
+   arranca en cinco dias es venderle una antesala que ya no puede hacer: el
+   plan mismo le dice que las dos semanas previas son donde se juega casi
+   todo.
+
+   Ojo: esto NO se aplica cuando se mira hacia atras a proposito —el diario
+   cruza entradas viejas contra las ventanas de esos meses—. Para eso esta
+   ventanas() a secas. */
+const MARGEN_VENTANA=14;
+
+function ventanasFuturas(signoSolar,desde,margenDias){
+  const base=desde||new Date();
+  const m=(margenDias==null?MARGEN_VENTANA:margenDias);
+  const piso=new Date(base.getTime()+m*86400000);
+  return ventanas(signoSolar,base).filter(v=>v.inicio>=piso);
+}
+
+/* La primera que se puede prometer. null si no hay ninguna a la vista. */
+function proximaVentana(signoSolar,desde,margenDias){
+  const l=ventanasFuturas(signoSolar,desde,margenDias);
+  return l.length?l[0]:null;
+}
+
 /* Sinastría simple entre dos signos */
 function sinastria(a,b){
   const ia=SIGNOS.indexOf(a), ib=SIGNOS.indexOf(b);
@@ -103,5 +131,5 @@ function sinastria(a,b){
   return {aspecto:aspecto,nota:nota,puntaje:puntaje,elementos:ea+" y "+eb,quimica:compat[ea][eb]};
 }
 
-window.NOCTRA_ASTRO={SIGNOS,signoDe,elementoDe,modoDe,regenteDe,faseLunar,proximaFase,signoLunar,ascendenteAprox,ventanas,sinastria};
+window.NOCTRA_ASTRO={SIGNOS,signoDe,elementoDe,modoDe,regenteDe,faseLunar,proximaFase,signoLunar,ascendenteAprox,ventanas,ventanasFuturas,proximaVentana,MARGEN_VENTANA,sinastria};
 })();

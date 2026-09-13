@@ -73,7 +73,7 @@ function diaCorto(d){ return d.getDate()+" "+MES[d.getMonth()].slice(0,3); }
    arranca en cinco dias es venderle una antesala que ya no puede hacer.
    Y una que ya arranco es peor todavia: lee una fecha vencida el dia que
    pago. */
-var MARGEN_DIAS=14;
+var MARGEN_DIAS=(A&&A.MARGEN_VENTANA)||14;
 
 function laFecha(P,ahora,fijada){
   var f=P.fecha||{d:15,m:6,y:1992};

@@ -240,14 +240,28 @@ function vEncuentro(){
 }
 function encVentanas(){
   const vs=AS.ventanas(SIGNO), base=hoy();
+  /* Una ventana cuyo bloque ya arranco no se ofrece como algo que viene: o
+     esta en curso, o se paso. Prometerle "del 8 al 24" el dia 20 es darle
+     una fecha que ya no puede usar, y es lo primero que nota. */
+  const piso=new Date(base.getTime()+((AS.MARGEN_VENTANA||14)*86400000));
+  const estado=(v)=> v.inicio>=piso ? "" : (base<=v.fin ? "curso" : "pasada");
   const mapa={}; vs.forEach(v=>{mapa[v.inicio.getFullYear()+"-"+v.inicio.getMonth()]=v;});
   let out=`<p class="muted small" style="margin:0 0 16px">Los próximos doce meses según tu carta. Una ventana no promete a nadie: marca los tramos en que es más probable que estés disponible y en circulación.</p>`;
   for(let k=0;k<12;k++){
     const m=new Date(base.getFullYear(),base.getMonth()+k,1);
     const v=mapa[m.getFullYear()+"-"+m.getMonth()];
-    out+=`<div class="mes ${v?"tiene":"vacio-mes"}" ${v?`data-act="ventana" data-id="${k}"`:""}>
-      <div class="mh"><b>${MESES[m.getMonth()]} ${m.getFullYear()}</b>${v?`<span class="tag oro">${v.fuerza===3?"ventana fuerte":"ventana"}</span>`:`<span class="small muted">sin ventana</span>`}</div>
-      ${v?`<div class="small muted" style="margin:8px 0 0">${v.inicio.getDate()} al ${v.fin.getDate()} · Sol en ${v.signo}</div><div class="barra"><i style="width:${v.fuerza===3?100:66}%"></i></div>`:""}
+    const e=v?estado(v):"";
+    const etiqueta = !v ? `<span class="small muted">sin ventana</span>`
+      : e==="pasada" ? `<span class="small muted">ya pasó</span>`
+      : e==="curso"  ? `<span class="tag oro">en curso</span>`
+      : `<span class="tag oro">${v.fuerza===3?"ventana fuerte":"ventana"}</span>`;
+    const detalle = !v ? ""
+      : e==="pasada" ? `<div class="small muted" style="margin:8px 0 0">Fue del ${v.inicio.getDate()} al ${v.fin.getDate()} · Sol en ${v.signo}</div>`
+      : e==="curso"  ? `<div class="small muted" style="margin:8px 0 0">Estás adentro: termina el ${v.fin.getDate()} · Sol en ${v.signo}</div><div class="barra"><i style="width:${v.fuerza===3?100:66}%"></i></div>`
+      : `<div class="small muted" style="margin:8px 0 0">${v.inicio.getDate()} al ${v.fin.getDate()} · Sol en ${v.signo}</div><div class="barra"><i style="width:${v.fuerza===3?100:66}%"></i></div>`;
+    out+=`<div class="mes ${v&&e!=="pasada"?"tiene":"vacio-mes"}" ${v&&e!=="pasada"?`data-act="ventana" data-id="${k}"`:""}>
+      <div class="mh"><b>${MESES[m.getMonth()]} ${m.getFullYear()}</b>${etiqueta}</div>
+      ${detalle}
     </div>`;
   }
   return out;
@@ -680,8 +694,10 @@ function hojaVentana(k){
   const v=AS.ventanas(SIGNO).find(x=>x.inicio.getMonth()===m.getMonth()&&x.inicio.getFullYear()===m.getFullYear());
   if(!v)return;
   const d=DT.DONDE[P.experiencias]||DT.DONDE.tranquilos;
-  U.hoja(`<div class="lab" style="color:var(--oro)">${v.fuerza===3?"Ventana fuerte":"Ventana"}</div>
-   <h2 style="margin:6px 0 4px">${v.inicio.getDate()} al ${v.fin.getDate()} de ${MESES[v.inicio.getMonth()]}</h2>
+  /* si ya arranco, se dice que esta en curso en vez de anunciar un dia que paso */
+  const enCurso = v.inicio<=base && base<=v.fin;
+  U.hoja(`<div class="lab" style="color:var(--oro)">${enCurso?"Ventana en curso":(v.fuerza===3?"Ventana fuerte":"Ventana")}</div>
+   <h2 style="margin:6px 0 4px">${enCurso?("Termina el "+v.fin.getDate()+" de "+MESES[v.fin.getMonth()]):(v.inicio.getDate()+" al "+v.fin.getDate()+" de "+MESES[v.inicio.getMonth()])}</h2>
    <p class="small muted">Sol en ${v.signo}</p>
    <div class="card" style="margin:14px 0"><div class="lab">Por qué</div><p style="margin:8px 0 0">${esc(v.motivo)}</p>
     <p class="small muted" style="margin:10px 0 0">Esto no dice que vayas a conocer a alguien esos días. Dice que en ese tramo es más probable que estés disponible, que es lo único calculable.</p></div>
