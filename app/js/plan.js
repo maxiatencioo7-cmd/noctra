@@ -65,7 +65,17 @@ function diaCorto(d){ return d.getDate()+" "+MES[d.getMonth()].slice(0,3); }
 /* ================================================================
    1. LA FECHA
    ================================================================ */
-function laFecha(P,ahora){
+/* Cuantos dias tiene que faltar, como minimo, para la ventana que se le
+   muestra a la persona.
+   
+   Son catorce porque el plan mismo le dice que la antesala son las dos
+   semanas previas y que ahi se juega casi todo. Prometerle una ventana que
+   arranca en cinco dias es venderle una antesala que ya no puede hacer.
+   Y una que ya arranco es peor todavia: lee una fecha vencida el dia que
+   pago. */
+var MARGEN_DIAS=14;
+
+function laFecha(P,ahora,fijada){
   var f=P.fecha||{d:15,m:6,y:1992};
   var signo=A.signoDe(f.d,f.m);
   var vs=A.ventanas(signo,ahora)||[];
@@ -80,12 +90,38 @@ function laFecha(P,ahora){
     var v=vs[i];
     var a=new Date(v.inicio.getFullYear(), v.inicio.getMonth(), 6+((s>>>i)%7));
     var b=new Date(a.getFullYear(), a.getMonth(), a.getDate()+10+((s>>>(i+3))%6));
-    /* una ventana que ya terminó no se muestra: la persona acaba de pagar
-       y leería una fecha vencida */
-    if(b<ahora) continue;
     cand.push({desde:a, hasta:b, fuerza:v.fuerza, motivo:v.motivo, signo:v.signo});
   }
   if(!cand.length) return null;
+
+  /* La ventana que ya se le mostro a esta persona manda mientras no haya
+     terminado. Sin esto el plan se le mueve abajo de los pies: elegiriamos
+     de nuevo en cada visita y, a medida que la fecha se acerca y entra
+     adentro del margen, saltaria sola a la siguiente. Justo antes de llegar
+     el dia, le cambiariamos el dia. */
+  if(fijada && fijada.desde && fijada.hasta){
+    var fd=new Date(fijada.desde), fh=new Date(fijada.hasta);
+    if(fh>=ahora){
+      /* Se usan los valores guardados tal cual, no los recalculados. El
+         corrimiento del rango sale de la posicion del mes en la lista, y esa
+         lista arranca en el dia de hoy: el mes que viene el mismo tramo del
+         calendario cae un indice mas abajo y daria otros dias. Recalcular
+         aca le movia el cierre de la ventana un par de dias por mes. */
+      cand=[{desde:fd, hasta:fh, fuerza:fijada.fuerza||2,
+             motivo:fijada.motivo||"", signo:fijada.signo||signo}];
+    }
+  }
+
+  /* Una ventana vencida, o tan encima que ya no da tiempo a prepararla, no
+     se muestra. Se busca hacia adelante. */
+  var piso=new Date(ahora.getTime()+MARGEN_DIAS*86400000);
+  var futuras=[];
+  for(var m=0;m<cand.length;m++) if(cand[m].desde>=piso) futuras.push(cand[m]);
+  /* Si la ventana fijada sigue viva, vale aunque ya no cumpla el margen:
+     es la que la persona ya tiene anotada. */
+  if(cand.length===1 && cand[0].hasta>=ahora) futuras=cand;
+  if(!futuras.length) return null;
+  cand=futuras;
 
   /* La principal tiene que estar CERCA. Una ventana fuerte a seis meses no
      sirve: la persona necesita algo que pueda usar este mes. Entonces: la
@@ -379,9 +415,9 @@ function porQueVos(P,nombre){
 }
 
 /* ================================================================ */
-function generar(P,ciudad,nombre,ahora){
+function generar(P,ciudad,nombre,ahora,fijada){
   ahora=ahora||new Date();
-  var fe=laFecha(P,ahora);
+  var fe=laFecha(P,ahora,fijada);
   return {
     fecha:fe,
     lugar:elLugar(P,fe),

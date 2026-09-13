@@ -38,6 +38,10 @@ const vacio={
      Nunca es la prueba de la compra, sólo evita esperar la red para pintar.
      Ver js/acceso.js. */
   segundoTrazo:false, partes:null, compraPack:null, negativos:0,
+  /* La ventana de la seccion 1, congelada. Se elige una sola vez y manda
+     hasta que se pasa: si se recalculara en cada visita, la fecha que le
+     dimos se le correria sola. Ver plan.js. */
+  ventana:null,
   ciudadIP:"", ciudadManual:"",
   leidas:{}, favoritas:{}, diario:[], personas:[], chat:[],
   maiaVisto:false, notif:{ventanas:true,lunas:true,bocetos:true,diaria:false,hora:"09:00"},

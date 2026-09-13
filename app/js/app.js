@@ -293,8 +293,19 @@ function plan(){
   if(!window.NOCTRA_PLAN) return null;
   /* se recalcula si cambió la ciudad: la tercera sección depende de ella */
   if(PLAN && PLAN._c===ciudad()) return PLAN;
-  PLAN=window.NOCTRA_PLAN.generar(P, ciudad(), NOMBRE, hoy());
+  PLAN=window.NOCTRA_PLAN.generar(P, ciudad(), NOMBRE, hoy(), D.ventana);
   PLAN._c=ciudad();
+  /* La primera vez se anota la ventana elegida. Desde ahi es la suya y no
+     se vuelve a elegir hasta que termine. */
+  var F=PLAN&&PLAN.fecha;
+  if(F&&F.desde&&F.hasta){
+    var d=F.desde.getTime(), h=F.hasta.getTime();
+    if(!D.ventana||D.ventana.desde!==d||D.ventana.hasta!==h){
+      D.ventana={desde:d, hasta:h, fuerza:F.fuerte?3:2,
+                 motivo:F.motivo||"", signo:F.signoMes||""};
+      guardar();
+    }
+  }
   return PLAN;
 }
 const rango=(a,b)=>window.NOCTRA_PLAN.dia(a)+" al "+window.NOCTRA_PLAN.dia(b);
