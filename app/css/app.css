@@ -137,6 +137,71 @@ label.f>span{display:block;margin:0 0 7px}
 #oferta .olab{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--oro);
   font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin:0 0 14px}
 #oferta .olab svg{width:15px;height:15px}
+
+/* ---------- las tres tarjetas de la oferta ---------- */
+/* El teaser: líneas borroneadas con un candado encima. Son dibujo, no texto
+   tapado — no hay nada que leer con el inspector. */
+.otea{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;
+  padding:14px 0 20px;filter:blur(3px);opacity:.5}
+.otea>span{display:block;height:9px;border-radius:99px;
+  background:linear-gradient(90deg,rgba(245,214,123,.30),rgba(245,214,123,.10))}
+.otea .ocand{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  filter:blur(0);opacity:1}
+.otea .ocand svg{width:26px;height:26px;color:var(--oro)}
+
+#oferta .ocards{display:flex;flex-direction:column;gap:14px;margin:0 0 18px}
+.ocard{border:1px solid var(--linea);border-radius:var(--r);padding:18px 16px 16px;
+  background:rgba(255,255,255,.02);text-align:center;
+  opacity:0;transform:translateY(14px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.ocard.on{opacity:1;transform:translateY(0)}
+.ocard .octit{font-family:"Fraunces","Iowan Old Style",Georgia,serif;font-weight:700;
+  font-size:19px;line-height:25px;color:var(--tx);margin:0 0 6px}
+.ocard .ocsub{margin:0;color:var(--tx2);font-size:13.5px;line-height:20px}
+.ocard.ya{border-color:rgba(111,211,154,.34)}
+.ocard .ocya{margin:14px 0 0;color:var(--ok,#6FD39A);font-size:13.5px}
+.ocard .ocya svg{width:15px;height:15px;vertical-align:-2px;margin-right:5px}
+
+/* El botón con el precio en cápsula al costado, como la referencia. */
+.ocbtn{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
+  padding:13px 14px;border-radius:14px;cursor:pointer;text-align:left;
+  border:1px solid rgba(245,214,123,.34);background:rgba(245,214,123,.09);color:var(--tx);
+  font-family:inherit;font-size:15px;line-height:20px;min-height:56px;
+  transition:background .18s,border-color .18s,transform .12s}
+.ocbtn:hover{background:rgba(245,214,123,.15);border-color:rgba(245,214,123,.5)}
+.ocbtn:active{transform:scale(.985)}
+.ocbtn .ocb1{flex:1 1 auto;min-width:0}
+.ocbtn .ocb1 b{color:var(--oro);font-weight:700}
+.ocbtn .ocpre{flex:0 0 auto;font-style:normal;font-weight:700;font-size:14px;
+  padding:6px 12px;border-radius:99px;background:rgba(245,214,123,.16);color:var(--oro);
+  white-space:nowrap}
+
+/* El bloque del pack. Es el único con borde dorado y fondo propio: tiene que
+   ganarle visualmente a las dos tarjetas de arriba sin gritar. */
+.opack2{border:1px solid rgba(245,214,123,.38);border-radius:var(--r);padding:20px 16px 16px;
+  background:linear-gradient(180deg,rgba(245,214,123,.08),rgba(245,214,123,.02));
+  text-align:center;margin:0 0 18px;
+  opacity:0;transform:translateY(14px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.opack2.on{opacity:1;transform:translateY(0)}
+.opack2 .op2lab{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--oro);font-weight:700;margin:0 0 12px}
+.opack2 .op2lab svg{width:14px;height:14px;vertical-align:-2px;margin-right:5px}
+.opack2 .op2pre{display:flex;align-items:baseline;justify-content:center;gap:10px;
+  flex-wrap:wrap;margin:0 0 14px}
+.opack2 .op2pre s{color:var(--tx3,#5E6785);font-size:14px}
+.opack2 .op2pre b{color:var(--ok,#6FD39A);font-size:19px;font-weight:700}
+.opack2 .op2btn{margin:0}
+.opack2 .op2mas{margin:12px 0 0;color:var(--tx2);font-size:12.5px;line-height:19px}
+.opack2 .op2mas b{color:var(--tx)}
+
+/* La sección cerrada dentro de la pestaña Encuentro. */
+.plcerrada{border-style:dashed}
+.plcerrada .plnum{opacity:.5}
+.plcerrada .otea{padding:6px 0 16px}
+
+@media (max-width:380px){
+  .ocbtn{flex-direction:column;align-items:stretch;gap:9px;text-align:center}
+  .ocbtn .ocpre{align-self:center}
+}
 #oferta h1{text-align:center;font-size:31px;line-height:38px;color:var(--tx);margin:0 0 10px}
 #oferta h1 em{font-style:normal;color:var(--oro)}
 #oferta .osub{text-align:center;color:var(--tx2);margin:0 0 20px;font-size:15px;line-height:23px}
