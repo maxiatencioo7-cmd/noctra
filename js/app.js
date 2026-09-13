@@ -430,5 +430,10 @@ if(window.requestIdleCallback)requestIdleCallback(ciudad,{timeout:4000});else se
 window.noctraReset=function(){localStorage.removeItem(KEY);location.hash="";location.reload();};
 if(new URLSearchParams(location.search).get("reset")==="1"||location.hash==="#reset"){localStorage.removeItem(KEY);S={step:0,a:{},nombre:"",city:"",lead:null,timerStart:null,ev:[]};history.replaceState(null,"",location.pathname);}
 if(location.hash&&!A().experiencias&&location.hash!=="#/gracias"){location.hash="";}
+/* Red de seguridad: si el paso guardado no corresponde a ninguna pantalla
+   —estado de una version anterior del test, que tenia otras pantallas— render()
+   reventaba y la portada quedaba en blanco para siempre, sin forma de salir ni
+   recargando. Ante cualquier paso invalido se vuelve al principio. */
+if(!Number.isInteger(S.step)||S.step<0||S.step>=SCREENS.length){S.step=0;save();}
 render();
 })();
