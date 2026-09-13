@@ -187,9 +187,9 @@ function landing(){
     <div class="hero-photo">${NEB?(img("principal")?`<img class="hero-img" src="${img("principal")}" alt="Pareja con su Retrato del Alma Gemela" width="330" height="248" fetchpriority="high" decoding="async">`:`<div class="photo-ph">Foto: pareja con su retrato (asset pendiente)</div>`):`<div class="canvas xl" style="margin:0 auto"><div style="width:100%;height:100%;filter:blur(20px)">${sketchSVG({genero:"m"})}</div><svg viewBox="0 0 100 100" style="position:absolute;inset:0;width:100%;height:100%" fill="none" stroke="#33333A" stroke-width="4" stroke-linecap="round"><path d="M36 34c2-12 14-16 22-12 8 4 8 14 0 20-6 4-8 8-8 14" filter="url(#pen)"/><circle cx="50" cy="70" r="2.5" fill="#33333A"/></svg></div><span class="photo-note">Foto: pareja con su retrato (asset pendiente)</span>`}</div>
     <div class="rot"><span class="gtitle rot-line" id="rot">${L.rotativas[0]}</span><h1>${L.titulo}</h1></div>
     <p class="muted">${L.sub}</p>
-    <div class="chips">${L.chips.map((c,i)=>`<span class="chip">${[I.clock,I.star,I.img][i]||I.star}${c}</span>`).join("")}</div>
+    <div class="chips">${L.chips.map((c,i)=>`<span class="chip">${[I.clock,I.img][i]||I.star}${c}</span>`).join("")}</div>
     ${cta(L.cta,'data-act="start"')}
-    <p class="legal">${L.legal}</p>
+    ${L.legal?`<p class="legal">${L.legal}</p>`:""}
   </div>`,{noBack:true});
 }
 function runRot(){const el=$app.querySelector("#rot");if(!el||reduced)return;let i=0;const L=C.landing.rotativas;const iv=setInterval(()=>{if(!document.contains(el)){clearInterval(iv);return;}el.classList.add("out");setTimeout(()=>{i=(i+1)%L.length;el.textContent=L[i];el.classList.remove("out");},350);},2800);}

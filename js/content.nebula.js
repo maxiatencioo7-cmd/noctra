@@ -30,9 +30,9 @@ window.NOCTRA = {
     rotativas: ["Descubrí con quién estás destinada/o", "Revelá a tu pareja ideal", "Recibí el dibujo de tu match", "Descubrí quién es para vos", "Conocé tu destino"],
     titulo: "con tu Retrato del Alma Gemela",
     sub: "Hacé este test para personalizar tu Retrato del Alma Gemela",
-    chips: ["Test de 1 min", "Insights", "Guía personalizada"],
+    chips: ["Test de 1 min", "Guía personalizada"],
     cta: "Hacer el test",
-    legal: "<b>Solo con fines de entretenimiento</b>"
+    legal: ""
   },
 
   social: { titulo: "Sumate a las miles de personas que ya recibieron su guía con Noctra", cta: "Continuar" },
@@ -80,7 +80,7 @@ window.NOCTRA = {
     plan: "Retrato del Alma Gemela y Lectura personalizada",
     filas: [["Pago único, acceso inmediato:","precioHoy"]],
     notaMoneda: "Precio final en pesos argentinos (ARS). Servicio disponible únicamente en Argentina.",
-    legalCorto: "Al hacer clic en \"QUIERO MI RETRATO\" hacés un <b>único pago de {precioHoy}</b>. No es una suscripción: no hay renovación automática ni cobros posteriores. El precio está expresado en pesos argentinos y el servicio se ofrece únicamente en Argentina. Ante cualquier duda podés escribir a <a href='#'>soporte@noctra.app</a>.",
+    legalCorto: "Al hacer clic en \"QUIERO MI RETRATO\" hacés un <b>único pago de {precioHoy}</b>. No es una suscripción: no hay renovación automática ni cobros posteriores. El precio está expresado en pesos argentinos y el servicio se ofrece únicamente en Argentina. Ante cualquier duda podés escribir a <a href='mailto:soporte@noctrastral.online'>soporte@noctrastral.online</a>.",
     sketchTitulo: "Así es tu verdadera alma gemela",
     rasgosLbl: ["La vibra de tu alma gemela","Rasgo especial"],
     previewLbl: "Vista previa de tu alma gemela", previewTxt: "Este dibujo se basa en tus respuestas y te da un primer vistazo de tu alma gemela.",
