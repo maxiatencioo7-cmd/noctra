@@ -142,6 +142,26 @@ function alCambiar(fn){
   if(hubo) try{ fn(true); }catch(e){}
 }
 
+/* El código puede venir en el enlace: /app/?c=XXXX. Es la vía para quien
+   pagó por fuera del checkout —una transferencia, un regalo, una reposición—
+   y no tiene número de pedido que poner en la hoja de desbloquear.
+
+   El código no abre nada por sí solo: el servidor lo compara contra
+   ACCESO_CODIGOS y contesta. Acá sólo se pasa. Si entra, se saca de la URL
+   para que no quede en el historial ni en una captura de pantalla. */
+function desdeEnlace(){
+  try{
+    var c=new URLSearchParams(location.search).get("c");
+    if(!c) return;
+    porCodigo(c,function(ok){
+      if(!ok) return;
+      try{ history.replaceState(null,"",location.pathname); }catch(e){}
+      try{ window.NOCTRA_UI&&window.NOCTRA_UI.toast&&window.NOCTRA_UI.toast("Listo, ya tenés todo abierto"); }catch(e){}
+    });
+  }catch(e){}
+}
+desdeEnlace();
+
 /* Al abrir, y cada vez que la app vuelve al frente. Lo segundo es lo que
    hace que el que vuelve del checkout de Shopify se encuentre el pack ya
    abierto, sin tener que tocar nada. */
