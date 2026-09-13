@@ -37,10 +37,33 @@ export const config = { runtime: 'edge' };
 
 const TIENDA  = (process.env.SHOPIFY_SHOP || 'noctralmagemela.myshopify.com').trim();
 const API     = process.env.SHOPIFY_API_VERSION || '2024-10';
-/* La variante del pack. Si mañana hay más de un producto que da acceso,
-   se agregan separados por coma en la variable de entorno. */
-const PACK = (process.env.PACK_VARIANT_IDS || '50408908652758')
-  .split(',').map(s => s.trim()).filter(Boolean);
+/* Qué abre cada producto. Son tres, y cada uno abre distintas secciones
+   del plan:
+
+     fecha  -> seccion 1 (La fecha)
+     lugar  -> secciones 2 y 3 (El lugar, En tu ciudad)
+     senal  -> secciones 4 y 5 (La senal, Por que vos) — solo en el pack
+
+   El pack abre las tres. Cada variante se configura por separado para que
+   agregar un producto manana no obligue a tocar el codigo. Varias variantes
+   por producto van separadas por coma (sirve para cuando se cambia el precio
+   creando una variante nueva y hay compradores viejos con la anterior). */
+function ids(v) { return String(v || '').split(',').map(s => s.trim()).filter(Boolean); }
+
+const VARIANTES = {
+  fecha: ids(process.env.VARIANTE_FECHA),
+  lugar: ids(process.env.VARIANTE_LUGAR),
+  /* PACK_VARIANT_IDS se sigue leyendo con el nombre viejo para no romper lo
+     que ya esta cargado en Vercel. */
+  pack:  ids(process.env.VARIANTE_PACK || process.env.PACK_VARIANT_IDS || '50408908652758'),
+};
+
+/* Qué partes abre cada producto. */
+const ABRE = {
+  fecha: ['fecha'],
+  lugar: ['lugar'],
+  pack:  ['fecha', 'lugar', 'senal'],
+};
 /* Códigos que Maxi puede repartir a mano (regalos, soporte, reposiciones). */
 const MANUALES = (process.env.ACCESO_CODIGOS || '')
   .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
@@ -183,9 +206,19 @@ async function ordenes() {
 function pagada(o) {
   return o.financial_status === 'paid' || o.financial_status === 'partially_refunded';
 }
-function tienePack(o) {
-  return (o.line_items || []).some((li) => PACK.indexOf(String(li.variant_id)) >= 0);
+/* Las partes que abre UNA orden, mirando cada renglon contra los tres
+   productos. Una orden puede traer mas de uno. */
+function partesDe(o) {
+  const out = {};
+  (o.line_items || []).forEach((li) => {
+    const v = String(li.variant_id);
+    Object.keys(VARIANTES).forEach((prod) => {
+      if (VARIANTES[prod].indexOf(v) >= 0) ABRE[prod].forEach((x) => { out[x] = true; });
+    });
+  });
+  return Object.keys(out);
 }
+function tieneAlgo(o) { return partesDe(o).length > 0; }
 function atributo(o, clave) {
   const a = (o.note_attributes || []).find((x) => x && x.name === clave);
   return a ? String(a.value || '') : '';
@@ -228,7 +261,7 @@ export default async function handler(request) {
   if (!perfil && !email && !codigo) return responder({ acceso: false, via: 'solo_geo' });
 
   if (codigo && MANUALES.indexOf(codigo) >= 0) {
-    return responder({ acceso: true, via: 'codigo_manual' });
+    return responder({ acceso: true, partes: ['fecha', 'lugar', 'senal'], via: 'codigo_manual' });
   }
 
   const r = await ordenes();
@@ -242,9 +275,9 @@ export default async function handler(request) {
     return responder(Object.assign({ acceso: false, via: 'error', motivo: r.error }, extra));
   }
 
-  const match = r.lista.find((o) => {
+  const mias = r.lista.filter((o) => {
     if (o.test) return false;
-    if (!pagada(o) || !tienePack(o)) return false;
+    if (!pagada(o) || !tieneAlgo(o)) return false;
     if (perfil && atributo(o, 'perfil') === perfil) return true;
     /* la vía manual pide las dos cosas: el mail solo lo sabe cualquiera que
        lo haya visto, el número de orden solo no identifica a nadie */
@@ -255,11 +288,26 @@ export default async function handler(request) {
     return false;
   });
 
-  if (!match) return responder({ acceso: false, via: perfil ? 'perfil' : 'manual' });
+  if (!mias.length) return responder({ acceso: false, partes: [], via: perfil ? 'perfil' : 'manual' });
+
+  /* Se suman TODAS las ordenes, no solo la primera: quien compro la fecha un
+     dia y el lugar a la semana siguiente tiene dos ordenes distintas y las dos
+     valen. Sin esto, la segunda compra no abriria nada. */
+  const suma = {};
+  mias.forEach((o) => partesDe(o).forEach((x) => { suma[x] = true; }));
+  /* Quien compro los dos sueltos puso 20.000, que es mas que los 15.000 del
+     pack. Seria injusto —y se leeria como una trampa— que encima le faltaran
+     dos secciones que el pack si trae. Con los dos, se le da todo. */
+  if (suma.fecha && suma.lugar) suma.senal = true;
+  const partes = Object.keys(suma);
+  const match = mias[0];
+
   return responder({
-    acceso: true,
+    acceso: partes.length > 0,
+    partes,
     via: perfil && atributo(match, 'perfil') === perfil ? 'perfil' : 'manual',
     orden: match.name,
+    ordenes: mias.length,
     desde: match.created_at,
   });
 }
