@@ -37,7 +37,7 @@ const vacio={
   /* segundoTrazo: espejo local de lo que contesta /api/acceso sobre el pack.
      Nunca es la prueba de la compra, sólo evita esperar la red para pintar.
      Ver js/acceso.js. */
-  segundoTrazo:false, compraPack:null, negativos:0,
+  segundoTrazo:false, partes:null, compraPack:null, negativos:0,
   ciudadIP:"", ciudadManual:"",
   leidas:{}, favoritas:{}, diario:[], personas:[], chat:[],
   maiaVisto:false, notif:{ventanas:true,lunas:true,bocetos:true,diaria:false,hora:"09:00"},

@@ -20,52 +20,66 @@
 (function(){
 var U=window.NOCTRA_UI, I=U.I, esc=U.esc;
 
-/* Checkout directo a la variante, igual que el del quiz: el /cart/<variante>:1
-   arma el carrito y manda al pago en un paso, sin página de producto en el
-   medio. Producto: "Pack: Cuándo, Dónde y Cómo", variante 50408908652758. */
-var CHECKOUT="https://noctralmagemela.myshopify.com/cart/50408908652758:1";
+/* Los tres productos. Cada uno abre distintas secciones del plan, y cada
+   uno tiene su propia variante de Shopify.
+
+     fecha  → sección 1 (La fecha)
+     lugar  → secciones 2 y 3 (El lugar, En tu ciudad)
+     pack   → las cinco. Incluye La señal y Por qué vos, que no se venden
+              sueltas: por eso el pack no es sólo un descuento sino otra
+              cosa, y puede costar menos que la suma sin que el número
+              quede raro.
+
+   El ancla de 20.000 es la suma real de dos productos que cualquiera puede
+   ir a comprar por separado. No es un número puesto a dedo.
+
+   Los checkout de fecha y lugar van vacíos hasta que existan los productos
+   en Shopify: con la variante en blanco el botón avisa en vez de mandar a
+   una página rota. */
+var TIENDA="https://noctralmagemela.myshopify.com/cart/";
+var MONEDA="ARS";
+
+var PROD={
+  fecha:{
+    id:"fecha", nombre:"Fecha Exacta", precio:10000, variante:"50411348000982",
+    titulo:"La fecha exacta del encuentro",
+    sub:"El momento preciso en el que sus caminos se cruzan",
+    boton:"Fecha Exacta"
+  },
+  lugar:{
+    id:"lugar", nombre:"Dónde y Cómo", precio:10000, variante:"50411352817878",
+    titulo:"Dónde y cómo vas a conocerlo",
+    sub:"El contexto exacto, lugar y situación del primer encuentro",
+    boton:"Dónde y Cómo"
+  },
+  pack:{
+    id:"pack", nombre:"Cuándo, Dónde y Cómo", precio:15000, ancla:20000,
+    variante:"50408908652758",
+    boton:"Desbloquear todo"
+  }
+};
+/* El resto de la app lee PACK para la tarjeta del retrato y la pestaña
+   cerrada: se deja con el nombre de siempre. */
+var PACK=PROD.pack;
+PACK.moneda=MONEDA;
 
 /* Un lacre. No está entre los íconos de la app porque no se usa en otro
    lado: la idea de "esto está cerrado y lo abrís vos" es de esta pantalla. */
 var SELLO='<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10" rx="2.5"/><path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9"/><path d="M12 14v2.6"/></svg>';
 
-var PACK={
-  nombre:"Cuándo, Dónde y Cómo",
-  precio:7790,
-  /* El retrato salió 9.799. Que el segundo cueste menos que el primero es
-     verdad y se dice: un ancla real no necesita inventarse, y una inventada
-     se descubre en dos clics. */
-  ancla:9799,
-  /* Se aclara la moneda en todos lados. La app se ve igual desde Argentina
-     que desde España o México, y un "$7.790" sin moneda lo lee cada uno con
-     la suya: el que cree que son dólares no compra, y el que compra creyendo
-     que eran otros pesos pide el reembolso. */
-  moneda:"ARS"
-};
 function miles(n){ return "$" + String(n).replace(/\B(?=(\d{3})+(?!\d))/g,"."); }
-function plata(n){ return miles(n) + " " + PACK.moneda; }
+function plata(n){ return miles(n) + " " + MONEDA; }
 
-/* Las cinco. El orden no es decorativo: arranca por lo que más se quiere
-   saber y cierra por lo que mejor se comparte. */
-function partes(nom, ciudad){
-  var el=nom?nom:"esa persona";
-  return [
-    {i:I.cal,      t:"La fecha",
-     d:"La ventana en la que se cruzan, con día de apertura y de cierre. No “pronto”: fechas."},
-    {i:I.encuentro,t:"El lugar",
-     d:"En qué clase de sitio y en qué situación va a pasar. Lo que tenés que estar haciendo ese día."},
-    {i:I.buscar,   t:"En "+(ciudad?esc(ciudad):"tu ciudad"),
-     d:"Leído sobre el mapa donde hacés tu vida, no sobre un mapa cualquiera."},
-    {i:I.ojo,      t:"La señal",
-     d:"Un detalle de "+esc(el)+" para reconocerlo cuando lo tengas enfrente y no dejarlo pasar."},
-    {i:I.corazon,  t:"Por qué vos",
-     d:"Lo que ya tenés y te vuelve inconfundible para "+esc(el)+". Sale de lo que contestaste, no de un molde."}
-  ];
+/* Lo que ya compró, para no volver a ofrecérselo. */
+function tiene(x){
+  try{ return !!(window.NOCTRA_ACCESO && window.NOCTRA_ACCESO.tiene(x)); }catch(e){ return false; }
 }
 
+/* Sólo cuando tiene las tres partes se deja de ofrecer. Con segundoTrazo
+   alcanzaba cuando el pack era el único producto; ahora alguien puede haber
+   comprado la fecha y seguir siendo cliente de las otras dos. */
 function comprada(){
-  try{ return !!(window.NOCTRA_DATOS && window.NOCTRA_DATOS.D && window.NOCTRA_DATOS.D.segundoTrazo); }
-  catch(e){ return false; }
+  return tiene("fecha") && tiene("lugar") && tiene("senal");
 }
 
 /* La atribución del anuncio que trajo a la persona. El quiz la guardó en
@@ -99,9 +113,13 @@ function atribucion(){
   return extra;
 }
 
-function irAlCheckout(){
-  if(!CHECKOUT){ U.toast("En un momento lo habilitamos. Escribinos si lo querés ya."); return; }
-  var url=CHECKOUT;
+function irAlCheckout(prod){
+  var P0 = (typeof prod==="string") ? PROD[prod] : (prod||PACK);
+  if(!P0 || !P0.variante){
+    U.toast("En un momento lo habilitamos. Escribinos si lo querés ya.");
+    return;
+  }
+  var url=TIENDA+P0.variante+":1";
   /* el perfil viaja con la compra, igual que en el quiz: así la app puede
      reconocer a la persona aunque abra el mail en otro teléfono */
   try{
@@ -118,49 +136,92 @@ function irAlCheckout(){
 }
 
 /* La pantalla grande. Se muestra una sola vez sola, después queda en la
-   pestaña Retrato para el que quiera volver.
+   pestaña Encuentro para el que quiera volver.
 
-   El orden es el de una carta de venta y no el de un catálogo: primero el
-   gancho —lo que ya sabe y lo que todavía no—, después las cinco cosas
-   cerradas con candado, recién ahí el precio, y al final el botón. Poner el
-   precio antes de que entienda qué compra es la forma más rápida de que
-   cierre la pantalla. */
+   Tres opciones, no una. La razón es de oferta, no de diseño: alguien que
+   no paga 15.000 igual paga 10.000 por la fecha, y el que iba a pagar
+   10.000 muchas veces sube al pack al ver que por 5.000 más se lleva todo.
+   Una sola opción convierte a los que dicen que sí; tres capturan también
+   a los que dicen "eso no, esto sí".
+
+   El orden importa: primero las dos sueltas con su candado, y recién
+   después el pack. Al revés, el pack se lee como "lo caro" en lugar de
+   como "lo conveniente" — necesita los dos precios de arriba para que los
+   15.000 parezcan poco.
+
+   Lo que ya compró no se le ofrece de nuevo: la tarjeta aparece abierta y
+   sin botón. */
+function teaser(){
+  /* Las líneas borroneadas de la referencia. Son puro dibujo, no texto
+     real tapado: nada que se pueda leer con el inspector. */
+  return '<div class="otea" aria-hidden="true">'
+    +'<span style="width:82%"></span><span style="width:64%"></span>'
+    +'<span style="width:74%"></span>'
+    +'<b class="ocand">'+I.candado+'</b></div>';
+}
+
+function tarjetaProd(k){
+  var p=PROD[k], ya=tiene(k);
+  return '<div class="ocard'+(ya?" ya":"")+'">'
+    +'<div class="octit">'+esc(p.titulo)+'</div>'
+    +'<p class="ocsub">'+esc(p.sub)+'</p>'
+    + (ya
+        ? '<div class="ocya">'+I.check+' Ya es tuyo — está abierto en Encuentro</div>'
+        : teaser()
+          +'<button class="ocbtn" data-prod="'+k+'">'
+            +'<span class="ocb1">Tocar para ver<br><b>'+esc(p.boton)+'</b></span>'
+            +'<i class="ocpre">'+miles(p.precio)+'</i></button>')
+    +'</div>';
+}
+
 function abrir(nom, ciudad){
   if(document.getElementById("oferta")) return;
-  var P=partes(nom, ciudad);
   var d=document.createElement("div");
   d.id="oferta";
-  var quien=nom?esc(nom):"esa persona";
+  var quien=nom?esc(nom):null;
+  var faltaTodo = !tiene("fecha") && !tiene("lugar") && !tiene("senal");
+
   d.innerHTML='<div class="ow">'
     +'<div class="olab">'+I.estrella+' Hay algo más</div>'
-    +'<h1>Ya sabés quién es'+(nom?(" "+quien):"")+'.<br><em>Ahora falta cuándo.</em></h1>'
-    +'<p class="osub">'+(nom?("El retrato te dio la cara de "+quien+". Lo que todavía no sabés es cuándo y dónde se cruzan — y eso ya está escrito en tu carta."):"El retrato te dio la cara. Lo que todavía no sabés es cuándo y dónde se cruzan — y eso ya está escrito en tu carta.")+'</p>'
-    +'<div class="opack">'+I.candado+' '+esc(PACK.nombre)+'</div>'
-    +'<div class="olista">'
-    + P.map(function(x){ return '<div class="oit"><span class="oic">'+I.candado+'</span>'
-        +'<div><b>'+x.t+'</b><small>'+x.d+'</small></div></div>'; }).join("")
+    +'<h1>Ahora que ya viste quién es'+(quien?(", "+quien):"")+'…<br>'
+      +'<em>hay algo que todavía no sabés.</em></h1>'
+    +'<p class="osub">El momento y la forma en la que esta persona va a entrar en tu vida ya están definidos. Lo que falta es que los veas.</p>'
+
+    +'<div class="ocards">'
+      + tarjetaProd("lugar")
+      + tarjetaProd("fecha")
     +'</div>'
+
+    + (faltaTodo
+      ? '<div class="opack2">'
+        +'<div class="op2lab">'+I.estrella+' Desbloquear ambos con descuento</div>'
+        +'<div class="op2pre"><s>Valor total: '+miles(PROD.pack.ancla)+'</s>'
+          +'<b>Hoy: '+miles(PROD.pack.precio)+'</b></div>'
+        +'<button class="btn obig op2btn" data-prod="pack">'
+          +'<span>Desbloquear todo</span><i>'+plata(PROD.pack.precio)+'</i></button>'
+        +'<p class="op2mas">Incluye además <b>La señal</b> —cómo reconocerlo cuando lo tengas enfrente— y <b>Por qué vos</b>. Esas dos no se venden por separado.</p>'
+        +'</div>'
+      : '')
+
     +'<div class="osobre"><div class="osel">'+SELLO+'</div>'
-    +'<p>'+(nom?("La fecha de "+quien+" ya está escrita."):"La fecha ya está escrita.")
+    +'<p>'+(quien?("La fecha de "+quien+" ya está escrita."):"La fecha ya está escrita.")
     +' Se abre cuando vos quieras.</p></div>'
-    +'<div class="oprecio">'
-      +'<div class="opl">Pago único, en pesos</div>'
-      +'<div class="opn">'+miles(PACK.precio)+'<i>'+PACK.moneda+'</i></div>'
-      +'<div class="opa">El retrato salió '+plata(PACK.ancla)+'. Este sale menos.</div>'
-    +'</div>'
-    +'<button class="btn obig" id="oyes">'
-      +'<span>'+(nom?("Quiero saber cuándo llega "+quien):"Quiero saber cuándo")+'</span>'
-      +'<i>'+plata(PACK.precio)+'</i></button>'
+
     +'<button class="olink" id="ono">Ahora no, me quedo con el retrato</button>'
-    +'<p class="onota">Un solo pago de '+plata(PACK.precio)+'. No es suscripción: no hay renovación ni cobros después.<br>'
+    +'<p class="onota">Pago único, en pesos argentinos. No es suscripción: no hay renovación ni cobros después.<br>'
     +'Noctra es contenido interpretativo, con fines de entretenimiento.</p>'
     +'</div>';
+
   document.body.appendChild(d);
   requestAnimationFrame(function(){ d.classList.add("on"); });
-  var it=d.querySelectorAll(".oit");
-  for(var k=0;k<it.length;k++) (function(e,i){ setTimeout(function(){ e.classList.add("on"); }, 260+i*110); })(it[k],k);
+  var cs=d.querySelectorAll(".ocard, .opack2");
+  for(var k=0;k<cs.length;k++) (function(e,i){ setTimeout(function(){ e.classList.add("on"); }, 240+i*130); })(cs[k],k);
 
-  d.querySelector("#oyes").onclick=irAlCheckout;
+  var bs=d.querySelectorAll("[data-prod]");
+  for(var j=0;j<bs.length;j++) (function(b){
+    b.onclick=function(){ irAlCheckout(b.getAttribute("data-prod")); };
+  })(bs[j]);
+
   d.querySelector("#ono").onclick=function(){
     d.classList.remove("on");
     setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },320);
@@ -172,14 +233,32 @@ function abrir(nom, ciudad){
 function tarjeta(nom){
   if(comprada()) return "";
   var quien=nom?esc(nom):null;
+  /* Si ya compró una parte, el precio que se muestra es el de lo que le
+     falta, no el del pack entero: ofrecerle de nuevo los 15.000 al que ya
+     puso 10.000 se lee como que le quieren cobrar dos veces. */
+  var algo = tiene("fecha")||tiene("lugar")||tiene("senal");
+  var falta = !tiene("fecha") ? PROD.fecha : (!tiene("lugar") ? PROD.lugar : PROD.pack);
+  var of = algo ? falta : PACK;
   return '<div class="card otar">'
-    +'<div class="otag">'+I.candado+' Falta una cosa</div>'
+    +'<div class="otag">'+I.candado+' '+(algo?"Te falta una parte":"Falta una cosa")+'</div>'
     +'<div class="oth">'+(quien?("¿Cuándo llega "+quien+"?"):"¿Cuándo llega?")+'</div>'
-    +'<p class="otp">'+(quien?("Tenés su cara y su nombre. Falta el día, el lugar, y cómo vas a reconocer a "+quien+" cuando lo tengas enfrente."):"Tenés su cara y su nombre. Falta el día, el lugar y cómo vas a reconocerlo.")+'</p>'
-    +'<div class="otf"><span class="otpre">'+miles(PACK.precio)+'</span><span class="otu">'+PACK.moneda+' · pago único</span></div>'
-    +'<button class="btn obig" data-act="oferta" style="margin:12px 0 0">'
-      +'<span>Ver '+esc(PACK.nombre)+'</span><i>'+plata(PACK.precio)+'</i></button></div>';
+    +'<p class="otp">'+(algo
+        ? ("Ya desbloqueaste una parte. Falta "+esc(of.nombre)+".")
+        : (quien?("Tenés su cara y su nombre. Falta el día, el lugar, y cómo vas a reconocer a "+quien+" cuando lo tengas enfrente."):"Tenés su cara y su nombre. Falta el día, el lugar y cómo vas a reconocerlo."))+'</p>'
+    +'<div class="otf"><span class="otpre">'+miles(of.precio)+'</span><span class="otu">'+MONEDA+' · pago único</span></div>'
+    +'<button class="btn obig" '+(algo?('data-act="comprar" data-id="'+of.id+'"'):'data-act="oferta"')+' style="margin:12px 0 0">'
+      +'<span>'+(algo?("Ver "+esc(of.nombre)):("Ver "+esc(PACK.nombre)))+'</span><i>'+plata(of.precio)+'</i></button></div>';
 }
 
-window.NOCTRA_OFERTA={ abrir:abrir, tarjeta:tarjeta, pack:PACK, plata:plata, miles:miles, checkout:function(u){ CHECKOUT=u||CHECKOUT; return CHECKOUT; } };
+window.NOCTRA_OFERTA={
+  abrir:abrir, tarjeta:tarjeta, prod:PROD, pack:PACK,
+  plata:plata, miles:miles, ir:irAlCheckout,
+  /* Para cargar las variantes sin tocar el archivo:
+     NOCTRA_OFERTA.variantes({fecha:"123", lugar:"456"}) */
+  variantes:function(m){
+    if(!m) return {fecha:PROD.fecha.variante, lugar:PROD.lugar.variante, pack:PROD.pack.variante};
+    Object.keys(m).forEach(function(k){ if(PROD[k]) PROD[k].variante=String(m[k]||""); });
+    return this.variantes();
+  }
+};
 })();

@@ -137,7 +137,11 @@ function vRetrato(){
       <button class="pill" data-act="revivir">${I.estrella} Ver el revelado</button>
     </div>
   </div>
-  ${D.revelado?(abierto()
+  ${D.revelado?(
+    /* Sólo con las tres partes se muestra la tarjeta de "ya lo tenés". Si
+       compró una sola, la tarjeta de venta sigue ahí ofreciéndole lo que le
+       falta: es el único lugar de la app donde se entera de que hay más. */
+    (tienePar("fecha")&&tienePar("lugar")&&tienePar("senal"))
     ? `<div class="sep"></div><div class="card otar abierta">
         <div class="otag">${I.abierto} Tu pack</div>
         <div class="oth">Cuándo, Dónde y Cómo</div>
@@ -280,6 +284,9 @@ function encRituales(){
    El contenido lo arma js/plan.js con las mismas respuestas que dieron el
    retrato, así no puede contradecir a la lectura. */
 function abierto(){ return !!(window.NOCTRA_ACCESO && window.NOCTRA_ACCESO.abierto()); }
+/* Qué secciones tiene compradas. Tres llaves: fecha, lugar, senal. */
+function tienePar(x){ return !!(window.NOCTRA_ACCESO && window.NOCTRA_ACCESO.tiene && window.NOCTRA_ACCESO.tiene(x)); }
+function algoAbierto(){ return tienePar("fecha")||tienePar("lugar")||tienePar("senal"); }
 function ciudad(){ return (window.NOCTRA_ACCESO && window.NOCTRA_ACCESO.ciudad()) || P.ciudad || ""; }
 let PLAN=null, mostradoPack=false;
 function plan(){
@@ -317,27 +324,43 @@ function planSeccion(n,ic,tit,cuerpo){
     <div class="plh"><span class="plnum">${n}</span><span class="plic">${ic}</span><b>${esc(tit)}</b></div>
     ${cuerpo}</div>`;
 }
+/* La misma sección, cerrada: el título se ve, el contenido no. Que vea el
+   número y el nombre de lo que le falta es lo que lo hace comprarlo; un
+   hueco sin nombre no da ganas de nada. */
+function planCerrada(n,ic,tit,prod,nota){
+  const O=window.NOCTRA_OFERTA, p=O&&O.prod&&O.prod[prod];
+  const pm=v=>O&&O.miles?O.miles(v):("$"+String(v).replace(/\B(?=(\d{3})+(?!\d))/g,"."));
+  return `<div class="card plsec plcerrada">
+    <div class="plh"><span class="plnum">${n}</span><span class="plic">${I.candado}</span><b>${esc(tit)}</b></div>
+    <p class="small muted" style="margin:0 0 12px">${esc(nota)}</p>
+    <div class="otea" aria-hidden="true"><span style="width:78%"></span><span style="width:62%"></span><span style="width:70%"></span><b class="ocand">${I.candado}</b></div>
+    ${p?`<button class="ocbtn" data-act="comprar" data-id="${prod}" style="margin:12px 0 0">
+      <span class="ocb1">Tocar para ver<br><b>${esc(p.boton)}</b></span>
+      <i class="ocpre">${pm(p.precio)}</i></button>`:""}
+  </div>`;
+}
 function encPlan(){
-  if(!abierto()) return planCerrado();
+  if(!algoAbierto()) return planCerrado();
   const L=plan();
   if(!L||!L.fecha) return `<div class="vacio">${I.cal}<p class="small">No pude armar el plan. Volvé a entrar en un rato.</p></div>`;
   const F=L.fecha, LU=L.lugar, MA=L.mapa, SE=L.senal, VO=L.vos;
   const n=NOMBRE?esc(NOMBRE):"";
   const q=n||"esa persona";
 
+  const todo = tienePar("fecha") && tienePar("lugar") && tienePar("senal");
   return `<div class="plcab">
-    <div class="lab" style="color:var(--oro)">${I.abierto} Tu pack · desbloqueado</div>
-    <h2 style="margin:6px 0 6px">Cuándo, Dónde y Cómo</h2>
+    <div class="lab" style="color:var(--oro)">${I.abierto} ${todo?"Tu pack · desbloqueado":"Desbloqueado"}</div>
+    <h2 style="margin:6px 0 6px">${todo?"Cuándo, Dónde y Cómo":"Tu encuentro"}</h2>
     <p class="small muted" style="margin:0">Armado con las mismas respuestas que dieron el retrato. No cambia entre visitas: es tuyo y es siempre el mismo.</p>
   </div>
 
   <div class="plfilas">
-    <div><span class="lab">Ventana</span><b>${esc(window.NOCTRA_PLAN.diaCorto(F.desde))} — ${esc(window.NOCTRA_PLAN.diaCorto(F.hasta))}</b></div>
-    <div><span class="lab">Día</span><b>${esc(LU.dia)}</b></div>
-    <div><span class="lab">Zona</span><b>${MA.ciudad?esc(MA.ciudad):"—"}</b></div>
+    <div><span class="lab">Ventana</span><b>${tienePar("fecha")?esc(window.NOCTRA_PLAN.diaCorto(F.desde))+" — "+esc(window.NOCTRA_PLAN.diaCorto(F.hasta)):I.candado}</b></div>
+    <div><span class="lab">Día</span><b>${tienePar("lugar")?esc(LU.dia):I.candado}</b></div>
+    <div><span class="lab">Zona</span><b>${tienePar("lugar")?(MA.ciudad?esc(MA.ciudad):"—"):I.candado}</b></div>
   </div>
 
-  ${planSeccion(1,I.cal,"La fecha",`
+  ${tienePar("fecha") ? planSeccion(1,I.cal,"La fecha",`
     <div class="plgran">${esc(rango(F.desde,F.hasta))}</div>
     <p class="small muted" style="margin:0 0 12px">${F.dentro?("Ya está abierta"+(F.quedan>0?": te quedan "+F.quedan+" días.":" y cierra hoy.")):("Faltan "+F.faltan+" días para que abra.")} ${esc(F.motivo)}</p>
     <div class="plpaso"><span>${I.estrella}</span><div><b>El día de más peso</b><small>${esc(window.NOCTRA_PLAN.dia(F.pico))} — ${esc(F.fase)}. Si tenés que elegir un solo día para salir de tu casa, es ese.</small></div></div>
@@ -346,40 +369,45 @@ function encPlan(){
       :"Desde el "+esc(window.NOCTRA_PLAN.dia(F.antesala))+". Lo que pase en la ventana depende casi todo de lo que hayas movido en estas dos semanas previas: son las que hay que usar."}</small></div></div>
     ${F.otras.length?`<div class="plotras"><div class="lab">Si esta se pasa</div>
       ${F.otras.map(o=>`<div class="small"><b style="color:var(--oro)">${esc(rango(o.desde,o.hasta))}</b> — Sol en ${esc(o.signo)}${o.fuerza===3?" · fuerte":""}</div>`).join("")}</div>`:""}
-    <p class="plnota">Una ventana no promete a nadie: marca el tramo en que es más probable que estés disponible y en circulación. Lo que la vuelve verdad es que salgas.</p>`)}
+    <p class="plnota">Una ventana no promete a nadie: marca el tramo en que es más probable que estés disponible y en circulación. Lo que la vuelve verdad es que salgas.</p>`)
+    : planCerrada(1,I.cal,"La fecha","fecha","El rango exacto en que se cruzan, con día de apertura y de cierre, el día de más peso y las dos semanas de antesala.")}
 
-  ${planSeccion(2,I.encuentro,"El lugar",`
+  ${tienePar("lugar") ? planSeccion(2,I.encuentro,"El lugar",`
     <p style="margin:0 0 12px">Va a pasar <b>${esc(LU.clase)}</b>, con ${esc(LU.situacion)}.</p>
     <div class="lab">Los tres más probables</div>
     <ul class="pllista">${LU.sitios.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
     <div class="plpaso"><span>${I.reloj}</span><div><b>${esc(LU.dia.charAt(0).toUpperCase()+LU.dia.slice(1))}, ${esc(LU.franja)}</b><small>${esc(LU.horas)}. Es la franja que te corresponde por elemento, y la que menos se superpone con tus obligaciones.</small></div></div>
     <div class="lab" style="margin:16px 0 8px">Qué tenés que estar haciendo</div>
     ${LU.haciendo.map((x,i)=>`<div class="plpaso"><span class="pln">${i+1}</span><div><small>${esc(x)}</small></div></div>`).join("")}
-    <p class="plnota">${I.info} <b>Lo que lo bloquea:</b> ${esc(LU.evitar)}</p>`)}
+    <p class="plnota">${I.info} <b>Lo que lo bloquea:</b> ${esc(LU.evitar)}</p>`)
+    : planCerrada(2,I.encuentro,"El lugar","lugar","En qué clase de sitio y en qué situación va a pasar, el día y la franja horaria, y qué tenés que estar haciendo.")}
 
-  ${planSeccion(3,I.brujula,MA.ciudad?("En "+MA.ciudad):"En tu ciudad",`
+  ${tienePar("lugar") ? planSeccion(3,I.brujula,MA.ciudad?("En "+MA.ciudad):"En tu ciudad",`
     <p style="margin:0 0 12px">Leído sobre tu mapa: el rumbo que te corresponde por elemento (${esc(MA.elemento)}) es el <b>${esc(MA.rumbo)}</b> — ${esc(MA.rumboNota)} — y el radio donde se concentra es de unas <b>${MA.radio} cuadras</b> alrededor de donde hacés tu vida.</p>
     <div class="lab">Los tres puntos del radio</div>
     ${MA.zonas.map((z,i)=>`<div class="plpaso"><span class="pln">${i+1}</span><div><b>${esc(z[0])}</b><small>${esc(z[1])}</small></div></div>`).join("")}
     <p class="plnota">${esc(MA.nota)}</p>
-    ${MA.ciudad?`<button class="pill" data-act="ciudadPlan" style="margin:10px 0 0">Cambiar la ciudad</button>`:`<button class="btn ghost" data-act="ciudadPlan" style="margin:10px 0 0">${I.mas} Cargar mi ciudad</button>`}`)}
+    ${MA.ciudad?`<button class="pill" data-act="ciudadPlan" style="margin:10px 0 0">Cambiar la ciudad</button>`:`<button class="btn ghost" data-act="ciudadPlan" style="margin:10px 0 0">${I.mas} Cargar mi ciudad</button>`}`)
+    : planCerrada(3,I.brujula,"En tu ciudad","lugar","El rumbo que te corresponde por elemento, el radio en cuadras y los tres puntos concretos del mapa donde hacés tu vida.")}
 
-  ${planSeccion(4,I.ojo,"La señal",`
+  ${tienePar("senal") ? planSeccion(4,I.ojo,"La señal",`
     <p style="margin:0 0 12px">Para reconocer a ${esc(q)} cuando lo tengas enfrente, y no dejarlo pasar.</p>
     <div class="lab">Lo que vas a ver primero</div>
     ${SE.fisicas.map(x=>`<div class="plpaso"><span>${I.ojo}</span><div><small>${esc(x)}</small></div></div>`).join("")}
     <div class="lab" style="margin:16px 0 8px">Lo que vas a notar después</div>
     ${SE.gestos.map(x=>`<div class="plpaso"><span>${I.corazon}</span><div><small>${esc(x)}</small></div></div>`).join("")}
     <div class="plpaso" style="margin-top:16px"><span>${I.estrella}</span><div><b>Cómo va a pasar</b><small>${esc(SE.circunstancia)}</small></div></div>
-    <p class="plnota">${I.info} <b>Lo que NO es ${esc(q)}:</b> ${esc(SE.noEs)}</p>`)}
+    <p class="plnota">${I.info} <b>Lo que NO es ${esc(q)}:</b> ${esc(SE.noEs)}</p>`)
+    : planCerrada(4,I.ojo,"La señal","pack","Cómo reconocerlo cuando lo tengas enfrente: lo que vas a ver primero, lo que vas a notar después, y lo que NO es él. Sólo viene en el pack.")}
 
-  ${planSeccion(5,I.corazon,"Por qué vos",`
+  ${tienePar("senal") ? planSeccion(5,I.corazon,"Por qué vos",`
     <p style="margin:0 0 12px">Lo que ya tenés y te vuelve inconfundible${n?" para "+n:""}. Sale de lo que contestaste, no de un molde.</p>
     ${VO.tenes.map(x=>`<div class="plpaso"><span>${I.check}</span><div><small>${esc(x)}</small></div></div>`).join("")}
     <div class="lab" style="margin:16px 0 8px">Tres cosas para hacer en la antesala</div>
     ${VO.hacer.map((x,i)=>`<div class="plpaso"><span class="pln">${i+1}</span><div><small>${esc(x)}</small></div></div>`).join("")}
     <div class="plsoltar"><b>${esc(VO.soltar[0])}</b><small>${esc(VO.soltar[1])}</small></div>
-    <p class="plnota">${esc(VO.cierre)}</p>`)}
+    <p class="plnota">${esc(VO.cierre)}</p>`)
+    : planCerrada(5,I.corazon,"Por qué vos","pack","Lo que ya tenés y te vuelve inconfundible, tres cosas para hacer en la antesala y una para soltar. Sólo viene en el pack.")}
 
   <p class="small muted center" style="margin:18px 0 4px">Contenido interpretativo, con fines de entretenimiento. Ninguna de las cinco secciones requiere creer en nada: todas se pueden ejecutar.</p>`;
 }
@@ -525,6 +553,9 @@ function acciones(act,b,e){
     case "senales": return hojaSenales();
     case "natal": return hojaNatal();
     case "oferta": return window.NOCTRA_OFERTA&&window.NOCTRA_OFERTA.abrir(NOMBRE,ciudad());
+    /* comprar una sección suelta desde la pestaña, sin pasar por la pantalla
+       grande: el que ya sabe qué quiere no tiene que volver a mirar la oferta */
+    case "comprar": return window.NOCTRA_OFERTA&&window.NOCTRA_OFERTA.ir(id);
     case "verPlan": segEnc="plan"; return ir("encuentro");
     case "desbloquear": return hojaDesbloquear();
     case "ciudadPlan": return hojaCiudad();

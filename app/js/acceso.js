@@ -42,10 +42,29 @@ function aplicar(j){
   if(j && typeof j.ciudad==="string" && j.ciudad && j.ciudad!==D.ciudadIP){
     D.ciudadIP=j.ciudad; cambio=true;
   }
-  if(j && j.acceso===true && !D.segundoTrazo){
-    D.segundoTrazo=true;
-    D.compraPack={ via:j.via||"", orden:j.orden||"", t:Date.now() };
-    cambio=true;
+  /* Las partes que compró. El servidor manda un array: ["fecha"], o
+     ["fecha","lugar","senal"] si compró el pack. Se van sumando, nunca se
+     restan de a una: quien compró la fecha y después el lugar acumula las
+     dos, y una respuesta incompleta por un error de red no le saca nada. */
+  if(j && j.acceso===true){
+    var lista = Array.isArray(j.partes) && j.partes.length
+      ? j.partes
+      /* respuesta de una versión anterior del servidor, sin partes: era el
+         pack entero, que es lo único que existía */
+      : ["fecha","lugar","senal"];
+    var P0 = D.partes || {};
+    for(var i=0;i<lista.length;i++){
+      if(!P0[lista[i]]){ P0[lista[i]]=true; cambio=true; }
+    }
+    /* Misma regla que el servidor, por si la respuesta viene de una version
+       anterior: con la fecha y el lugar, la senal va de arriba. */
+    if(P0.fecha && P0.lugar && !P0.senal){ P0.senal=true; cambio=true; }
+    D.partes = P0;
+    if(!D.segundoTrazo){
+      D.segundoTrazo=true;
+      D.compraPack={ via:j.via||"", orden:j.orden||"", t:Date.now() };
+      cambio=true;
+    }
   }
   /* No se cierra por una respuesta negativa: un error de red o un token
      caído dejarían a un comprador afuera. Sólo se abre. Lo que sí cierra
@@ -53,7 +72,7 @@ function aplicar(j){
      código de perfil y sin error —eso es que la orden fue anulada—. */
   if(j && j.acceso===false && j.via==="perfil" && D.segundoTrazo){
     D.negativos=(D.negativos||0)+1;
-    if(D.negativos>=2){ D.segundoTrazo=false; D.negativos=0; cambio=true; }
+    if(D.negativos>=2){ D.segundoTrazo=false; D.partes=null; D.negativos=0; cambio=true; }
   }else if(j && j.acceso===true){ D.negativos=0; }
   if(cambio) DT.guardar();
   return cambio;
@@ -107,6 +126,14 @@ function porCodigo(cod, cb){
 }
 
 function abierto(){ return !!(D&&D.segundoTrazo); }
+/* Qué secciones puede ver. El comprador viejo, de cuando el pack era el
+   único producto, tiene segundoTrazo pero no partes: se le dan las tres. */
+function partes(){
+  if(!D||!D.segundoTrazo) return {};
+  if(D.partes && (D.partes.fecha||D.partes.lugar||D.partes.senal)) return D.partes;
+  return { fecha:true, lugar:true, senal:true };
+}
+function tiene(x){ return !!partes()[x]; }
 /* Si la respuesta llegó antes de que app.js alcanzara a registrarse —pasa
    con la caché del service worker— el oyente se dispara igual al entrar. */
 function alCambiar(fn){
@@ -126,6 +153,7 @@ window.addEventListener("focus",function(){ comprobar(false); });
 
 window.NOCTRA_ACCESO={
   comprobar:comprobar, manual:manual, porCodigo:porCodigo,
-  abierto:abierto, ciudad:ciudad, alCambiar:alCambiar, codigo:codigo
+  abierto:abierto, partes:partes, tiene:tiene,
+  ciudad:ciudad, alCambiar:alCambiar, codigo:codigo
 };
 })();
