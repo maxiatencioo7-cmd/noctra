@@ -239,6 +239,18 @@ a{color:var(--purple)}
 .card:has(#em) .legal{position:fixed;left:15px;right:15px;bottom:0;max-width:450px;margin:0 auto;z-index:6;background:#FEFEFE;padding:6px 0 10px}
 #em ~ .cta{bottom:62px}
 .card:has(#em){padding-bottom:150px}
+/* Atajos de década para el año de nacimiento.
+   La rueda tiene setenta y pico de años en una ventana de 160px: llegar a
+   1968 arrastrando es, en un teléfono, casi imposible. Un toque acá y salta. */
+.decadas{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:14px 0 0;justify-content:center}
+.declab{font-size:12px;color:var(--muted);margin-right:2px}
+.dec{appearance:none;border:1px solid var(--line);background:transparent;color:var(--muted);
+  font:inherit;font-size:13px;line-height:1;padding:8px 11px;border-radius:999px;cursor:pointer;
+  min-width:42px;transition:color .15s,border-color .15s,background .15s}
+.dec:hover{color:var(--ink-2)}
+.dec.on{color:var(--ink-2);border-color:var(--ink-2)}
+.werr{margin:12px 0 0;font-size:13px;line-height:1.4;color:var(--ink-2);text-align:center}
+
 .wheel{cursor:grab;user-select:none;-webkit-user-select:none;touch-action:pan-y;overscroll-behavior:contain}
 .wheel:active{cursor:grabbing}
 .wi{transition:color .15s,font-size .15s}
