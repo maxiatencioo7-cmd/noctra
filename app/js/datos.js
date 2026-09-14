@@ -42,6 +42,8 @@ const vacio={
      hasta que se pasa: si se recalculara en cada visita, la fecha que le
      dimos se le correria sola. Ver plan.js. */
   ventana:null,
+  /* sugerencias de la ultima respuesta de Maia sin tema */
+  ultSug:null,
   ciudadIP:"", ciudadManual:"",
   leidas:{}, favoritas:{}, diario:[], personas:[], chat:[],
   maiaVisto:false, notif:{ventanas:true,lunas:true,bocetos:true,diaria:false,hora:"09:00"},

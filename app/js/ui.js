@@ -146,12 +146,43 @@ const DIAS=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"
 const fechaCorta=d=>`${d.getDate()} ${MESES[d.getMonth()].slice(0,3)}`;
 const fechaLarga=d=>`${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
 
+/* El aviso de una línea.
+
+   Tres cosas que estaban mal y hacían que la persona creyera que el botón no
+   funcionaba:
+
+   1. La aparición dependía de requestAnimationFrame, que el navegador NO
+      dispara si la pestaña está en segundo plano. El aviso quedaba en
+      opacidad 0 para siempre y el texto no se veía nunca.
+   2. Vivía pegado al borde de abajo. Con una hoja abierta y el teclado del
+      teléfono levantado, quedaba tapado justo cuando más importa, que es
+      cuando avisa que falta un campo.
+   3. Se quedaba con el texto del aviso anterior, así que el siguiente error
+      podía mostrar un mensaje viejo.
+
+   Ahora: aparece arriba cuando hay una hoja abierta, abajo cuando no; por
+   encima de todo; y sin depender de rAF. */
 function toast(txt){
   let t=document.querySelector(".toast");
-  if(!t){t=document.createElement("div");t.className="toast";document.body.appendChild(t);
-    t.style.cssText="position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabs) + 22px);z-index:95;background:#0A1128;border:1px solid var(--linea);color:#F4F6FB;padding:12px 18px;border-radius:999px;font-size:14px;box-shadow:var(--sombra);opacity:0;transition:opacity .2s";}
-  t.textContent=txt;requestAnimationFrame(()=>t.style.opacity="1");
-  clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity="0";},2200);
+  if(!t){
+    t=document.createElement("div");t.className="toast";document.body.appendChild(t);
+    t.style.cssText="position:fixed;left:50%;transform:translateX(-50%);z-index:120;"+
+      "max-width:min(88vw,420px);text-align:center;background:#0A1128;border:1px solid var(--linea);"+
+      "color:#F4F6FB;padding:12px 18px;border-radius:16px;font-size:14px;line-height:1.35;"+
+      "box-shadow:var(--sombra);opacity:0;transition:opacity .2s;pointer-events:none";
+  }
+  /* con la hoja abierta el teclado ocupa la mitad de abajo: se muestra arriba */
+  const hayHoja=!!document.querySelector(".hoja.on");
+  t.style.top = hayHoja ? "calc(env(safe-area-inset-top,0px) + 18px)" : "";
+  t.style.bottom = hayHoja ? "" : "calc(var(--tabs) + 22px)";
+  t.textContent=txt;
+  t.style.opacity="0";
+  /* forzar reflow y prender: no depende de requestAnimationFrame, que no
+     corre con la pestaña en segundo plano */
+  void t.offsetWidth;
+  t.style.opacity="1";
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>{ t.style.opacity="0"; t.textContent=""; },2600);
 }
 
 window.NOCTRA_UI={I,lunaSVG,cielo,hoja,cerrarHoja,chispas,esc,MESES,DIAS,fechaCorta,fechaLarga,toast};

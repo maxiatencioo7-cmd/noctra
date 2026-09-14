@@ -195,7 +195,7 @@ function vLectura(){
   return `
   <h1 style="margin:0 0 6px">Tu lectura</h1>
   <p class="muted small" style="margin:0 0 4px">${esc(nom()?nom()+" · ":"")}Sol en ${SIGNO} · ${EL} · ${LECT.modo} · regente ${LECT.regente}</p>
-  <p class="muted small">${leidas} de ${S.length} secciones leídas</p>
+  <p class="muted small lectura-cuenta">${leidas} de ${S.length} secciones leídas</p>
   <div class="indice"><div class="scroll-x">${S.map(s=>`<button class="pill ${D.leidas[s.id]?"on":""}" data-act="saltar" data-id="${s.id}">${esc(s.titulo)}</button>`).join("")}</div></div>
   ${S.map((s,i)=>`
     <section class="sec" id="sec-${s.id}" style="margin:0 0 26px">
@@ -539,12 +539,17 @@ function postDiario(){
 /* ================= 5. MAIA ================= */
 function vMaia(){
   const ch=D.chat||[];
+  /* si la ultima respuesta no encontro tema, se muestran los cercanos como
+     botones: asi nunca queda en un callejon sin salida */
+  const ult=D.ultSug&&D.ultSug.t===(ch.length?ch.length:0)?D.ultSug:null;
   return `<div style="padding-bottom:78px">
     <h1 style="margin:0 0 6px">Maia</h1>
     <button class="pill" data-act="quienEsMaia" style="margin:0 0 16px">${I.info} Quién es Maia</button>
     ${!ch.length?`<div class="card" style="border-color:rgba(143,211,255,.22)"><div class="lab" style="color:var(--azul)">Antes de empezar</div><p style="margin:8px 0 0">${esc(MAIA.PRESENTACION)}</p></div>`:""}
     <div class="chat" id="chat">${ch.map(m=>`<div class="msg ${m.q==="y"?"y":"m"}">${esc(m.t)}</div>`).join("")}</div>
     ${ch.length<2?`<div class="scroll-x" style="margin-top:14px">${MAIA.PILDORAS.map(p=>`<button class="pill" data-act="pildora" data-id="${esc(p)}">${esc(p)}</button>`).join("")}</div>`:""}
+    ${ult&&ult.sug&&ult.sug.length?`<div class="scroll-x" style="margin-top:12px">${ult.sug.map(p=>`<button class="pill" data-act="pildora" data-id="${esc(p)}">${esc(p)}</button>`).join("")}</div>`:""}
+    <button class="btn ghost" data-act="temas" style="margin:16px 0 0">${I.estrella} Ver todos los temas (${MAIA.temas()})</button>
   </div>
   <div class="compose"><textarea id="msg" rows="1" placeholder="Escribile a Maia"></textarea><button class="env" data-act="enviar" aria-label="Enviar">${I.enviar}</button></div>`;
 }
@@ -558,7 +563,9 @@ function enviar(){
   const t=$("#msg"); if(!t)return; const v=t.value.trim(); if(!v)return;
   D.chat.push({q:"y",t:v}); t.value=""; t.style.height="auto"; guardar();
   const r=MAIA.responder(v);
-  D.chat.push({q:"m",t:r.texto}); guardar();
+  D.chat.push({q:"m",t:r.texto});
+  D.ultSug = (r.sugerencias&&r.sugerencias.length) ? {t:D.chat.length, sug:r.sugerencias} : null;
+  guardar();
   pintar(); setTimeout(()=>scrollTo({top:document.body.scrollHeight,behavior:"smooth"}),40);
 }
 
@@ -602,8 +609,16 @@ function acciones(act,b,e){
     case "comparar": return hojaComparar();
     case "nueva": return hojaNuevaEntrada(id);
     case "borrarEnt": D.diario=D.diario.filter(x=>x.t!==+id); guardar(); return pintar();
+    case "temas": return hojaTemas();
     case "quienEsMaia": return U.hoja(`<h2 style="margin:0 0 12px">Quién es Maia</h2><p>${esc(MAIA.PRESENTACION)}</p><p class="small muted">Maia no da consejo médico, legal ni financiero, no diagnostica y no habla de terceros como si los conociera. Si escribís algo que sugiere angustia seria, deja de interpretar y te pasa contactos de ayuda real.</p><button class="btn ghost" data-cerrar>Cerrar</button>`);
-    case "pildora": { const t=$("#msg"); if(t){t.value=id;enviar();} return; }
+    case "pildora": {
+      /* desde el catalogo la hoja esta abierta y el cuadro de texto no existe
+         todavia: se cierra, se va a Maia, y recien ahi se manda */
+      U.cerrarHoja();
+      if(tab!=="maia"){ tab="maia"; pintar(); }
+      setTimeout(()=>{ const t=$("#msg"); if(t){ t.value=id; enviar(); } },80);
+      return;
+    }
     case "enviar": return enviar();
   }
 }
@@ -733,10 +748,34 @@ function hojaPersona(){
    </div>
    <button class="btn" id="calc">${I.corazon} Ver la compatibilidad</button>
    <button class="btn ghost" data-cerrar style="margin:10px 0 0">Cancelar</button>`);
+  /* Marca el campo que falta en vez de tirar un aviso generico.
+     El caso real que rompia esto: el selector de fecha del telefono muestra
+     "01/01/aaaa" cuando todavia no cargaron el año. Para la persona el campo
+     se ve lleno, pero el valor que llega es "". Apretaba, no pasaba nada
+     visible, y concluia que el boton estaba roto. */
+  const marcar=(el,msg)=>{
+    if(!el) return;
+    el.classList.add("mal");
+    let m=el.parentNode.querySelector(".msgmal");
+    if(!m){ m=document.createElement("span"); m.className="msgmal"; el.parentNode.appendChild(m); }
+    m.textContent=msg;
+    el.addEventListener("input",()=>{ el.classList.remove("mal"); if(m) m.textContent=""; },{once:true});
+    el.focus();
+  };
+  const limpiar=()=>{
+    p.querySelectorAll(".mal").forEach(x=>x.classList.remove("mal"));
+    p.querySelectorAll(".msgmal").forEach(x=>x.textContent="");
+  };
   $("#calc",p).onclick=()=>{
+    limpiar();
     const n=$("#pn",p).value.trim(), f=$("#pf",p).value;
-    if(!n||!f){U.toast("Falta el nombre o la fecha");return;}
+    if(!n){ marcar($("#pn",p),"Poné un nombre para reconocerlo después."); U.toast("Falta el nombre"); return; }
+    if(!f){ marcar($("#pf",p),"Cargá la fecha completa, con el año."); U.toast("Falta la fecha de nacimiento"); return; }
     const d=new Date(f+"T12:00:00");
+    if(isNaN(d.getTime())||d.getFullYear()<1900||d>new Date()){
+      marcar($("#pf",p),"Esa fecha no es válida. Revisá el año.");
+      U.toast("La fecha no es válida"); return;
+    }
     const signo=AS.signoDe(d.getDate(),d.getMonth()+1);
     const res=AS.sinastria(SIGNO,signo);
     D.personas.push({nombre:n,fecha:f,hora:$("#ph",p).value,ciudad:$("#pc",p).value.trim(),signo:signo,res:res,t:Date.now()});
@@ -782,6 +821,24 @@ function hojaComparar(){
     r.onload=()=>{$("#fotoImg",p).src=r.result;$("#lado",p).style.display="block";};r.readAsDataURL(f);};
 }
 
+/* El catalogo de lo que Maia sabe contestar.
+   Es lo que mas cambia la sensacion de que sabe: hasta ahora habia cuatro
+   sugerencias y todo lo demas era tipear a ciegas y chocar contra "no tengo
+   eso". Ver la lista entera convierte el mismo motor en algo que parece
+   mucho mas grande, porque deja de esconder lo que tiene. */
+function hojaTemas(){
+  const g=MAIA.catalogo();
+  const p=U.hoja(`<h2 style="margin:0 0 4px">De qué podemos hablar</h2>
+   <p class="small muted" style="margin:0 0 6px">${MAIA.temas()} temas. Tocá uno y te contesto con tus datos, no con una respuesta genérica.</p>
+   ${g.map(x=>`<div style="margin:18px 0 0">
+     <div class="lab" style="color:var(--oro)">${esc(x.categoria)}</div>
+     <div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0">
+       ${x.temas.map(t=>`<button class="pill" data-act="pildora" data-id="${esc(t)}">${esc(t)}</button>`).join("")}
+     </div></div>`).join("")}
+   <p class="small muted" style="margin:20px 0 0">También podés escribirme con tus palabras. Si no tengo el tema, te ofrezco los más parecidos.</p>
+   <button class="btn ghost" data-cerrar style="margin:14px 0 0">Cerrar</button>`);
+}
+
 /* ---- diario ---- */
 function hojaNuevaEntrada(tipo){
   const t=TIPOS[tipo]||TIPOS.nota;
@@ -792,9 +849,22 @@ function hojaNuevaEntrada(tipo){
    <button class="btn" id="guardarE">Guardar</button>
    <button class="btn ghost" data-cerrar style="margin:10px 0 0">Cancelar</button>`);
   $("#guardarE",p).onclick=()=>{
-    const v=$("#dt",p).value.trim(); if(!v){U.toast("Escribí algo primero");return;}
+    const v=$("#dt",p).value.trim();
+    if(!v){
+      const el=$("#dt",p);
+      el.classList.add("mal");
+      let m=el.parentNode.querySelector(".msgmal");
+      if(!m){ m=document.createElement("span"); m.className="msgmal"; el.parentNode.appendChild(m); }
+      m.textContent="Escribí algo, aunque sea una línea.";
+      el.addEventListener("input",()=>{ el.classList.remove("mal"); m.textContent=""; },{once:true});
+      el.focus(); U.toast("Escribí algo primero"); return;
+    }
     D.diario.push({t:Date.now(),tipo:tipo,texto:v,persona:$("#dp",p).value.trim()});
     guardar();U.cerrarHoja();tab="diario";pintar();
+    /* sin esto la hoja se cierra y no pasa nada visible: la entrada nueva
+       queda abajo, fuera de pantalla, y parece que el boton no hizo nada */
+    U.toast("Entrada guardada");
+    setTimeout(()=>{ const e=document.querySelector(".ent"); if(e) e.scrollIntoView({block:"center",behavior:"smooth"}); },160);
   };
 }
 
