@@ -289,7 +289,26 @@ label.f>span{display:block;margin:0 0 7px}
 /* ---------- lectura ---------- */
 .indice{position:sticky;top:calc(var(--head) + env(safe-area-inset-top));z-index:20;margin:0 -18px 16px;padding:10px 18px;
   background:linear-gradient(180deg,rgba(5,7,15,.96),rgba(5,7,15,.72));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.indice .scroll-x{margin:0 -18px;padding:0 18px}
+/* El carrusel de secciones.
+
+   Estaba pegado al texto de arriba y el ultimo chip quedaba cortado a la
+   mitad contra el borde, que se lee como un error de maquetado y no como
+   "hay mas para el costado". Se le da aire arriba y un degrade a la derecha
+   que hace evidente que sigue. */
+.indice .scroll-x{margin:0 -18px;padding:4px 18px 6px;
+  -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 34px),transparent 100%);
+  mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 34px),transparent 100%)}
+.indice{padding-top:12px}
+.lectura-cuenta{margin:0 0 10px}
+
+/* ---------- campo con error ---------- */
+/* Antes, cuando faltaba un dato, solo salia un aviso chico que el teclado del
+   telefono tapaba. La persona apretaba, no veia nada y pensaba que el boton
+   estaba roto. Ahora el campo que falta se marca y dice que le falta. */
+.f input.mal, .f textarea.mal{border-color:#E0736B;background:rgba(224,115,107,.07)}
+.f input.mal:focus, .f textarea.mal:focus{border-color:#E0736B;box-shadow:0 0 0 3px rgba(224,115,107,.16)}
+.msgmal{display:block;color:#E9928B;font-size:12.5px;line-height:1.35;margin:6px 2px 0}
+.msgmal:empty{display:none}
 .sec{scroll-margin-top:calc(var(--head) + 74px)}
 .sec h2{margin:0 0 4px}
 .sec .txt p{color:#E4E8F4}
