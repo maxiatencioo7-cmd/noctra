@@ -9,6 +9,13 @@
   --r:20px; --r-img:16px; --r-pill:999px;
   --sombra:0 20px 60px rgba(0,0,0,.45);
   --head:64px; --tabs:76px;
+  /* El borde de abajo del iPhone es zona muerta: la barra de gestos del
+     sistema se queda con los toques, y ademas Safari, con su barra oculta,
+     usa el primer toque de ahi para volver a mostrarla. Encima
+     env(safe-area-inset-bottom) devuelve 0 en varios de esos momentos, asi
+     que confiar solo en el no alcanza. Se le pone un piso: la fila de
+     pestañas nunca queda pegada al borde. */
+  --safe-b:max(env(safe-area-inset-bottom,0px), 26px);
   --ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -52,17 +59,23 @@ svg{width:20px;height:20px;flex:0 0 auto}
 .fase .lm{width:20px;height:20px}
 .fase span{font-size:12px;letter-spacing:.06em;color:var(--tx2)}
 
-.vista{padding:calc(var(--head) + env(safe-area-inset-top) + 8px) 18px calc(var(--tabs) + env(safe-area-inset-bottom) + 24px)}
+.vista{padding:calc(var(--head) + env(safe-area-inset-top) + 8px) 18px calc(var(--tabs) + var(--safe-b) + 24px)}
 .vista.plena{padding:0}
 
 .tabs{
   position:fixed;left:0;right:0;bottom:0;z-index:40;
-  height:calc(var(--tabs) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);
-  display:grid;grid-template-columns:repeat(5,1fr);align-items:center;
+  height:calc(var(--tabs) + var(--safe-b));padding-bottom:var(--safe-b);
+  display:grid;grid-template-columns:repeat(5,1fr);align-items:stretch;
   background:rgba(10,17,40,.72);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);
   border-top:1px solid var(--linea);
 }
-.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;height:100%;min-height:44px;color:var(--tx2);transition:color .18s var(--ease)}
+/* El area tocable ocupa toda la altura util de la barra, que ya esta por
+   encima de la zona muerta. 56px es comodo para el pulgar sin agrandar la
+   barra. */
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  height:100%;min-height:56px;color:var(--tx2);transition:color .18s var(--ease);
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.tab:active{opacity:.7}
 .tab svg{width:23px;height:23px}
 .tab b{font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
 .tab.on{color:var(--oro)}
@@ -349,7 +362,7 @@ label.f>span{display:block;margin:0 0 7px}
 .msg{max-width:86%;padding:13px 16px;border-radius:18px;line-height:23px;font-size:15px;white-space:pre-wrap;animation:enter .22s var(--ease)}
 .msg.m{align-self:flex-start;background:rgba(255,255,255,.055);border:1px solid var(--linea);border-bottom-left-radius:6px}
 .msg.y{align-self:flex-end;background:rgba(245,214,123,.14);border:1px solid rgba(245,214,123,.24);border-bottom-right-radius:6px}
-.compose{position:fixed;left:0;right:0;bottom:calc(var(--tabs) + env(safe-area-inset-bottom));padding:10px 18px;
+.compose{position:fixed;left:0;right:0;bottom:calc(var(--tabs) + var(--safe-b));padding:10px 18px;
   background:linear-gradient(180deg,rgba(5,7,15,0),rgba(5,7,15,.92) 30%);display:flex;gap:9px;align-items:flex-end;z-index:30}
 .compose textarea{min-height:52px;max-height:120px;border-radius:26px;padding:14px 18px}
 .compose .env{flex:0 0 52px;width:52px;height:52px;border-radius:99px;background:var(--oro);display:flex;align-items:center;justify-content:center}
