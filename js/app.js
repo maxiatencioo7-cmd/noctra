@@ -212,14 +212,38 @@ function fecha(s){
     <div class="sheet"><div class="wheels">
       <div class="wheel" data-w="d">${Array.from({length:31},(_,i)=>`<div class="wi" data-v="${i+1}">${String(i+1).padStart(2,"0")}</div>`).join("")}</div>
       <div class="wheel" data-w="m">${C.meses.map((m,i)=>`<div class="wi" data-v="${i+1}">${m}</div>`).join("")}</div>
-      <div class="wheel" data-w="y">${(()=>{let s="";const y0=new Date().getFullYear()-18;for(let k=y0;k>=1940;k--)s+=`<div class="wi" data-v="${k}">${k}</div>`;return s;})()}</div>
+      <div class="wheel" data-w="y">${(()=>{let s="";const y0=new Date().getFullYear()-18;for(let k=y0;k>=1935;k--)s+=`<div class="wi" data-v="${k}">${k}</div>`;return s;})()}</div>
       <div class="wsel"></div></div>
+    ${(()=>{
+      /* Atajos de decada.
+         Sin esto, alguien nacido en 1968 tenia que arrastrar 24 posiciones
+         dentro de una ventanita de 160px, en un telefono, donde el gesto se
+         lo lleva el scroll de la pagina la mitad de las veces. Varias
+         personas nos escribieron que "solo llega hasta 2008", que es el
+         primer año de la lista: nunca consiguieron moverla.
+         Un toque y la rueda salta a esa decada. */
+      const y0=new Date().getFullYear()-18, decs=[];
+      for(let d=1940;d<=Math.floor(y0/10)*10;d+=10) decs.push(d);
+      return `<div class="decadas"><span class="declab">Saltar a</span>${decs.map(d=>`<button type="button" class="dec" data-dec="${d}">${String(d).slice(2)}</button>`).join("")}</div>`;
+    })()}
     ${cta(C.btn.continuar,'data-act="fecha"')}</div></div>`);
 }
 function initWheels(){
   const f=A().fecha||{d:15,m:6,y:1992};
+  /* Centrar la rueda necesita que el navegador ya haya calculado el alto.
+     Con un solo requestAnimationFrame, en un telefono lento la medida todavia
+     da 0 y la rueda queda arriba de todo: mostrando 2008 como si fuera el
+     unico año posible. Se reintenta hasta que el alto exista. */
+  const centrar=(w,it,intento)=>{
+    if(!it) return;
+    if(w.clientHeight>0 && it.offsetHeight>0){
+      w.scrollTop=it.offsetTop-w.clientHeight/2+it.offsetHeight/2;
+      mark(w); return;
+    }
+    if((intento||0)<30) setTimeout(()=>centrar(w,it,(intento||0)+1),50);
+  };
   $app.querySelectorAll(".wheel").forEach(w=>{const k=w.dataset.w;const items=[...w.children];const target=items.find(i=>+i.dataset.v===f[k])||items[0];
-    requestAnimationFrame(()=>{w.scrollTop=target.offsetTop-w.clientHeight/2+target.clientHeight/2;mark(w);});
+    centrar(w,target,0);
     let raf=0;w.addEventListener("scroll",()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;mark(w);});},{passive:true});
     // rueda "corrediza" con el mouse (en touch ya desliza nativo): arrastre + inercia + snap
     let drag=null,moved=false,mom=0;
@@ -232,6 +256,21 @@ function initWheels(){
       if(moved)step();else w.style.scrollSnapType="";};
     w.addEventListener("pointerup",endDrag);w.addEventListener("pointercancel",endDrag);
     w.addEventListener("click",e=>{if(moved){moved=false;return;}const it=e.target.closest(".wi");if(it)snapTo(it);});
+    if(k==="y") w._saltar=(anio)=>{
+      const it=[...w.children].find(i=>+i.dataset.v===anio)||[...w.children].find(i=>Math.abs(+i.dataset.v-anio)<=5);
+      if(it){ w.style.scrollSnapType=""; snapTo(it); setTimeout(()=>mark(w),380); }
+    };
+  });
+  /* los atajos caen en la mitad de la decada: desde ahi son cuatro años para
+     cualquier lado, que si se puede hacer con el dedo */
+  const ry=$app.querySelector('.wheel[data-w="y"]');
+  $app.querySelectorAll(".dec").forEach(b=>{
+    b.addEventListener("click",e=>{
+      e.preventDefault();
+      if(ry&&ry._saltar) ry._saltar(+b.dataset.dec+5);
+      $app.querySelectorAll(".dec").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on");
+    });
   });
   function mark(w){const mid=w.scrollTop+w.clientHeight/2;let best=null,bd=1e9;for(const it of w.children){const c=it.offsetTop+it.clientHeight/2;const d=Math.abs(c-mid);if(d<bd){bd=d;best=it;}}[...w.children].forEach(i=>i.classList.toggle("on",i===best));}
 }
@@ -306,7 +345,21 @@ $app.addEventListener("click",ev=>{
   const s=SCREENS[S.step]||{};const act=b.dataset.act;
   if(act==="start"){track("start");pickBurst(b,ev,next);return;}
   if(act==="next"){pickBurst(b,ev,next);return;}
-  if(act==="fecha"){const v=readWheels();if(!v.d||!v.m||!v.y)return;A().fecha=v;save();pickBurst(b,ev,next);return;}
+  if(act==="fecha"){
+    const v=readWheels();
+    /* Antes esto era un return mudo: si la rueda no habia arrancado bien, el
+       boton no hacia nada y la persona no tenia forma de saber por que. */
+    if(!v.d||!v.m||!v.y){
+      const w=$app.querySelector(".wheels");
+      if(w){
+        let m=w.parentNode.querySelector(".werr");
+        if(!m){ m=document.createElement("p"); m.className="werr"; w.parentNode.insertBefore(m,w.nextSibling); }
+        m.textContent="Elegí tu fecha moviendo las tres ruedas. Para el año, tocá una década de acá abajo.";
+      }
+      return;
+    }
+    A().fecha=v;save();pickBurst(b,ev,next);return;
+  }
   if(act==="multi"){pickBurst(b,ev,next);return;}
   if(act==="email"){emailSubmit(b,ev);return;}
   if(b.dataset.v!==undefined){
