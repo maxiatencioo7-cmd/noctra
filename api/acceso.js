@@ -119,7 +119,7 @@ let tk = { valor: '', vence: 0 };
    parece un problema de permisos y no lo es. Se limpian acá y listo. */
 function limpio(v) { return String(v || '').trim(); }
 
-async function tokenAdmin() {
+export async function tokenAdmin() {
   const directo = limpio(process.env.SHOPIFY_ADMIN_TOKEN);
   if (directo) return { token: directo };
 
@@ -295,7 +295,7 @@ export default async function handler(request) {
      valen. Sin esto, la segunda compra no abriria nada. */
   const suma = {};
   mias.forEach((o) => partesDe(o).forEach((x) => { suma[x] = true; }));
-  /* Quien compro los dos sueltos puso 20.000, que es mas que los 15.000 del
+  /* Quien compro los dos sueltos puso 12.994, que es mas que los 9.997 del
      pack. Seria injusto —y se leeria como una trampa— que encima le faltaran
      dos secciones que el pack si trae. Con los dos, se le da todo. */
   if (suma.fecha && suma.lugar) suma.senal = true;
