@@ -372,7 +372,7 @@ function ipDe(order) {
  * Una caída de UTMify no puede romper el Purchase de Meta ni hacer que
  * Shopify reintente el webhook.
  */
-async function sendUtmify(order, status) {
+export async function sendUtmify(order, status) {
   const token = process.env.UTMIFY_API_TOKEN;
   if (!token) return { utmify: 'sin_token' };
 
