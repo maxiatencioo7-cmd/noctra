@@ -196,7 +196,7 @@
      que bajar, que es justamente lo que hace que la nota se lea. */
   function nota(p){
     /* Título y aviso arriba; abajo, la pieza que Maxi carga a mano en
-       assets/<archivo>.webp. Mientras no esté, el hueco guarda un alto
+       assets/<archivo>.webp (o .jpg/.png). Mientras no esté, el hueco guarda un alto
        parecido al de la pieza y dice qué archivo falta: el botón queda
        donde va a quedar y no salta cuando la imagen llegue. */
     var f = (p.nota && p.nota.foto) || "nota";
@@ -204,9 +204,14 @@
       + (p.titulo ? '<h2 class="ntit">'+esc(p.titulo)+'</h2>' : '')
       + (p.badge  ? '<p class="nbadge">'+esc(p.badge)+'</p>' : '')
       + '<span class="nimg">'
-        + '<img src="assets/'+esc(f)+'.webp" alt="" loading="lazy" '
-        + 'decoding="async" onerror="this.closest(\'.nimg\').classList.add(\'falta\')">'
-        + '<i class="ph">assets/'+esc(f)+'.webp</i>'
+        + '<img src="assets/'+esc(f)+'.webp" alt="" loading="lazy" decoding="async" '
+        /* Si no hay .webp prueba .jpg, .png y .jpeg antes de darse por vencida,
+           así Maxi sube la foto con el formato que tenga. */
+        + 'data-alt="jpg,png,jpeg" '
+        + 'onerror="var a=(this.dataset.alt||\'\').split(\',\').filter(Boolean);'
+        + 'if(a.length){this.dataset.alt=a.slice(1).join(\',\');this.src=this.src.replace(/\\.\\w+$/,\'.\'+a[0])}'
+        + 'else{this.closest(\'.nimg\').classList.add(\'falta\')}">'
+        + '<i class="ph">assets/'+esc(f)+'.webp / .jpg / .png</i>'
       + '</span>'
       + '<button class="cta" data-seguir-nota>'+esc(p.boton||"Continuar")+'</button>'
       + '</section>';
@@ -598,16 +603,28 @@
       var max = new Date(hoy.getFullYear()-14, hoy.getMonth(), hoy.getDate());
       var iso = function(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); };
       entrada.classList.add("pide");
-      campoTxt.innerHTML = '<input type="date" class="fech" aria-label="Fecha de nacimiento" '
-        + 'min="1930-01-01" max="'+iso(max)+'">';
+      /* En iPhone un <input type=date> vacío se dibuja vacío: la barra
+         parecía muerta y nadie sabía dónde tocar. El texto visible es
+         nuestro; el campo de fecha va invisible encima, del mismo tamaño,
+         y recibe el toque. Cuando elige, el texto muestra la fecha. */
+      var AVISO = "📅 Tocá acá y elegí tu fecha";
+      campoTxt.innerHTML = '<span class="fechw"><span class="fechtxt">'+AVISO+'</span>'
+        + '<input type="date" class="fech" aria-label="Fecha de nacimiento" '
+        + 'min="1930-01-01" max="'+iso(max)+'"></span>';
       var inp = campoTxt.querySelector(".fech");
+      var txt = campoTxt.querySelector(".fechtxt");
       var env = entrada.querySelector(".enviar");
       abajo();
+      function mostrar(){
+        var v = inp.value;
+        txt.textContent = v ? fechaLinda(v) : AVISO;
+        txt.classList.toggle("con", !!v);
+      }
       function mandar(){
         var v = inp.value;
         var anio = parseInt(v.slice(0,4), 10);
         if(!/^\d{4}-\d{2}-\d{2}$/.test(v) || anio < 1920 || anio > max.getFullYear()){
-          inp.classList.add("mal"); inp.focus(); return;
+          txt.classList.add("mal"); if(!v) txt.textContent = AVISO; inp.focus(); return;
         }
         env.onclick = null; inp.onkeydown = null;
         entrada.classList.remove("pide");
@@ -620,7 +637,7 @@
       }
       env.onclick = mandar;
       inp.onkeydown = function(ev){ if(ev.key==="Enter") mandar(); };
-      inp.oninput = function(){ inp.classList.remove("mal"); };
+      inp.oninput = inp.onchange = function(){ txt.classList.remove("mal"); mostrar(); };
     }
 
     function mostrarOpciones(e){
@@ -703,9 +720,33 @@
 
   /* ---- pintado ---- */
 
+  /* Primer paso con respuesta obligatoria que todavía no tiene respuesta,
+     mirando sólo los anteriores a `hasta`. Un link directo a la mitad del
+     embudo, un estado viejo guardado en el teléfono o un "atrás" raro
+     pueden dejar a alguien en el chat sin signo ni nombre, y ahí Elian
+     diría "sos del signo de , correcto?". Antes de dibujar cualquier
+     pantalla se vuelve a la primera pregunta que falta. */
+  function faltante(hasta){
+    for(var i=0;i<hasta;i++){
+      var q = Q.pasos[i];
+      if(q && q.campo && !S.a[q.campo]) return i;
+    }
+    return null;
+  }
+
   function pintar(){
     var h = desdeHash();
     if(h!==null && h!==S.paso){ S.paso = Math.max(0,Math.min(h, TOTAL-1)); guardar(); }
+
+    var falta = faltante(S.paso);
+    if(falta!==null){
+      S.paso = falta; guardar();
+      var antes = location.hash;
+      location.replace("#/"+falta);
+      /* Si el hash cambió, hashchange vuelve a llamar a pintar() con el
+         paso correcto; si ya era ese, hay que dibujar ahora. */
+      if(location.hash!==antes) return;
+    }
 
     var p = Q.pasos[S.paso];
     if(!p) return;
