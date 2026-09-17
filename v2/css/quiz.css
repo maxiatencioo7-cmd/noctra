@@ -235,62 +235,23 @@ h1,h2{
 
 /* ── la nota ────────────────────────────────────────────────────── */
 
-/* Fondo claro dentro de la noche: el contraste hace que se lea como
-   "esto es otra cosa, esto es una nota" sin tener que imitar a nadie.
-   El cuerpo va en serif y con renglón ancho porque es texto para leer,
-   no para escanear. */
-.nota{
-  /* Alineado a la izquierda a propósito: un texto largo centrado obliga al
-     ojo a buscar el arranque de cada renglón y se abandona a la mitad. */
-  text-align:left;
-  background:#fff; color:#15131f; border-radius:20px;
-  padding:22px 20px 26px; margin:0 0 22px;
-  box-shadow:0 14px 40px rgba(0,0,0,.42);
-}
-
-.nmast{
-  font-weight:800; font-size:22px; letter-spacing:.20em;
-  text-align:center; color:#2A1E4A; padding-bottom:12px;
-  border-bottom:1px solid #E6E2F0;
-}
-.nsec{
-  margin:14px 0 8px; font-size:12px; font-weight:800;
-  letter-spacing:.14em; color:#8E63D6;
-}
-
-.nota h3{
-  margin:0 0 12px; font-size:26px; line-height:1.22; font-weight:800;
-  letter-spacing:-.015em; color:#15131f;
-  /* el título hereda el degradé de h1/h2 si no lo apagamos */
-  background:none; -webkit-background-clip:border-box; background-clip:border-box;
-}
-.nbaj{margin:0 0 18px; font-size:17px; line-height:1.5; color:#4A4560}
-
-.nfoto{margin:0 0 18px}
-.nimg{display:block}
-.nimg img{width:100%; display:block; border-radius:12px}
+/* La pantalla es sólo la pieza y el botón. Sin la imagen, el hueco
+   sostiene el alto definitivo y nombra el archivo que falta: así el botón
+   queda donde va a quedar y no salta cuando la foto llegue. */
+.nimg{display:block; margin:6px 0 22px; border-radius:18px; overflow:hidden}
+.nimg img{width:100%; display:block}
 .nimg .ph{display:none}
 .nimg.falta{
-  /* Sin la foto, el hueco mantiene el alto para que el texto no salte
-     cuando llegue, y dice qué archivo falta. */
-  aspect-ratio:4/3; border-radius:12px; display:grid; place-items:center;
-  background:linear-gradient(150deg,#EAE5F6,#D8D0EC);
-  color:#6B6288; font-size:13px; font-style:normal;
+  aspect-ratio:3/4; display:grid; place-items:center; padding:20px;
+  border:1px dashed rgba(255,255,255,.26);
+  background:linear-gradient(170deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+  color:var(--suave); font-size:13px; text-align:center; letter-spacing:.04em;
 }
 .nimg.falta img{display:none}
 .nimg.falta .ph{display:block; font-style:normal}
-.nfoto figcaption{margin-top:8px; font-size:13px; color:#6B6288; text-align:left}
 
-.ncuerpo p{
-  margin:0 0 15px;
-  font-family:Georgia,'Times New Roman',serif;
-  font-size:18px; line-height:1.62; color:#241F36;
-}
-.ncuerpo p:last-child{margin-bottom:0}
-.nfirma{margin:18px 0 0; font-weight:700; font-size:16px; color:#5B4B86}
-
-/* En la nota el botón no flota: vive al final, después del texto. */
-.nota + .cta{margin-bottom:8px}
+/* Acá el botón no flota: vive debajo de la pieza. */
+.nimg + .cta{margin-bottom:8px}
 
 /* ── la espera ──────────────────────────────────────────────────── */
 
