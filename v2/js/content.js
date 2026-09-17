@@ -185,14 +185,17 @@ window.NOCTRA_V2 = {
       imagenes: ["prueba-1", "prueba-2", "prueba-3", "prueba-4"]
     },
 
-    /* 11 — La pieza de autoridad, justo antes de pedir los datos.
+    /* 11 — La autoridad, justo antes de pedir los datos.
 
-       Va en blanco a propósito: la imagen la carga Maxi a mano en
-       v2/assets/nota/nota.webp y aparece sola, sin tocar código. El botón
-       ya está abajo y el hueco guarda su alto, así que cuando la pieza
-       llegue nada se mueve de lugar. */
+       El título y el aviso son los de la referencia, con el nombre de él.
+       La pieza de abajo la carga Maxi a mano en v2/assets/nota/nota.webp y
+       entra sola, sin tocar código. El hueco es alto a propósito: la pieza
+       tiene que cruzar el borde de la pantalla, así la persona baja para
+       verla entera y recién ahí encuentra el botón. */
     {
       tipo: "nota",
+      titulo: "El Maestro Elian te va a guiar hasta tu alma gemela según tu carta astral! Es vidente hace más de 12 años.",
+      badge: "👇 Mirá el reportaje sobre él: 👇",
       boton: "Continuar",
       nota: { foto: "nota" }
     },
@@ -252,34 +255,39 @@ window.NOCTRA_V2 = {
       boton: "EMPEZAR MI DIBUJO"
     },
 
-    /* 15 — El chat.
+    /* 16 — El chat.
 
        Es el cierre del embudo. Todo lo que dice Elian está en "guion", de
        arriba hacia abajo, y el motor lo va soltando de a un mensaje con el
-       "escribiendo…" en el medio. El ritmo es lo que vende: leer nueve
-       mensajes de a uno no se siente como leer una carta de ventas.
+       "escribiendo…" en el medio. La estructura es la de la referencia,
+       paso por paso, sin agregados.
 
        CÓMO SE ESCRIBE UN PASO DEL GUION
 
-         {de:"el", txt:"..."}              un mensaje de él
+         {de:"el", txt:"..."}              un mensaje de él. **así** va en negrita.
          {de:"el", audio:"audio-1", dur:"0:07"}   un audio. "dur" es lo que
                                            muestra la burbuja antes de que
                                            lo toque; al reproducir corre solo.
-         {de:"el", img:"prueba-1"}         una foto
-         {espera:{campo:"x", opciones:[{txt:"Sí", val:"si"}]}}
-                                           le da botones y guarda lo que elige
+         {de:"el", img:"pareja-1"}         una foto
+         {espera:{campo:"x", pregunta:"…", pista:"Escribí SI para continuar",
+                  opciones:[{txt:"SI", val:"si"}]}}
+                                           pregunta + aviso chico + botones.
+         {espera:{campo:"x", pregunta:"…", pista:"…", fecha:true}}
+                                           pide una fecha con el calendario.
          {solo:{x:"si"}}                   ese paso aparece SÓLO si eligió eso
          {cta:"TEXTO DEL BOTÓN"}           el botón final, va al checkout
 
-       {nombre} y {signo} se reemplazan con lo que contestó en el quiz.
-       {lugar} sale de /api/lugar: la provincia desde donde está escribiendo.
-       Si no hay dato confiable queda "muy cerca tuyo".
+       {nombre}, {signo} y {fecha} se reemplazan con lo que contestó.
+       {lugar} sale de /api/lugar: la provincia desde donde está escribiendo,
+       con la preposición puesta ("en Córdoba"). Si no hay dato confiable
+       queda "cerca tuyo".
 
-       LAS DOS BIFURCACIONES
+       LA BIFURCACIÓN
 
-       Ninguna de las dos deja a nadie afuera: todas las respuestas vuelven
-       al mismo lugar. Están para que el mensaje siguiente hable de lo que
-       ella acaba de decir, no para separarla del embudo. */
+       "¿Cómo vienen tus relaciones?" tiene tres respuestas y ninguna deja a
+       nadie afuera: cada una recibe su eco y su línea, y las tres vuelven al
+       mismo lugar. Está para que el mensaje siguiente hable de lo que acaba
+       de decir, no para separar a nadie del embudo. */
     {
       tipo: "chat",
       sinBarra: true,
@@ -288,68 +296,58 @@ window.NOCTRA_V2 = {
 
         { de:"el", txt:"⏳ Iniciando la lectura de {nombre}…" },
         { de:"el", txt:"{BIENVENIDA|BIENVENIDO} 🙏🍀" },
-        { de:"el", txt:"Hola, soy Elian." },
-        { de:"el", txt:"{nombre}, te voy a explicar cómo funciona esto." },
-        /* Dos audios seguidos, como en la referencia. El primero presenta y
-           el segundo explica: partirlo en dos hace que el segundo se
-           escuche, porque ya escuchó uno y sabe que son cortos. */
+        { de:"el", txt:"Hola, soy el Maestro Elian…" },
+        { de:"el", txt:"{nombre}, te voy a explicar cómo funciona…" },
         { de:"el", audio:"audio-1", dur:"0:07" },
         { de:"el", audio:"audio-2", dur:"0:07" },
-        { de:"el", txt:"Mi retrato tiene una precisión de hasta el 98%… muchas personas se emocionan al recibir el dibujo." },
-        { de:"el", txt:"Así que preparate, porque ya voy a empezar el tuyo." },
-        { espera:{ campo:"chat_empezar", pregunta:"¿Podemos empezar?",
-                   opciones:[{txt:"Sí, empecemos", val:"si"}] } },
+        { de:"el", txt:"Mi retrato tiene una **precisión de hasta el 98%**… muchas personas se **emocionan** al recibir el dibujo…" },
+        { de:"el", txt:"Así que preparate, porque ya voy a empezar el tuyo!" },
+        { espera:{ campo:"chat_empezar", pregunta:"Podemos empezar?",
+                   pista:"Escribí SI para continuar",
+                   opciones:[{txt:"SI", val:"si"}] } },
 
-        { de:"el", txt:"Vi que sos de {signo}, ¿correcto?" },
-        { de:"el", txt:"Tengo tu carta astral abierta acá." },
+        { de:"el", txt:"Vi que sos del signo de {signo}, correcto?" },
+        { espera:{ campo:"fecha_nac", pregunta:"Cuál es tu fecha de nacimiento completa?",
+                   pista:"Ingresá tu fecha de nacimiento", fecha:true } },
 
-        /* Bifurcación 1 — la situación. */
-        { espera:{ campo:"chat_relacion", pregunta:"Y por último… ¿cómo vienen tus relaciones?",
+        { espera:{ campo:"chat_relacion", pregunta:"Y por último… cómo vienen tus relaciones?",
                    opciones:[
-                     {txt:"Estoy {sola|solo}",  val:"sola"},
-                     {txt:"Estoy en pareja", val:"pareja"},
-                     {txt:"Es complicado", val:"complicado"} ] } },
+                     {txt:"No estoy con nadie", val:"sola"},
+                     {txt:"Estoy en pareja",    val:"pareja"},
+                     {txt:"Es complicado",      val:"complicado"} ] } },
 
+        { de:"el", solo:{chat_relacion:"sola"},       txt:"Entonces no estás con nadie?" },
         { de:"el", solo:{chat_relacion:"sola"},
-          txt:"Es muy raro encontrar a alguien de {signo} {sola|solo}. Siento que tenés un corazón muy bueno." },
+          txt:"Es muy raro encontrar a alguien del signo de {signo} {soltera|soltero}, siento que tenés un corazón muy bueno…" },
+        { de:"el", solo:{chat_relacion:"pareja"},     txt:"Entonces estás con alguien…" },
         { de:"el", solo:{chat_relacion:"pareja"},
           txt:"Puedo sentir a alguien al lado tuyo… pero no es la persona que veo en tu carta." },
-        { de:"el", solo:{chat_relacion:"pareja"},
-          txt:"No te lo digo para lastimarte. Te lo digo porque lo veo, y porque todavía estás a tiempo." },
+        { de:"el", solo:{chat_relacion:"complicado"}, txt:"Entonces hay alguien, pero no termina de cerrar…" },
         { de:"el", solo:{chat_relacion:"complicado"},
-          txt:"Hay alguien, pero no termina de cerrar. Eso también lo veo acá." },
+          txt:"Eso también lo veo acá. Y la persona que veo en tu carta no es esa." },
 
         { de:"el", audio:"audio-3", dur:"0:09" },
-        { de:"el", txt:"Van a tener una conexión inmediata… va a parecer que se conocen hace tiempo." },
+        { de:"el", txt:"Van a tener una conexión inmediata… va a parecer que se conocen hace tiempo!" },
 
-        { de:"el", txt:"Un día {estas clientas también estaban|estos clientes también estaban} donde estás vos, hablando conmigo. Y después de un tiempo me mandaron estas fotos 👇" },
+        { de:"el", txt:"Un día {estas clientes|estos clientes} también estaban donde estás vos, hablando conmigo… Y después de un tiempo, me mandaron estas fotos 👇" },
         { de:"el", img:"pareja-1" },
         { de:"el", img:"pareja-2" },
 
-        /* Bifurcación 2 — el cierre emocional. */
-        { espera:{ campo:"chat_siente", pregunta:"¿Y sentís que es {él|ella}?",
-                   opciones:[
-                     {txt:"Sí, siento que sí",  val:"si"},
-                     {txt:"No estoy {segura|seguro}", val:"duda"},
-                     {txt:"No, creo que no",    val:"no"} ] } },
+        { espera:{ campo:"chat_dibujar", pregunta:"Puedo empezar a dibujar a Tu Alma Gemela?",
+                   pista:"Escribí SI para confirmar.",
+                   opciones:[{txt:"SI", val:"si"}] } },
 
-        { de:"el", solo:{chat_siente:"si"},
-          txt:"Entonces lo que estás por ver te lo va a confirmar." },
-        { de:"el", solo:{chat_siente:"duda"},
-          txt:"Por eso mismo necesitás verle la cara. La duda se termina cuando {lo|la} ves." },
-        { de:"el", solo:{chat_siente:"no"},
-          txt:"Me lo imaginaba. Y ahí está el problema: {lo|la} estuviste buscando sin saber a quién buscabas." },
-
-        { de:"el", txt:"{nombre}, prestá mucha atención." },
+        { de:"el", txt:"{nombre}, del signo de {signo}" },
+        { de:"el", txt:"Naciste el {fecha}" },
+        { de:"el", txt:"Tengo tu carta astral abierta…" },
         { de:"el", txt:"Estoy visualizando mucha información importante…" },
-        /* {lugar} trae la preposición: "en Córdoba" o "muy cerca tuyo". */
-        { de:"el", txt:"Vi que tu alma gemela está {lugar}." },
+        { de:"el", txt:"Vi que tu alma gemela está {lugar}!" },
         { de:"el", audio:"audio-4", dur:"0:16" },
-        { de:"el", txt:"{nombre}, prestá mucha atención a esto." },
+        { de:"el", txt:"{nombre}, prestá mucha atención!" },
         { de:"el", audio:"audio-5", dur:"0:09" },
 
-        { de:"el", txt:"Y pensando todavía más en ayudarte, te voy a dar GRATIS la lectura completa en PDF:" },
-        { de:"el", txt:"❤️ Su personalidad completa.\n❤️ Cuándo y dónde {lo|la} vas a encontrar.\n❤️ Dónde vive.\n❤️ Cómo hacer que te vea a VOS como {la mujer más importante|el hombre más importante} de su vida." },
+        { de:"el", txt:"Y pensando todavía más en ayudarte, te voy a dar GRATIS una lectura completa en PDF…" },
+        { de:"el", txt:"💝 Personalidad completa de {él|ella}…\n\n💝 Cuándo y dónde {lo|la} vas a encontrar?\n\n💝 Dónde vive?\n\n💝 Truco simple para que te quedes en su mente cuando {lo|la} encuentres!\n\n💝 Cómo hacer que {él|ella} te vea a VOS como {la mujer|el hombre} más importante de su vida!" },
 
         { cta:"DESBLOQUEAR EL ROSTRO DE MI ALMA GEMELA" }
       ]
