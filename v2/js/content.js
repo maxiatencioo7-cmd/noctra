@@ -13,6 +13,12 @@
      opciones  pregunta + botones. Con "nota" aparece la aclaración chica.
      prueba    carrusel de social proof. El botón avanza el carrusel y
                recién en la última imagen pasa a la pantalla siguiente.
+     nota      nota editorial larga. El botón vive al final del texto, así
+               que para seguir hay que bajar y leer.
+     carga     pantalla de espera animada. Avanza sola a los "segundos".
+     resultado título + tarjeta + un campo + botón.
+     conectado aviso de cupo + tarjeta de persona + botón.
+     chat      la conversación con Elian. Ver el guion más abajo.
 
    Nota sobre el género: todo el copy está en femenino. Los anuncios tienen
    que ir segmentados a mujeres, porque un hombre choca contra la pared en la
@@ -159,10 +165,194 @@ window.NOCTRA_V2 = {
       badge: "Deslizá para el costado y apretá el botón para continuar",
       boton: "Continuar",
       imagenes: ["prueba-1", "prueba-2", "prueba-3", "prueba-4"]
-    }
+    },
 
-    /* Acá sigue: nombre, ciudad, fecha de nacimiento, carga y resultado.
-       Se arma en la próxima tanda. */
+    /* 11 — La autoridad, justo antes de pedir los datos.
+
+       Va en nota propia y no imitando a un diario. Aparte de lo obvio, en
+       la práctica conviene: Meta da de baja cuentas por usar marcas de
+       medios sin permiso, y ahí se pierde el pixel y todo el aprendizaje
+       que se viene pagando. Una nota firmada por la marca no expone nada y
+       se puede escalar sin mirar para atrás.
+
+       El botón vive al FINAL del texto, no flotando: para continuar hay que
+       bajar. Es el mismo mecanismo de la referencia y es lo que hace que la
+       nota se lea en vez de saltearse.
+
+       EL TEXTO DE ABAJO ES UN BORRADOR. Escribilo vos y lo reemplazo. */
+    {
+      tipo: "nota",
+      titulo: "El Maestro Elian te va a guiar hasta tu alma gemela según tu carta astral.",
+      badge: "👇 Mirá la nota sobre él 👇",
+      boton: "Continuar",
+      nota: {
+        marca: "NOCTRA",
+        seccion: "LA HISTORIA",
+        titular: "Hace más de 15 años que dibujo rostros que la gente todavía no conoció.",
+        bajada: "Elian es artista y lector de carta astral. Trabaja con la posición de los astros del día en que naciste para dibujar el rostro de la persona con la que tu carta se cruza.",
+        foto: "elian",
+        pieFoto: "Elian, en su taller.",
+        cuerpo: [
+          "Empecé dibujando retratos por encargo. La gente me traía una foto y yo devolvía un rostro a lápiz. Hasta que una clienta me pidió algo distinto: que dibujara a alguien que todavía no había conocido.",
+          "Le dije que no sabía hacer eso. Ella insistió y me dejó su fecha, su hora y su lugar de nacimiento. Estuve tres días con esa carta abierta sobre la mesa antes de animarme a apoyar el lápiz.",
+          "Cuando le mandé el dibujo me contestó a los once meses. Me mandó una foto: era él.",
+          "Desde ese día hice esto cientos de veces. No todas las personas vuelven a escribirme, y las que vuelven no siempre lo hacen para decirme que lo encontraron. Algunas me escriben para contarme que dejaron de esperar a quien no era.",
+          "Lo que hago no es magia ni adivinación. Es lectura: la carta astral dice qué busca una persona, qué la cansa y qué tipo de vínculo la sostiene. De ahí sale un rostro. A veces exacto, a veces parecido, siempre reconocible.",
+          "Y hay algo que aprendí en estos quince años, y es lo único que te pido que te lleves de acá: la mayoría no se pierde el encuentro porque no aparezca. Se lo pierde porque no lo está esperando el día que pasa."
+        ],
+        firma: "— Elian"
+      }
+    },
+
+    /* 12 — La espera.
+
+       No es decorativa: separa el "contesté un test" del "me dieron un
+       resultado". Sin esta pausa, el resultado se lee como una pantalla más
+       del formulario y no como algo que se produjo para ella.
+
+       Cuatro segundos y medio. Menos no alcanza para que se sienta un
+       cálculo; más y la persona se va. */
+    {
+      tipo: "carga",
+      sinBarra: true,
+      titulo: "Analizando tus respuestas…",
+      sub: "CONECTANDO CON LOS ASTROS…",
+      segundos: 4.5
+    },
+
+    /* 13 — El resultado y el nombre.
+
+       El nombre se pide DESPUÉS de decirle que el resultado ya existe. Es
+       la diferencia entre pedir un dato para empezar y pedirlo para
+       entregar algo que ya está hecho. */
+    {
+      tipo: "resultado",
+      titulo: "¡RESULTADO ENCONTRADO!",
+      /* Antes decía que la lectura llegaba por WhatsApp y después no llegaba
+         nada: la persona se queda esperando un mensaje que no existe y eso
+         vuelve como contracargo. Ahora dice lo que realmente pasa —se abre
+         un chat con él— y encima engancha mejor con la pantalla siguiente. */
+      tarjeta: "Tu lectura ya está lista. Elian te la entrega él mismo, en un chat privado. Decime cómo te llamás y te abro la conversación.",
+      campo: "nombre",
+      placeholder: "Ingresá tu primer nombre…",
+      boton: "ABRIR MI CHAT CON ELIAN"
+    },
+
+    /* 14 — El paso al dibujo.
+
+       "cupo" y "enLinea" salen de acá y no están escritos en el motor a
+       propósito: si el cupo del día no es real, se cambia el número o se
+       saca la línea desde este archivo, sin tocar código. Lo mismo con
+       "En línea". Es más barato limitar de verdad las lecturas por día que
+       sostener un cartel que no se puede probar. */
+    {
+      tipo: "conectado",
+      aviso: "⚠️ ¡ATENCIÓN!",
+      cupo: "Solo 2 lecturas más disponibles hoy",
+      titulo: "¡Buenas noticias!\nEl Maestro Elian está conectado\ny listo para dibujar tu retrato!",
+      persona: {
+        nombre: "Maestro Elian",
+        estado: "En línea",
+        foto: "elian-avatar",
+        sobre: "Artista y lector de carta astral. Hace más de 15 años que dibuja el rostro de quien todavía no conociste."
+      },
+      boton: "EMPEZAR MI DIBUJO"
+    },
+
+    /* 15 — El chat.
+
+       Es el cierre del embudo. Todo lo que dice Elian está en "guion", de
+       arriba hacia abajo, y el motor lo va soltando de a un mensaje con el
+       "escribiendo…" en el medio. El ritmo es lo que vende: leer nueve
+       mensajes de a uno no se siente como leer una carta de ventas.
+
+       CÓMO SE ESCRIBE UN PASO DEL GUION
+
+         {de:"el", txt:"..."}              un mensaje de él
+         {de:"el", audio:"audio-1", dur:"0:05"}   un audio
+         {de:"el", img:"prueba-1"}         una foto
+         {espera:{campo:"x", opciones:[{txt:"Sí", val:"si"}]}}
+                                           le da botones y guarda lo que elige
+         {solo:{x:"si"}}                   ese paso aparece SÓLO si eligió eso
+         {cta:"TEXTO DEL BOTÓN"}           el botón final, va al checkout
+
+       {nombre} y {signo} se reemplazan con lo que contestó en el quiz.
+       {lugar} sale de /api/lugar: la provincia desde donde está escribiendo.
+       Si no hay dato confiable queda "muy cerca tuyo".
+
+       LAS DOS BIFURCACIONES
+
+       Ninguna de las dos deja a nadie afuera: todas las respuestas vuelven
+       al mismo lugar. Están para que el mensaje siguiente hable de lo que
+       ella acaba de decir, no para separarla del embudo. */
+    {
+      tipo: "chat",
+      sinBarra: true,
+      contacto: { nombre:"Maestro Elian", estado:"En línea", foto:"elian-avatar" },
+      guion: [
+
+        { de:"el", txt:"⏳ Iniciando la lectura de {nombre}…" },
+        { de:"el", txt:"BIENVENIDA 🙏🍀" },
+        { de:"el", txt:"Hola, soy Elian." },
+        { de:"el", txt:"{nombre}, te voy a explicar cómo funciona esto." },
+        { de:"el", audio:"audio-1", dur:"0:05" },
+        { de:"el", txt:"Mi retrato tiene una precisión de hasta el 98%… muchas personas se emocionan al recibir el dibujo." },
+        { de:"el", txt:"Así que preparate, porque ya voy a empezar el tuyo." },
+        { espera:{ campo:"chat_empezar", pregunta:"¿Podemos empezar?",
+                   opciones:[{txt:"Sí, empecemos", val:"si"}] } },
+
+        { de:"el", txt:"Vi que sos de {signo}, ¿correcto?" },
+        { de:"el", txt:"Tengo tu carta astral abierta acá." },
+
+        /* Bifurcación 1 — la situación. */
+        { espera:{ campo:"chat_relacion", pregunta:"Y por último… ¿cómo vienen tus relaciones?",
+                   opciones:[
+                     {txt:"Estoy sola",    val:"sola"},
+                     {txt:"Estoy en pareja", val:"pareja"},
+                     {txt:"Es complicado", val:"complicado"} ] } },
+
+        { de:"el", solo:{chat_relacion:"sola"},
+          txt:"Es muy raro encontrar a alguien de {signo} sola. Siento que tenés un corazón muy bueno." },
+        { de:"el", solo:{chat_relacion:"pareja"},
+          txt:"Puedo sentir a alguien al lado tuyo… pero no es la persona que veo en tu carta." },
+        { de:"el", solo:{chat_relacion:"pareja"},
+          txt:"No te lo digo para lastimarte. Te lo digo porque lo veo, y porque todavía estás a tiempo." },
+        { de:"el", solo:{chat_relacion:"complicado"},
+          txt:"Hay alguien, pero no termina de cerrar. Eso también lo veo acá." },
+
+        { de:"el", audio:"audio-2", dur:"0:07" },
+        { de:"el", txt:"Van a tener una conexión inmediata… va a parecer que se conocen hace tiempo." },
+
+        { de:"el", txt:"Un día estas clientas también estaban donde estás vos, hablando conmigo. Y después de un tiempo me mandaron estas fotos 👇" },
+        { de:"el", img:"pareja-1" },
+        { de:"el", img:"pareja-2" },
+
+        /* Bifurcación 2 — el cierre emocional. */
+        { espera:{ campo:"chat_siente", pregunta:"¿Y sentís que es él?",
+                   opciones:[
+                     {txt:"Sí, siento que sí",  val:"si"},
+                     {txt:"No estoy segura",    val:"duda"},
+                     {txt:"No, creo que no",    val:"no"} ] } },
+
+        { de:"el", solo:{chat_siente:"si"},
+          txt:"Entonces lo que estás por ver te lo va a confirmar." },
+        { de:"el", solo:{chat_siente:"duda"},
+          txt:"Por eso mismo necesitás verle la cara. La duda se termina cuando lo ves." },
+        { de:"el", solo:{chat_siente:"no"},
+          txt:"Me lo imaginaba. Y ahí está el problema: lo estuviste buscando sin saber a quién buscabas." },
+
+        { de:"el", txt:"{nombre}, prestá mucha atención." },
+        { de:"el", txt:"Estoy visualizando mucha información importante…" },
+        /* {lugar} trae la preposición: "en Córdoba" o "muy cerca tuyo". */
+        { de:"el", txt:"Vi que tu alma gemela está {lugar}." },
+        { de:"el", audio:"audio-3", dur:"0:13" },
+
+        { de:"el", txt:"Y pensando todavía más en ayudarte, te voy a dar GRATIS la lectura completa en PDF:" },
+        { de:"el", txt:"❤️ Su personalidad completa.\n❤️ Cuándo y dónde lo vas a encontrar.\n❤️ Dónde vive.\n❤️ Cómo hacer que te vea a VOS como la mujer más importante de su vida." },
+
+        { cta:"DESBLOQUEAR EL ROSTRO DE MI ALMA GEMELA" }
+      ]
+    }
   ],
 
   /* Los 12 signos. La ilustración va en assets/signos/<id>.webp; hasta que
