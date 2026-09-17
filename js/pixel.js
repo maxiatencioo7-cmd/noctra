@@ -24,6 +24,7 @@
       var e=o&&o.event;
       if(e==="noctra_lead")unaVez("Lead");
       else if(e==="noctra_inicio_checkout")fb("InitiateCheckout",V);
+      else if(e==="noctra_oferta")unaVez("ViewContent",V);
       else if(e==="noctra_start")unaVez("QuizInicio");
       else if(e==="noctra_resultado")unaVez("QuizResultado");
       else if(e&&e.indexOf("noctra_step_")===0)paso(o.step);
@@ -35,11 +36,10 @@
      abrir por campaña en el Administrador de Anuncios: ahí se ve si la
      gente se cae por el anuncio o por una pregunta puntual.
      El nombre lleva el número con dos dígitos para que ordene solo. */
-  var ETAPA={0:"Portada",1:"Prueba social",2:"Genero",3:"Interes",4:"Edad",
-    5:"Origen",6:"Fecha",7:"Cualidades",8:"Referencia 1",9:"Apariencia",
-    10:"Decision",11:"Referencia 2",12:"Motivo",13:"Dificultad",
-    14:"Referencia 3",15:"Lenguaje",16:"Futuro",17:"Energia",18:"Opuestos",
-    19:"Experiencias",20:"Transicion"};
+  var ETAPA={0:"Signos",1:"Genero",2:"Situacion",3:"Importante",
+    4:"Lenguaje",5:"Miedo",6:"Decepcion",7:"Cree astro",8:"Quiere rostro",
+    9:"Quiere cuando",10:"Prueba social",11:"Nota",12:"Carga",13:"Nombre",
+    14:"Conectado",15:"Chat"};
   function paso(i){
     if(typeof i!=="number"||i<0) return;
     var dosDigitos=(i<10?"0":"")+i;
