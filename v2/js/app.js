@@ -64,6 +64,9 @@
 
   function barra(){
     if(S.paso===0) return "";
+    /* La espera va a pantalla completa: una barra de progreso arriba
+       contradice el "esto está calculando algo". */
+    if((Q.pasos[S.paso]||{}).sinBarra) return "";
     var pct = Math.round((S.paso/(TOTAL-1))*100);
     return '<header class="top">'
       + '<button class="volver" data-atras aria-label="Volver">'
@@ -170,7 +173,349 @@
     });
   }
 
-  var DIBUJA = { opciones:opciones, signos:signos, prueba:prueba };
+  /* La nota. Va en marca propia, no imitando a un medio: Meta da de baja
+     cuentas por usar marcas de diarios sin permiso y ahi se pierde el pixel
+     con todo el aprendizaje que se viene pagando.
+
+     El boton va al FINAL del cuerpo, no flotando arriba: para continuar hay
+     que bajar, que es justamente lo que hace que la nota se lea. */
+  function nota(p){
+    var n = p.nota || {};
+    var cuerpo = (n.cuerpo||[]).map(function(t){ return '<p>'+esc(t)+'</p>'; }).join("");
+    return '<section class="pant">'
+      + '<h2>'+esc(p.titulo)+'</h2>'
+      + '<p class="badge chico">'+esc(p.badge)+'</p>'
+      + '<article class="nota">'
+        + '<div class="nmast">'+esc(n.marca||"NOCTRA")+'</div>'
+        + '<div class="nsec">'+esc(n.seccion||"")+'</div>'
+        + '<h3>'+esc(n.titular||"")+'</h3>'
+        + (n.bajada ? '<p class="nbaj">'+esc(n.bajada)+'</p>' : '')
+        + (n.foto
+            ? '<figure class="nfoto">'
+              + '<span class="nimg">'
+                + '<img src="assets/nota/'+esc(n.foto)+'.webp" alt="" loading="lazy" '
+                + 'decoding="async" onerror="this.closest(\'.nimg\').classList.add(\'falta\')">'
+                + '<i class="ph">'+esc(n.foto)+'</i>'
+              + '</span>'
+              + (n.pieFoto ? '<figcaption>'+esc(n.pieFoto)+'</figcaption>' : '')
+              + '</figure>'
+            : '')
+        + '<div class="ncuerpo">'+cuerpo+'</div>'
+        + (n.firma ? '<p class="nfirma">'+esc(n.firma)+'</p>' : '')
+      + '</article>'
+      + '<button class="cta" data-seguir-nota>'+esc(p.boton||"Continuar")+'</button>'
+      + '</section>';
+  }
+
+  /* La espera. La animación es CSS pura y gira sobre transform: el
+     navegador la manda a la GPU y sigue fluida aunque el hilo principal
+     esté ocupado. Con requestAnimationFrame se traba en teléfonos modestos
+     justo cuando la persona la está mirando fijo. */
+  function carga(p){
+    return '<section class="pant carga">'
+      + '<div class="orbita">'
+        + '<i class="aro a1"></i><i class="aro a2"></i>'
+        + '<i class="aro a3"></i><i class="nucleo"></i>'
+      + '</div>'
+      + '<h2 class="ctit">'+esc(p.titulo)+'</h2>'
+      + (p.sub ? '<p class="csub">'+esc(p.sub)+'</p>' : '')
+      + '</section>';
+  }
+
+  function resultado(p){
+    return '<section class="pant centro res">'
+      + '<h1 class="brilla">'+esc(p.titulo)+'</h1>'
+      + '<div class="rcard">'+esc(p.tarjeta)+'</div>'
+      + '<input class="txt" type="text" autocomplete="given-name" '
+        + 'value="'+esc(S.a[p.campo]||"")+'" placeholder="'+esc(p.placeholder||"")+'" '
+        + 'data-campo="'+esc(p.campo)+'">'
+      + '<p class="msgmal" hidden>Escribí tu nombre para continuar.</p>'
+      + '<button class="cta verde" data-enviar>'+esc(p.boton||"Continuar")+'</button>'
+      + '</section>';
+  }
+
+  function conectado(p){
+    var q = p.persona || {};
+    return '<section class="pant centro">'
+      + '<div class="aviso"><b>'+esc(p.aviso)+'</b>'
+        + '<span class="cupo">'+esc(p.cupo)+'</span></div>'
+      + '<h2 class="multi">'+esc(p.titulo).replace(/\n/g,"<br>")+'</h2>'
+      + '<div class="persona">'
+        + '<span class="pav">'
+          + '<img src="assets/nota/'+esc(q.foto||"elian-avatar")+'.webp" alt="" '
+          + 'loading="lazy" decoding="async" onerror="this.closest(\'.pav\').classList.add(\'falta\')">'
+          + '<i class="ph">'+esc(q.foto||"")+'</i>'
+        + '</span>'
+        + '<span class="pinfo"><b>'+esc(q.nombre)+'</b>'
+          + '<i class="pest">'+esc(q.estado)+'</i>'
+          + (q.sobre ? '<i class="psobre">'+esc(q.sobre)+'</i>' : '')
+        + '</span>'
+        + '<span class="ppunto"></span>'
+      + '</div>'
+      + '<button class="cta verde" data-seguir-nota>'+esc(p.boton||"Continuar")+'</button>'
+      + '</section>';
+  }
+
+  /* ── el chat ──────────────────────────────────────────────────────
+
+     Lo que vende no es el texto, es el RITMO: nueve mensajes que caen de a
+     uno, con el "escribiendo…" en el medio, no se leen como una carta de
+     ventas aunque digan exactamente lo mismo.
+
+     Tres decisiones que sostienen eso:
+
+     1. La demora es proporcional al largo del mensaje. Un "Sí" que tarda lo
+        mismo que un párrafo delata que es un guion.
+     2. Al volver a entrar, lo ya visto se pinta de golpe y sin demoras. Que
+        le hagan ver de nuevo toda la conversación es la forma más rápida de
+        perder a alguien que ya estaba adentro.
+     3. La conversación NO se puede saltear con el botón atrás a mitad de un
+        mensaje: cada respuesta suya queda guardada, así que si vuelve,
+        vuelve al mismo lugar. */
+
+  var LUGAR = null;   /* la provincia, cacheada por visita */
+
+  function pedirLugar(){
+    if(LUGAR !== null) return Promise.resolve(LUGAR);
+    return fetch("/api/lugar").then(function(r){ return r.json(); })
+      .then(function(j){ LUGAR = (j && j.lugar) || ""; return LUGAR; })
+      .catch(function(){ LUGAR = ""; return LUGAR; });
+  }
+
+  function variables(t){
+    var nom = S.a.nombre || "";
+    /* El nombre del signo sale de la lista, no de capitalizar el id: el id
+       va sin acento para que sirva de nombre de archivo, y "Cancer" sin
+       tilde en medio de la conversación se lee como un descuido. */
+    var sig = "";
+    if(S.a.signo){
+      var f = (Q.signos||[]).find(function(x){ return x.id===S.a.signo; });
+      sig = f ? f.nombre : (S.a.signo.charAt(0).toUpperCase()+S.a.signo.slice(1));
+    }
+    return String(t)
+      .replace(/\{nombre\}/g, nom)
+      .replace(/\{signo\}/g, sig)
+      /* {lugar} ya viene con la preposición adentro: con provincia queda
+         "está EN Córdoba" y sin ella "está MUY CERCA TUYO", que son dos
+         frases distintas. Si el reemplazo fuera sólo el nombre, el respaldo
+         daría "está en muy cerca tuyo".
+
+         Sin provincia confiable no se inventa: "muy cerca tuyo" dice lo
+         mismo y no se puede desmentir. Una provincia equivocada rompe el
+         efecto justo en el mensaje que más caro cuesta. */
+      .replace(/\{lugar\}/g, LUGAR ? ("en "+LUGAR) : "muy cerca tuyo");
+  }
+
+  function hora(){
+    var d = new Date();
+    return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
+  }
+
+  /* Cuánto "tarda en escribir" un mensaje. Con un piso para que no parezca
+     un bot y un techo para que nadie se vaya esperando. */
+  function demora(paso){
+    if(paso.audio) return 1400;
+    if(paso.img)   return 1200;
+    var n = (paso.txt||"").length;
+    return Math.min(2400, Math.max(700, 420 + n*26));
+  }
+
+  /* Un paso con "solo" aparece únicamente si ella contestó eso. Es lo que
+     hace que las bifurcaciones converjan sin un mapa de saltos. */
+  function corresponde(paso){
+    if(!paso.solo) return true;
+    for(var k in paso.solo){ if(S.a[k] !== paso.solo[k]) return false; }
+    return true;
+  }
+
+  function burbuja(paso){
+    var h = '<span class="h">'+hora()+'</span>';
+    if(paso.audio){
+      return '<div class="msg el audio">'
+        + '<span class="play">▶</span>'
+        + '<span class="onda"></span>'
+        + '<span class="dur">'+esc(paso.dur||"0:05")+'</span>'
+        + '<i class="ph">'+esc(paso.audio)+'</i>' + h + '</div>';
+    }
+    if(paso.img){
+      return '<div class="msg el foto">'
+        + '<span class="fi"><img src="assets/chat/'+esc(paso.img)+'.webp" alt="" '
+        + 'loading="lazy" decoding="async" onerror="this.closest(\'.fi\').classList.add(\'falta\')">'
+        + '<i class="ph">'+esc(paso.img)+'</i></span>' + h + '</div>';
+    }
+    return '<div class="msg el">'+esc(variables(paso.txt)).replace(/\n/g,"<br>")+h+'</div>';
+  }
+
+  function chat(p){
+    var c = p.contacto || {};
+    return '<section class="pant chat">'
+      + '<header class="chead">'
+        + '<span class="cav">'
+          + '<img src="assets/nota/'+esc(c.foto||"elian-avatar")+'.webp" alt="" '
+          + 'onerror="this.closest(\'.cav\').classList.add(\'falta\')">'
+          + '<i class="ph">'+esc(c.foto||"")+'</i></span>'
+        + '<span class="cinfo"><b>'+esc(c.nombre)+'</b><i>'+esc(c.estado)+'</i></span>'
+      + '</header>'
+      + '<div class="hilo" data-hilo></div>'
+      + '<div class="pie">'
+        + '<div class="sugs" data-sugs></div>'
+        /* La barra de escribir no es un campo de verdad: si fuera un input,
+           al tocarlo se abre el teclado, tapa media pantalla y no pasa nada.
+           Es decorativa y lo dice —"Elegí una respuesta"— cuando hay
+           opciones. Sostiene la sensación de chat sin prometer algo que no
+           se puede hacer. */
+        + '<div class="entrada" data-entrada>'
+          + '<span class="mas">+</span>'
+          + '<span class="campo" data-campo-txt>Escribí acá…</span>'
+          + '<span class="enviar">➤</span>'
+        + '</div>'
+      + '</div>'
+      + '</section>';
+  }
+
+  function montarChat(p){
+    var guion = p.guion || [];
+    var hilo     = app.querySelector("[data-hilo]");
+    var sugs     = app.querySelector("[data-sugs]");
+    var entrada  = app.querySelector("[data-entrada]");
+    var campoTxt = app.querySelector("[data-campo-txt]");
+    var vivo     = true;
+    var foto     = (p.contacto && p.contacto.foto) || "elian-avatar";
+    /* Si la foto del encabezado ya falló, el mini arranca en modo hueco y
+       no se ve el parpadeo de la imagen rota en cada mensaje. */
+    var fotoRota = !!app.querySelector(".cav.falta");
+
+    S.chat = S.chat || 0;
+
+    addEventListener("hashchange", function corta(){
+      vivo = false; removeEventListener("hashchange", corta);
+    });
+
+    function abajo(){ hilo.scrollTop = hilo.scrollHeight; }
+
+    function ponerElla(txt){
+      hilo.insertAdjacentHTML("beforeend",
+        '<div class="msg ella">'+esc(txt)+'<span class="h">'+hora()+'</span></div>');
+      abajo();
+    }
+
+    /* El "escribiendo…" lleva la foto al lado. Es un detalle chico y hace
+       toda la diferencia: sin la cara, los tres puntos son un spinner; con
+       la cara, es alguien del otro lado escribiendo. */
+    function escribiendo(on){
+      var t = hilo.querySelector(".fescr");
+      if(on && !t){
+        hilo.insertAdjacentHTML("beforeend",
+          '<div class="fescr">'
+          + '<span class="mini'+(fotoRota?" falta":"")+'">'
+            + '<img src="assets/nota/'+esc(foto)+'.webp" alt="" '
+            + 'onerror="this.closest(\'.mini\').classList.add(\'falta\')">'
+          + '</span>'
+          + '<div class="msg el escr"><i></i><i></i><i></i></div>'
+          + '</div>');
+        abajo();
+      }else if(!on && t){ t.remove(); }
+    }
+
+    /* Todo lo anterior al punto donde quedó, de golpe y sin demoras. */
+    function repintar(){
+      var html = "";
+      for(var i=0;i<S.chat && i<guion.length;i++){
+        var paso = guion[i];
+        if(!corresponde(paso)) continue;
+        if(paso.cta) continue;
+        if(paso.espera){
+          var v = S.a[paso.espera.campo];
+          if(paso.espera.pregunta)
+            html += '<div class="msg el">'+esc(variables(paso.espera.pregunta))+'<span class="h">'+hora()+'</span></div>';
+          var op = (paso.espera.opciones||[]).find(function(o){ return o.val===v; });
+          if(op) html += '<div class="msg ella">'+esc(op.txt)+'<span class="h">'+hora()+'</span></div>';
+          continue;
+        }
+        html += burbuja(paso);
+      }
+      hilo.innerHTML = html;
+      abajo();
+    }
+
+    function preguntar(paso){
+      var e = paso.espera;
+      if(e.pregunta){
+        hilo.insertAdjacentHTML("beforeend",
+          '<div class="msg el">'+esc(variables(e.pregunta))+'<span class="h">'+hora()+'</span></div>');
+        abajo();
+      }
+      /* Las opciones entran escalonadas, 55 ms una de otra. Que aparezcan
+         las tres de golpe se ve como un formulario; de a una se ve como
+         algo que el chat te va ofreciendo. */
+      sugs.innerHTML = (e.opciones||[]).map(function(o,i){
+        return '<button class="sug" data-val="'+esc(o.val)+'" '
+          + 'style="animation-delay:'+(i*55)+'ms">'+esc(o.txt)+'</button>';
+      }).join("");
+      sugs.classList.add("con");
+      campoTxt.textContent = "Elegí una respuesta…";
+      sugs.onclick = function(ev){
+        var b = ev.target.closest ? ev.target.closest(".sug") : null;
+        if(!b) return;
+        var val = b.getAttribute("data-val");
+        var op = (e.opciones||[]).find(function(o){ return o.val===val; });
+        S.a[e.campo] = val; guardar();
+        sugs.innerHTML = ""; sugs.classList.remove("con"); sugs.onclick = null;
+        campoTxt.textContent = "Escribí acá…";
+        ponerElla(op ? op.txt : val);
+        evento({ event:"noctra_chat_"+e.campo, valor:val });
+        S.chat++; guardar();
+        setTimeout(seguirChat, 500);
+      };
+    }
+
+    function ponerCTA(paso){
+      /* Acá ya no hay nada que responder: la barra de escribir se va y el
+         botón se queda solo. Dejarla puesta invita a escribir en vez de
+         tocar, justo en el único momento donde queremos una sola acción. */
+      entrada.remove();
+      sugs.innerHTML = '<button class="cta verde" data-checkout>'+esc(paso.cta)+'</button>';
+      sugs.classList.add("con","solo-cta");
+      sugs.onclick = function(ev){
+        if(!ev.target.closest || !ev.target.closest("[data-checkout]")) return;
+        evento({ event:"noctra_inicio_checkout" });
+        location.href = window.NOCTRA_V2_CHECKOUT();
+      };
+      abajo();
+    }
+
+    function seguirChat(){
+      if(!vivo) return;
+      if(S.chat >= guion.length) return;
+      var paso = guion[S.chat];
+
+      if(!corresponde(paso)){ S.chat++; guardar(); return seguirChat(); }
+      if(paso.espera) return preguntar(paso);
+      if(paso.cta)    return ponerCTA(paso);
+
+      escribiendo(true);
+      setTimeout(function(){
+        if(!vivo) return;
+        escribiendo(false);
+        hilo.insertAdjacentHTML("beforeend", burbuja(paso));
+        abajo();
+        S.chat++; guardar();
+        seguirChat();
+      }, demora(paso));
+    }
+
+    /* La provincia se pide una sola vez y antes de arrancar, para que el
+       mensaje que la usa no salga con el texto de respaldo por llegar
+       tarde. Si el pedido falla, arranca igual. */
+    pedirLugar().then(function(){
+      if(!vivo) return;
+      repintar();
+      seguirChat();
+    });
+  }
+
+  var DIBUJA = { opciones:opciones, signos:signos, prueba:prueba, nota:nota,
+                 carga:carga, resultado:resultado, conectado:conectado, chat:chat };
 
   /* ---- pintado ---- */
 
@@ -189,6 +534,42 @@
     window.scrollTo(0,0);
     navegando = false;
     if(p.tipo==="prueba") montarCarrusel();
+    if(p.tipo==="chat") montarChat(p);
+
+    var seguir = app.querySelector("[data-seguir-nota]");
+    if(seguir) seguir.addEventListener("click", siguiente);
+
+    if(p.tipo==="carga"){
+      var t = setTimeout(siguiente, (p.segundos||4.5)*1000);
+      /* Si se va de la pantalla antes (botón atrás), el salto no tiene que
+         dispararse igual media pantalla después. */
+      addEventListener("hashchange", function limpiar(){
+        clearTimeout(t); removeEventListener("hashchange", limpiar);
+      });
+    }
+
+    if(p.tipo==="resultado"){
+      var inp = app.querySelector(".txt");
+      var mal = app.querySelector(".msgmal");
+      var env = app.querySelector("[data-enviar]");
+      function validar(){
+        var v = (inp.value||"").trim();
+        if(v.length < 2){
+          mal.hidden = false; inp.classList.add("mal"); inp.focus();
+          return;
+        }
+        S.a[inp.getAttribute("data-campo")] = v; guardar();
+        evento({ event:"noctra_lead" });
+        siguiente();
+      }
+      env.addEventListener("click", validar);
+      /* El "listo" del teclado del teléfono tiene que enviar. Si no, la
+         persona lo aprieta, no pasa nada, y cree que el sitio se colgó. */
+      inp.addEventListener("keydown", function(e){ if(e.key==="Enter") validar(); });
+      inp.addEventListener("input", function(){
+        mal.hidden = true; inp.classList.remove("mal");
+      });
+    }
 
     evento({ event:"noctra_step_"+S.paso, step:S.paso });
     if(S.paso===0) evento({ event:"noctra_start" });
@@ -239,7 +620,7 @@
      tener que borrar el storage a mano desde el inspector. */
   if(new URLSearchParams(location.search).get("reset")==="1"){
     try{ localStorage.removeItem(KEY); }catch(e){}
-    S = { paso:0, a:{} };
+    S = { paso:0, a:{}, chat:0 };
     history.replaceState(null,"",location.pathname);
     location.hash = "";
   }
