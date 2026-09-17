@@ -600,12 +600,20 @@ body.en-chat{padding:0; height:100dvh; overflow:hidden}
 
 /* La barra, cuando pide la fecha: por un momento es un campo real. */
 .entrada.pide{border-color:rgba(255,210,90,.6); box-shadow:0 0 18px rgba(255,190,70,.25)}
-.entrada .fech{
-  width:100%; border:0; background:transparent; color:#fff;
-  font:inherit; font-size:17px; padding:2px 0; outline:0;
-  color-scheme:dark;
+.entrada .fechw{position:relative; display:block; width:100%; min-height:24px}
+.entrada .fechtxt{
+  display:block; font-size:15px; line-height:24px; color:#FFD25A;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.entrada .fech.mal{color:#FF8E86}
+.entrada .fechtxt.con{color:#fff; font-size:17px}
+.entrada .fechtxt.mal{color:#FF8E86}
+/* El campo real: invisible, del tamaño de la barra, encima del texto.
+   16px mínimo para que iPhone no haga zoom al enfocarlo. */
+.entrada .fech{
+  position:absolute; inset:0; width:100%; height:100%; margin:0; padding:0;
+  border:0; background:transparent; opacity:0; font-size:16px;
+  -webkit-appearance:none; appearance:none; color-scheme:dark;
+}
 .entrada.pide .enviar{cursor:pointer}
 
 @media (prefers-reduced-motion:reduce){ .sug{animation:none} .sugs .cta{animation:none} }
