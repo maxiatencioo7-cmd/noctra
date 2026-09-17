@@ -20,10 +20,12 @@
      conectado aviso de cupo + tarjeta de persona + botón.
      chat      la conversación con Elian. Ver el guion más abajo.
 
-   Nota sobre el género: todo el copy está en femenino. Los anuncios tienen
-   que ir segmentados a mujeres, porque un hombre choca contra la pared en la
-   primera línea. Si algún día se abre a varones, hay que duplicar el copy,
-   no sólo agregar una pregunta. */
+   GÉNERO. El copy se escribe en femenino —que es a quien apuntan los
+   anuncios— y lleva la variante masculina pegada al lado, entre llaves y
+   separadas por una barra: {sola|solo}, {BIENVENIDA|BIENVENIDO}, {él|ella}.
+   El motor elige según lo que haya contestado en la pantalla "Yo soy:".
+   Hasta que conteste, y si nunca contesta, sale la primera. Para agregar
+   copy nuevo no hay que tocar código: alcanza con escribir el par. */
 window.NOCTRA_V2 = {
 
   /* Clave propia. El quiz viejo usa "noctra_v2": con la misma, alguien que
@@ -42,21 +44,37 @@ window.NOCTRA_V2 = {
     {
       tipo: "signos",
       campo: "signo",
-      titulo: "¿ESTÁS LISTA PARA CONOCER TU ALMA GEMELA?",
+      titulo: "¿ESTÁS {LISTA|LISTO} PARA CONOCER TU ALMA GEMELA?",
       badge: "👇 HACÉ EL TEST A CONTINUACIÓN PARA DESCUBRIR QUIÉN ES. 👇",
       paso: "Paso 1: ¿Cuál es tu signo?"
     },
 
-    /* 2 y 3 — Fáciles, sobre ella, sin costo emocional. Sirven para que
+    /* 2 — Quién es. Va acá y no antes: la portada tiene que seguir siendo
+       el gancho, y para cuando llega a esta pantalla ya eligió su signo, o
+       sea que ya empezó el test y contesta esto sin pensarlo.
+
+       De esta respuesta cuelga todo el copy del embudo: cada texto de acá
+       para abajo lleva su par {femenino|masculino} y el motor elige. */
+    {
+      tipo: "opciones",
+      campo: "genero",
+      titulo: "Yo soy:",
+      opciones: [
+        { emoji: "👩", txt: "Mujer",  val: "mujer" },
+        { emoji: "👨", txt: "Hombre", val: "hombre" }
+      ]
+    },
+
+    /* 3 y 4 — Fáciles, sobre ella, sin costo emocional. Sirven para que
        conteste tres veces antes de que le pidamos algo difícil. */
     {
       tipo: "opciones",
       campo: "situacion",
       titulo: "¿Cuál es tu situación sentimental actual?",
       opciones: [
-        { emoji: "❤️", txt: "Soltera",     val: "soltera" },
-        { emoji: "💕", txt: "De novia",    val: "novia" },
-        { emoji: "💍", txt: "Casada",      val: "casada" },
+        { emoji: "❤️", txt: "{Soltera|Soltero}",   val: "soltera" },
+        { emoji: "💕", txt: "{De novia|De novio}", val: "novia" },
+        { emoji: "💍", txt: "{Casada|Casado}",     val: "casada" },
         { emoji: "🤔", txt: "No sé/Otro",  val: "otro" }
       ]
     },
@@ -95,13 +113,13 @@ window.NOCTRA_V2 = {
        hacen decir en voz alta que quiere exactamente lo que vendemos. Para
        cuando llega la oferta, ya se la ofreció ella sola.
 
-       El "*Sé sincera" no es decorativo: sube la tasa de "Sí" en la pregunta
+       El "*Sé {sincera|sincero}" no es decorativo: sube la tasa de "Sí" en la pregunta
        incómoda, que es la que sostiene todo lo que viene después. */
     {
       tipo: "opciones",
       campo: "miedo_sola",
-      titulo: "¿Alguna vez sentiste que tu destino es quedarte sola y nunca encontrar a alguien que realmente te entienda y te ame por quien sos?",
-      nota: "*Sé sincera",
+      titulo: "¿Alguna vez sentiste que tu destino es quedarte {sola|solo} y nunca encontrar a alguien que realmente te entienda y te ame por quien sos?",
+      nota: "*Sé {sincera|sincero}",
       opciones: [
         { emoji: "✅", txt: "Sí", val: "si" },
         { emoji: "❌", txt: "No", val: "no" }
@@ -110,8 +128,8 @@ window.NOCTRA_V2 = {
     {
       tipo: "opciones",
       campo: "decepcion",
-      titulo: "¿Alguna vez te sentiste decepcionada con relaciones que al primer momento parecían prometedoras?",
-      nota: "*Sé sincera",
+      titulo: "¿Alguna vez te sentiste {decepcionada|decepcionado} con relaciones que al primer momento parecían prometedoras?",
+      nota: "*Sé {sincera|sincero}",
       opciones: [
         { emoji: "✅", txt: "Sí", val: "si" },
         { emoji: "❌", txt: "No", val: "no" }
@@ -121,7 +139,7 @@ window.NOCTRA_V2 = {
       tipo: "opciones",
       campo: "cree_astro",
       titulo: "¿Creés que la astrología puede revelar el rostro de tu alma gemela?",
-      nota: "*Sé sincera",
+      nota: "*Sé {sincera|sincero}",
       opciones: [
         { emoji: "✅", txt: "Sí", val: "si" },
         { emoji: "❌", txt: "No", val: "no" }
@@ -131,7 +149,7 @@ window.NOCTRA_V2 = {
       tipo: "opciones",
       campo: "quiere_rostro",
       titulo: "¿Te gustaría ver el rostro de tu alma gemela hoy a través de la astrología?",
-      nota: "*Sé sincera",
+      nota: "*Sé {sincera|sincero}",
       opciones: [
         { emoji: "✅", txt: "Sí", val: "si" },
         { emoji: "❌", txt: "No", val: "no" }
@@ -141,7 +159,7 @@ window.NOCTRA_V2 = {
       tipo: "opciones",
       campo: "quiere_cuando",
       titulo: "¿Y te gustaría saber exactamente cuándo y dónde vas a encontrar a tu alma gemela?",
-      nota: "*Sé sincera",
+      nota: "*Sé {sincera|sincero}",
       opciones: [
         { emoji: "✅", txt: "Sí", val: "si" },
         { emoji: "❌", txt: "No", val: "no" }
@@ -167,41 +185,16 @@ window.NOCTRA_V2 = {
       imagenes: ["prueba-1", "prueba-2", "prueba-3", "prueba-4"]
     },
 
-    /* 11 — La autoridad, justo antes de pedir los datos.
+    /* 11 — La pieza de autoridad, justo antes de pedir los datos.
 
-       Va en nota propia y no imitando a un diario. Aparte de lo obvio, en
-       la práctica conviene: Meta da de baja cuentas por usar marcas de
-       medios sin permiso, y ahí se pierde el pixel y todo el aprendizaje
-       que se viene pagando. Una nota firmada por la marca no expone nada y
-       se puede escalar sin mirar para atrás.
-
-       El botón vive al FINAL del texto, no flotando: para continuar hay que
-       bajar. Es el mismo mecanismo de la referencia y es lo que hace que la
-       nota se lea en vez de saltearse.
-
-       EL TEXTO DE ABAJO ES UN BORRADOR. Escribilo vos y lo reemplazo. */
+       Va en blanco a propósito: la imagen la carga Maxi a mano en
+       v2/assets/nota/nota.webp y aparece sola, sin tocar código. El botón
+       ya está abajo y el hueco guarda su alto, así que cuando la pieza
+       llegue nada se mueve de lugar. */
     {
       tipo: "nota",
-      titulo: "El Maestro Elian te va a guiar hasta tu alma gemela según tu carta astral.",
-      badge: "👇 Mirá la nota sobre él 👇",
       boton: "Continuar",
-      nota: {
-        marca: "NOCTRA",
-        seccion: "LA HISTORIA",
-        titular: "Hace más de 15 años que dibujo rostros que la gente todavía no conoció.",
-        bajada: "Elian es artista y lector de carta astral. Trabaja con la posición de los astros del día en que naciste para dibujar el rostro de la persona con la que tu carta se cruza.",
-        foto: "elian",
-        pieFoto: "Elian, en su taller.",
-        cuerpo: [
-          "Empecé dibujando retratos por encargo. La gente me traía una foto y yo devolvía un rostro a lápiz. Hasta que una clienta me pidió algo distinto: que dibujara a alguien que todavía no había conocido.",
-          "Le dije que no sabía hacer eso. Ella insistió y me dejó su fecha, su hora y su lugar de nacimiento. Estuve tres días con esa carta abierta sobre la mesa antes de animarme a apoyar el lápiz.",
-          "Cuando le mandé el dibujo me contestó a los once meses. Me mandó una foto: era él.",
-          "Desde ese día hice esto cientos de veces. No todas las personas vuelven a escribirme, y las que vuelven no siempre lo hacen para decirme que lo encontraron. Algunas me escriben para contarme que dejaron de esperar a quien no era.",
-          "Lo que hago no es magia ni adivinación. Es lectura: la carta astral dice qué busca una persona, qué la cansa y qué tipo de vínculo la sostiene. De ahí sale un rostro. A veces exacto, a veces parecido, siempre reconocible.",
-          "Y hay algo que aprendí en estos quince años, y es lo único que te pido que te lleves de acá: la mayoría no se pierde el encuentro porque no aparezca. Se lo pierde porque no lo está esperando el día que pasa."
-        ],
-        firma: "— Elian"
-      }
+      nota: { foto: "nota" }
     },
 
     /* 12 — La espera.
@@ -294,7 +287,7 @@ window.NOCTRA_V2 = {
       guion: [
 
         { de:"el", txt:"⏳ Iniciando la lectura de {nombre}…" },
-        { de:"el", txt:"BIENVENIDA 🙏🍀" },
+        { de:"el", txt:"{BIENVENIDA|BIENVENIDO} 🙏🍀" },
         { de:"el", txt:"Hola, soy Elian." },
         { de:"el", txt:"{nombre}, te voy a explicar cómo funciona esto." },
         /* Dos audios seguidos, como en la referencia. El primero presenta y
@@ -313,12 +306,12 @@ window.NOCTRA_V2 = {
         /* Bifurcación 1 — la situación. */
         { espera:{ campo:"chat_relacion", pregunta:"Y por último… ¿cómo vienen tus relaciones?",
                    opciones:[
-                     {txt:"Estoy sola",    val:"sola"},
+                     {txt:"Estoy {sola|solo}",  val:"sola"},
                      {txt:"Estoy en pareja", val:"pareja"},
                      {txt:"Es complicado", val:"complicado"} ] } },
 
         { de:"el", solo:{chat_relacion:"sola"},
-          txt:"Es muy raro encontrar a alguien de {signo} sola. Siento que tenés un corazón muy bueno." },
+          txt:"Es muy raro encontrar a alguien de {signo} {sola|solo}. Siento que tenés un corazón muy bueno." },
         { de:"el", solo:{chat_relacion:"pareja"},
           txt:"Puedo sentir a alguien al lado tuyo… pero no es la persona que veo en tu carta." },
         { de:"el", solo:{chat_relacion:"pareja"},
@@ -329,23 +322,23 @@ window.NOCTRA_V2 = {
         { de:"el", audio:"audio-3", dur:"0:09" },
         { de:"el", txt:"Van a tener una conexión inmediata… va a parecer que se conocen hace tiempo." },
 
-        { de:"el", txt:"Un día estas clientas también estaban donde estás vos, hablando conmigo. Y después de un tiempo me mandaron estas fotos 👇" },
+        { de:"el", txt:"Un día {estas clientas también estaban|estos clientes también estaban} donde estás vos, hablando conmigo. Y después de un tiempo me mandaron estas fotos 👇" },
         { de:"el", img:"pareja-1" },
         { de:"el", img:"pareja-2" },
 
         /* Bifurcación 2 — el cierre emocional. */
-        { espera:{ campo:"chat_siente", pregunta:"¿Y sentís que es él?",
+        { espera:{ campo:"chat_siente", pregunta:"¿Y sentís que es {él|ella}?",
                    opciones:[
                      {txt:"Sí, siento que sí",  val:"si"},
-                     {txt:"No estoy segura",    val:"duda"},
+                     {txt:"No estoy {segura|seguro}", val:"duda"},
                      {txt:"No, creo que no",    val:"no"} ] } },
 
         { de:"el", solo:{chat_siente:"si"},
           txt:"Entonces lo que estás por ver te lo va a confirmar." },
         { de:"el", solo:{chat_siente:"duda"},
-          txt:"Por eso mismo necesitás verle la cara. La duda se termina cuando lo ves." },
+          txt:"Por eso mismo necesitás verle la cara. La duda se termina cuando {lo|la} ves." },
         { de:"el", solo:{chat_siente:"no"},
-          txt:"Me lo imaginaba. Y ahí está el problema: lo estuviste buscando sin saber a quién buscabas." },
+          txt:"Me lo imaginaba. Y ahí está el problema: {lo|la} estuviste buscando sin saber a quién buscabas." },
 
         { de:"el", txt:"{nombre}, prestá mucha atención." },
         { de:"el", txt:"Estoy visualizando mucha información importante…" },
@@ -356,7 +349,7 @@ window.NOCTRA_V2 = {
         { de:"el", audio:"audio-5", dur:"0:09" },
 
         { de:"el", txt:"Y pensando todavía más en ayudarte, te voy a dar GRATIS la lectura completa en PDF:" },
-        { de:"el", txt:"❤️ Su personalidad completa.\n❤️ Cuándo y dónde lo vas a encontrar.\n❤️ Dónde vive.\n❤️ Cómo hacer que te vea a VOS como la mujer más importante de su vida." },
+        { de:"el", txt:"❤️ Su personalidad completa.\n❤️ Cuándo y dónde {lo|la} vas a encontrar.\n❤️ Dónde vive.\n❤️ Cómo hacer que te vea a VOS como {la mujer más importante|el hombre más importante} de su vida." },
 
         { cta:"DESBLOQUEAR EL ROSTRO DE MI ALMA GEMELA" }
       ]
