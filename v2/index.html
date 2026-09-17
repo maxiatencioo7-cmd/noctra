@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Noctra · Quiz v2</title>
+
+<!-- Mientras esto sea un borrador no entra a Google. Si se indexa, compite
+     contra la portada real por las mismas búsquedas y se roba a sí mismo. -->
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
+<meta name="theme-color" content="#9974F6">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/quiz.css">
+
+<!-- Meta Pixel — el mismo de siempre, a propósito.
+     Un píxel nuevo empezaría a aprender de cero y tiraría a la basura todo
+     lo que este ya sabe sobre quién compra. Los eventos se separan por
+     campaña y por el cart attribute de arriba, no por píxel. -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];
+var pedido=false;
+f.__pixelNoctra=function(){if(pedido)return;pedido=true;
+  t=b.createElement(e);t.async=!0;t.src=v;
+  s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s);};
+}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1563930394938040');fbq('track','PageView');
+addEventListener('load',function(){
+  if(window.requestIdleCallback)requestIdleCallback(window.__pixelNoctra,{timeout:2000});
+  else setTimeout(window.__pixelNoctra,600);
+});
+setTimeout(function(){window.__pixelNoctra();},2500);
+</script>
+<noscript><img height="1" width="1" style="display:none" alt=""
+src="https://www.facebook.com/tr?id=1563930394938040&ev=PageView&noscript=1"></noscript>
+</head>
+<body>
+<main id="app" aria-live="polite"></main>
+
+<script src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+  data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+
+<!-- Compartidos con la portada: la atribución tiene que ser IDÉNTICA en los
+     dos embudos o el webhook deja de poder atar la venta al anuncio. Es la
+     única parte que no se duplica, justamente porque no debe divergir. -->
+<script src="../js/perfil-codigo.js"></script>
+<script src="../js/pixel.js"></script>
+
+<!-- Propios del v2: acá se construye el quiz nuevo. -->
+<script src="js/content.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
