@@ -306,18 +306,41 @@
       .replace(/\{lugar\}/g, LUGAR ? ("en "+LUGAR) : "muy cerca tuyo");
   }
 
+  var ICONO_PLAY  = '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M8 5.2v13.6L19 12z"/></svg>';
+  var ICONO_PAUSA = '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="7" y="5" width="3.6" height="14" rx="1"/><rect x="13.4" y="5" width="3.6" height="14" rx="1"/></svg>';
+
+  function mmss(s){
+    s = Math.max(0, Math.floor(s||0));
+    return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2);
+  }
+
   function hora(){
     var d = new Date();
     return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
   }
 
-  /* Cuánto "tarda en escribir" un mensaje. Con un piso para que no parezca
-     un bot y un techo para que nadie se vaya esperando. */
+  /* El tiempo del chat.
+
+     Nadie empieza a escribir en el mismo instante en que mandó el mensaje
+     anterior: hay un respiro antes de que aparezcan los tres puntos. Sin
+     ese hueco, el "escribiendo…" arranca pegado al mensaje de arriba y se
+     nota que es una cola de mensajes disparándose sola.
+
+     Y todo lleva algo de azar. Una cadencia exacta es lo que más delata a
+     un guion: un humano no tarda siempre lo mismo. Con ±10% deja de sentirse
+     un metrónomo sin que nadie pueda decir por qué. */
+  function azar(a, b){ return a + Math.random()*(b-a); }
+
+  function respiro(){ return azar(320, 700); }
+
+  /* Cuánto "tarda en escribir" un mensaje. Piso para que no parezca un bot
+     y techo para que nadie se vaya esperando. */
   function demora(paso){
-    if(paso.audio) return 1400;
-    if(paso.img)   return 1200;
+    if(paso.audio) return azar(1900, 2400);   /* grabar lleva más que teclear */
+    if(paso.img)   return azar(1500, 1900);
     var n = (paso.txt||"").length;
-    return Math.min(2400, Math.max(700, 420 + n*26));
+    var t = Math.min(3200, Math.max(900, 620 + n*34));
+    return t * azar(0.9, 1.1);
   }
 
   /* Un paso con "solo" aparece únicamente si ella contestó eso. Es lo que
@@ -332,10 +355,13 @@
     var h = '<span class="h">'+hora()+'</span>';
     if(paso.audio){
       return '<div class="msg el audio">'
-        + '<span class="play">▶</span>'
-        + '<span class="onda"></span>'
-        + '<span class="dur">'+esc(paso.dur||"0:05")+'</span>'
-        + '<i class="ph">'+esc(paso.audio)+'</i>' + h + '</div>';
+        + '<button class="play" aria-label="Reproducir">'+ICONO_PLAY+'</button>'
+        + '<span class="onda"><i></i><b></b></span>'
+        + '<span class="dur">'+esc(paso.dur||"0:07")+'</span>'
+        /* preload="none": cinco audios bajándose al abrir el chat compiten
+           con las fotos y con el resto. Se baja el que toca. */
+        + '<audio preload="none" src="assets/chat/'+esc(paso.audio)+'.mp3"></audio>'
+        + h + '</div>';
     }
     if(paso.img){
       return '<div class="msg el foto">'
@@ -392,6 +418,68 @@
     });
 
     function abajo(){ hilo.scrollTop = hilo.scrollHeight; }
+
+    /* ── los audios ──────────────────────────────────────────────
+       La onda se llena con el audio real, no con un temporizador: si el
+       archivo tarda en bajar o el teléfono se traba, la barra se queda
+       donde está la voz en vez de correr sola y terminar antes. */
+    var sonando = null;
+
+    function pintarAudio(box, a){
+      var pct = a.duration ? (a.currentTime / a.duration) * 100 : 0;
+      var onda = box.querySelector(".onda");
+      onda.querySelector("i").style.clipPath = "inset(0 "+(100-pct)+"% 0 0)";
+      onda.querySelector("b").style.left = pct+"%";
+      /* Mientras suena muestra lo transcurrido; parado, la duración total.
+         Es lo que espera cualquiera que haya usado un chat. */
+      box.querySelector(".dur").textContent =
+        (a.paused && !a.currentTime) ? box.getAttribute("data-total") : mmss(a.currentTime);
+    }
+
+    hilo.addEventListener("click", function(ev){
+      var box = ev.target.closest ? ev.target.closest(".msg.audio") : null;
+      if(!box) return;
+      var a = box.querySelector("audio");
+      if(!a) return;
+      if(!box.hasAttribute("data-total"))
+        box.setAttribute("data-total", box.querySelector(".dur").textContent);
+
+      /* Tocar la onda salta a ese punto. */
+      var onda = ev.target.closest ? ev.target.closest(".onda") : null;
+      if(onda && a.duration){
+        var r = onda.getBoundingClientRect();
+        a.currentTime = Math.min(a.duration, Math.max(0, (ev.clientX - r.left) / r.width) * a.duration);
+        pintarAudio(box, a);
+        if(a.paused) box.querySelector(".play").click();
+        return;
+      }
+
+      if(!ev.target.closest(".play")) return;
+
+      if(!a.paused){ a.pause(); return; }
+
+      /* Uno por vez. Dos audios encimados no se entiende ninguno. */
+      if(sonando && sonando !== a){ sonando.pause(); }
+      sonando = a;
+
+      if(!a.__listo){
+        a.__listo = true;
+        a.addEventListener("timeupdate", function(){ pintarAudio(box, a); });
+        a.addEventListener("play",  function(){ box.classList.add("suena"); box.querySelector(".play").innerHTML = ICONO_PAUSA; });
+        a.addEventListener("pause", function(){ box.classList.remove("suena"); box.querySelector(".play").innerHTML = ICONO_PLAY; });
+        a.addEventListener("ended", function(){
+          a.currentTime = 0; pintarAudio(box, a);
+          box.querySelector(".dur").textContent = box.getAttribute("data-total");
+        });
+        /* Si el archivo no existe todavía, el botón lo dice en vez de no
+           hacer nada: un play que no responde se lee como sitio roto. */
+        a.addEventListener("error", function(){
+          box.classList.add("falta");
+          box.querySelector(".dur").textContent = "—";
+        });
+      }
+      a.play().catch(function(){ box.classList.add("falta"); });
+    });
 
     function ponerElla(txt){
       hilo.insertAdjacentHTML("beforeend",
@@ -465,7 +553,8 @@
         ponerElla(op ? op.txt : val);
         evento({ event:"noctra_chat_"+e.campo, valor:val });
         S.chat++; guardar();
-        setTimeout(seguirChat, 500);
+        /* Leer lo que ella contestó también lleva un momento. */
+        setTimeout(seguirChat, azar(700, 1100));
       };
     }
 
@@ -493,15 +582,19 @@
       if(paso.espera) return preguntar(paso);
       if(paso.cta)    return ponerCTA(paso);
 
-      escribiendo(true);
+      /* Primero el respiro, después los tres puntos, después el mensaje. */
       setTimeout(function(){
         if(!vivo) return;
-        escribiendo(false);
-        hilo.insertAdjacentHTML("beforeend", burbuja(paso));
-        abajo();
-        S.chat++; guardar();
-        seguirChat();
-      }, demora(paso));
+        escribiendo(true);
+        setTimeout(function(){
+          if(!vivo) return;
+          escribiendo(false);
+          hilo.insertAdjacentHTML("beforeend", burbuja(paso));
+          abajo();
+          S.chat++; guardar();
+          seguirChat();
+        }, demora(paso));
+      }, respiro());
     }
 
     /* La provincia se pide una sola vez y antes de arrancar, para que el
