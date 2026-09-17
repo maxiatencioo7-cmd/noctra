@@ -308,7 +308,7 @@ window.NOCTRA_V2 = {
 
         { de:"el", txt:"Vi que sos del signo de {signo}, correcto?" },
         { espera:{ campo:"fecha_nac", pregunta:"Cuál es tu fecha de nacimiento completa?",
-                   pista:"Ingresá tu fecha de nacimiento", fecha:true } },
+                   pista:"Elegí día, mes y año acá abajo 👇", fecha:true } },
 
         { espera:{ campo:"chat_relacion", pregunta:"Y por último… cómo vienen tus relaciones?",
                    opciones:[
