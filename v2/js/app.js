@@ -345,15 +345,17 @@
      un metrónomo sin que nadie pueda decir por qué. */
   function azar(a, b){ return a + Math.random()*(b-a); }
 
-  function respiro(){ return azar(320, 700); }
+  /* La pausa entre que termina un mensaje y aparecen los tres puntos del
+     siguiente. Es lo que hace que se lea "de a uno" y no como una cola. */
+  function respiro(){ return azar(650, 1100); }
 
   /* Cuánto "tarda en escribir" un mensaje. Piso para que no parezca un bot
      y techo para que nadie se vaya esperando. */
   function demora(paso){
-    if(paso.audio) return azar(1900, 2400);   /* grabar lleva más que teclear */
-    if(paso.img)   return azar(1500, 1900);
+    if(paso.audio) return azar(2300, 2900);   /* grabar lleva más que teclear */
+    if(paso.img)   return azar(1800, 2300);
     var n = (paso.txt||"").length;
-    var t = Math.min(3200, Math.max(900, 620 + n*34));
+    var t = Math.min(3800, Math.max(1100, 800 + n*40));
     return t * azar(0.9, 1.1);
   }
 
@@ -384,6 +386,7 @@
     if(paso.img){
       return '<div class="msg el foto">'
         + '<span class="fi"><img src="assets/chat/'+esc(paso.img)+'.webp" alt="" '
+        + 'onload="var h=this.closest(\'.hilo\'); if(h) h.scrollTop=h.scrollHeight" '
         + 'loading="lazy" decoding="async" onerror="this.closest(\'.fi\').classList.add(\'falta\')">'
         + '<i class="ph">'+esc(paso.img)+'</i></span>' + h + '</div>';
     }
@@ -602,7 +605,10 @@
       abajo();
       function mandar(){
         var v = inp.value;
-        if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){ inp.classList.add("mal"); inp.focus(); return; }
+        var anio = parseInt(v.slice(0,4), 10);
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(v) || anio < 1920 || anio > max.getFullYear()){
+          inp.classList.add("mal"); inp.focus(); return;
+        }
         env.onclick = null; inp.onkeydown = null;
         entrada.classList.remove("pide");
         campoTxt.textContent = "Escribí acá…";
@@ -610,7 +616,7 @@
         ponerElla(fechaLinda(v));
         evento({ event:"noctra_chat_"+e.campo });
         S.chat++; guardar();
-        setTimeout(seguirChat, azar(700, 1100));
+        setTimeout(seguirChat, azar(1000, 1500));
       }
       env.onclick = mandar;
       inp.onkeydown = function(ev){ if(ev.key==="Enter") mandar(); };
@@ -639,7 +645,7 @@
         evento({ event:"noctra_chat_"+e.campo, valor:val });
         S.chat++; guardar();
         /* Leer lo que ella contestó también lleva un momento. */
-        setTimeout(seguirChat, azar(700, 1100));
+        setTimeout(seguirChat, azar(1000, 1500));
       };
     }
 
