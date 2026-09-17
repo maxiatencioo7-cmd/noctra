@@ -63,7 +63,10 @@
     location.hash = "#/" + S.paso;
   }
   function siguiente(){ ir(S.paso + 1); }
-  function atras(){ history.back(); }
+  /* La flecha vuelve un paso SIEMPRE, sin depender del historial: en la
+     primera pantalla después del link pelado no hay entrada anterior con
+     hash y history.back() se iba del quiz o no hacía nada. */
+  function atras(){ if(S.paso>0) ir(S.paso-1); }
 
   function desdeHash(){
     var m = /^#\/(\d+)$/.exec(location.hash);
@@ -819,6 +822,8 @@
   function pintar(){
     var h = desdeHash();
     if(h!==null && h!==S.paso){ S.paso = Math.max(0,Math.min(h, TOTAL-1)); guardar(); }
+    /* Sin hash (el "atrás" del teléfono llegó al link pelado): portada. */
+    if(h===null && S.paso!==0 && S.paso!==TOTAL-1){ S.paso = 0; guardar(); }
 
     var falta = faltante(S.paso);
     if(falta!==null){
