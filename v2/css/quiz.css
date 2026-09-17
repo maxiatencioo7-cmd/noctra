@@ -409,6 +409,9 @@ h2.multi{font-size:23px; line-height:1.34; margin-bottom:30px}
    el iPhone, por el relleno de abajo del body), el encabezado se escondía
    arriba y el botón quedaba flotando con un hueco abajo. */
 body.en-chat{padding:0; height:100dvh; overflow:hidden}
+/* En el chat el fondo va liso: las estrellitas del cielo, al lado de una
+   burbuja, se leen como puntos o rayitas sueltas. */
+body.en-chat::before{background-image:var(--noche)}
 .chat{
   position:fixed; inset:0; margin:0;
   display:flex; flex-direction:column;
@@ -485,6 +488,11 @@ body.en-chat{padding:0; height:100dvh; overflow:hidden}
 .msg.escr i:nth-child(2){animation-delay:.16s}
 .msg.escr i:nth-child(3){animation-delay:.32s}
 @keyframes punto{0%,70%,100%{opacity:.3;transform:translateY(0)}35%{opacity:1;transform:translateY(-4px)}}
+/* "Grabando audio…": micrófono con el puntito rojo latiendo. */
+.msg.escr.grab{gap:7px; padding:10px 14px; font-size:14px; color:#C9BCEB}
+.msg.escr.grab .mic{display:flex; color:#E05CD0}
+.msg.escr.grab .rec{width:8px; height:8px; border-radius:50%; background:#FF4D6D; animation:rec 1s infinite ease-in-out}
+@keyframes rec{0%,100%{opacity:1; transform:scale(1)}50%{opacity:.35; transform:scale(.8)}}
 
 /* ── audio ──────────────────────────────────────────────────────
    La onda se llena con el audio real, no con un temporizador: si el
