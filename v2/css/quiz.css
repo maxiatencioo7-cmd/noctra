@@ -247,11 +247,11 @@ h1,h2{
    aparecer arriba y saltar cuando llega. Con una imagen más alta que 4:5
    el hueco crece a su medida. */
 .nimg{
-  display:block; margin:0 0 22px; border-radius:18px; overflow:hidden;
+  display:block; margin:0 0 22px; border-radius:18px; overflow:visible;
   aspect-ratio:4/5;
   background:linear-gradient(170deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
 }
-.nimg img{width:100%; display:block}
+.nimg img{width:100%; height:auto; display:block; border-radius:18px}
 .nimg .ph{display:none}
 .nimg.falta{
   aspect-ratio:4/5; display:grid; place-items:center; padding:20px;
