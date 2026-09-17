@@ -269,7 +269,9 @@ window.NOCTRA_V2 = {
        CÓMO SE ESCRIBE UN PASO DEL GUION
 
          {de:"el", txt:"..."}              un mensaje de él
-         {de:"el", audio:"audio-1", dur:"0:05"}   un audio
+         {de:"el", audio:"audio-1", dur:"0:07"}   un audio. "dur" es lo que
+                                           muestra la burbuja antes de que
+                                           lo toque; al reproducir corre solo.
          {de:"el", img:"prueba-1"}         una foto
          {espera:{campo:"x", opciones:[{txt:"Sí", val:"si"}]}}
                                            le da botones y guarda lo que elige
@@ -295,7 +297,11 @@ window.NOCTRA_V2 = {
         { de:"el", txt:"BIENVENIDA 🙏🍀" },
         { de:"el", txt:"Hola, soy Elian." },
         { de:"el", txt:"{nombre}, te voy a explicar cómo funciona esto." },
-        { de:"el", audio:"audio-1", dur:"0:05" },
+        /* Dos audios seguidos, como en la referencia. El primero presenta y
+           el segundo explica: partirlo en dos hace que el segundo se
+           escuche, porque ya escuchó uno y sabe que son cortos. */
+        { de:"el", audio:"audio-1", dur:"0:07" },
+        { de:"el", audio:"audio-2", dur:"0:07" },
         { de:"el", txt:"Mi retrato tiene una precisión de hasta el 98%… muchas personas se emocionan al recibir el dibujo." },
         { de:"el", txt:"Así que preparate, porque ya voy a empezar el tuyo." },
         { espera:{ campo:"chat_empezar", pregunta:"¿Podemos empezar?",
@@ -320,7 +326,7 @@ window.NOCTRA_V2 = {
         { de:"el", solo:{chat_relacion:"complicado"},
           txt:"Hay alguien, pero no termina de cerrar. Eso también lo veo acá." },
 
-        { de:"el", audio:"audio-2", dur:"0:07" },
+        { de:"el", audio:"audio-3", dur:"0:09" },
         { de:"el", txt:"Van a tener una conexión inmediata… va a parecer que se conocen hace tiempo." },
 
         { de:"el", txt:"Un día estas clientas también estaban donde estás vos, hablando conmigo. Y después de un tiempo me mandaron estas fotos 👇" },
@@ -345,7 +351,9 @@ window.NOCTRA_V2 = {
         { de:"el", txt:"Estoy visualizando mucha información importante…" },
         /* {lugar} trae la preposición: "en Córdoba" o "muy cerca tuyo". */
         { de:"el", txt:"Vi que tu alma gemela está {lugar}." },
-        { de:"el", audio:"audio-3", dur:"0:13" },
+        { de:"el", audio:"audio-4", dur:"0:16" },
+        { de:"el", txt:"{nombre}, prestá mucha atención a esto." },
+        { de:"el", audio:"audio-5", dur:"0:09" },
 
         { de:"el", txt:"Y pensando todavía más en ayudarte, te voy a dar GRATIS la lectura completa en PDF:" },
         { de:"el", txt:"❤️ Su personalidad completa.\n❤️ Cuándo y dónde lo vas a encontrar.\n❤️ Dónde vive.\n❤️ Cómo hacer que te vea a VOS como la mujer más importante de su vida." },
