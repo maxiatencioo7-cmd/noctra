@@ -285,8 +285,16 @@
       .catch(function(){ LUGAR = ""; return LUGAR; });
   }
 
+  /* "1994-08-04" (lo que da el calendario) → "04/08/1994", que es como la
+     persona la escribiría. Sin fecha, queda un guion para que se note. */
+  function fechaLinda(iso){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||"");
+    return m ? (m[3]+"/"+m[2]+"/"+m[1]) : "—";
+  }
+
   function variables(t){
     var nom = S.a.nombre || "";
+    var fec = fechaLinda(S.a.fecha_nac);
     /* El nombre del signo sale de la lista, no de capitalizar el id: el id
        va sin acento para que sirva de nombre de archivo, y "Cancer" sin
        tilde en medio de la conversación se lee como un descuido. */
@@ -306,7 +314,8 @@
          Sin provincia confiable no se inventa: "muy cerca tuyo" dice lo
          mismo y no se puede desmentir. Una provincia equivocada rompe el
          efecto justo en el mensaje que más caro cuesta. */
-      .replace(/\{lugar\}/g, LUGAR ? ("en "+LUGAR) : "muy cerca tuyo");
+      .replace(/\{fecha\}/g, fec)
+      .replace(/\{lugar\}/g, LUGAR ? ("en "+LUGAR) : "cerca tuyo");
   }
 
   var ICONO_PLAY  = '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M8 5.2v13.6L19 12z"/></svg>';
@@ -354,6 +363,10 @@
     return true;
   }
 
+  /* **así** → negrita. Se aplica DESPUÉS de esc(), sobre texto ya seguro,
+     y sólo reconoce los asteriscos dobles: ningún otro HTML pasa. */
+  function negrita(t){ return t.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>"); }
+
   function burbuja(paso){
     var h = '<span class="h">'+hora()+'</span>';
     if(paso.audio){
@@ -372,7 +385,7 @@
         + 'loading="lazy" decoding="async" onerror="this.closest(\'.fi\').classList.add(\'falta\')">'
         + '<i class="ph">'+esc(paso.img)+'</i></span>' + h + '</div>';
     }
-    return '<div class="msg el">'+esc(variables(paso.txt)).replace(/\n/g,"<br>")+h+'</div>';
+    return '<div class="msg el">'+negrita(esc(variables(paso.txt))).replace(/\n/g,"<br>")+h+'</div>';
   }
 
   function chat(p){
@@ -519,8 +532,11 @@
           var v = S.a[paso.espera.campo];
           if(paso.espera.pregunta)
             html += '<div class="msg el">'+esc(variables(paso.espera.pregunta))+'<span class="h">'+hora()+'</span></div>';
-          var op = (paso.espera.opciones||[]).find(function(o){ return o.val===v; });
-          if(op) html += '<div class="msg ella">'+esc(op.txt)+'<span class="h">'+hora()+'</span></div>';
+          if(paso.espera.pista)
+            html += '<div class="msg el pista">'+esc(variables(paso.espera.pista))+'<span class="h">'+hora()+'</span></div>';
+          var dicho = paso.espera.fecha ? (v ? fechaLinda(v) : "")
+                    : (function(){ var op=(paso.espera.opciones||[]).find(function(o){ return o.val===v; }); return op?op.txt:""; })();
+          if(dicho) html += '<div class="msg ella">'+esc(dicho)+'<span class="h">'+hora()+'</span></div>';
           continue;
         }
         html += burbuja(paso);
@@ -536,6 +552,53 @@
           '<div class="msg el">'+esc(variables(e.pregunta))+'<span class="h">'+hora()+'</span></div>');
         abajo();
       }
+      /* La pista ("Escribí SI para continuar") es un mensaje chico de él,
+         como en la referencia. Sale un momento después de la pregunta. */
+      if(e.pista){
+        setTimeout(function(){
+          if(!vivo) return;
+          hilo.insertAdjacentHTML("beforeend",
+            '<div class="msg el pista">'+esc(variables(e.pista))+'<span class="h">'+hora()+'</span></div>');
+          abajo();
+          if(e.fecha) pedirFecha(e); else mostrarOpciones(e);
+        }, azar(500, 800));
+        return;
+      }
+      if(e.fecha) pedirFecha(e); else mostrarOpciones(e);
+    }
+
+    /* La fecha se pide con el calendario del teléfono, dentro de la barra
+       de escribir: es el único momento en que la barra es un campo real.
+       Al enviar, la fecha aparece como mensaje de ella y la barra vuelve a
+       ser decorativa. */
+    function pedirFecha(e){
+      var hoy = new Date();
+      var max = new Date(hoy.getFullYear()-14, hoy.getMonth(), hoy.getDate());
+      var iso = function(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); };
+      entrada.classList.add("pide");
+      campoTxt.innerHTML = '<input type="date" class="fech" aria-label="Fecha de nacimiento" '
+        + 'min="1930-01-01" max="'+iso(max)+'">';
+      var inp = campoTxt.querySelector(".fech");
+      var env = entrada.querySelector(".enviar");
+      abajo();
+      function mandar(){
+        var v = inp.value;
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){ inp.classList.add("mal"); inp.focus(); return; }
+        env.onclick = null; inp.onkeydown = null;
+        entrada.classList.remove("pide");
+        campoTxt.textContent = "Escribí acá…";
+        S.a[e.campo] = v; guardar();
+        ponerElla(fechaLinda(v));
+        evento({ event:"noctra_chat_"+e.campo });
+        S.chat++; guardar();
+        setTimeout(seguirChat, azar(700, 1100));
+      }
+      env.onclick = mandar;
+      inp.onkeydown = function(ev){ if(ev.key==="Enter") mandar(); };
+      inp.oninput = function(){ inp.classList.remove("mal"); };
+    }
+
+    function mostrarOpciones(e){
       /* Las opciones entran escalonadas, 55 ms una de otra. Que aparezcan
          las tres de golpe se ve como un formulario; de a una se ve como
          algo que el chat te va ofreciendo. */
