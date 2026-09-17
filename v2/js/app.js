@@ -326,6 +326,7 @@
   }
 
   var ICONO_PLAY  = '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M8 5.2v13.6L19 12z"/></svg>';
+  var ICONO_MIC   = '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 0 0-7 0v6A3.5 3.5 0 0 0 12 15zm6-3.5a6 6 0 0 1-12 0H4a8 8 0 0 0 7 7.94V22h2v-2.56A8 8 0 0 0 20 11.5h-2z"/></svg>';
   var ICONO_PAUSA = '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="7" y="5" width="3.6" height="14" rx="1"/><rect x="13.4" y="5" width="3.6" height="14" rx="1"/></svg>';
 
   function mmss(s){
@@ -352,7 +353,7 @@
 
   /* La pausa entre que termina un mensaje y aparecen los tres puntos del
      siguiente. Es lo que hace que se lea "de a uno" y no como una cola. */
-  function respiro(){ return azar(650, 1100); }
+  function respiro(){ return azar(900, 1300); }
 
   /* Cuánto "tarda en escribir" un mensaje. Piso para que no parezca un bot
      y techo para que nadie se vaya esperando. */
@@ -542,16 +543,21 @@
     /* El "escribiendo…" lleva la foto al lado. Es un detalle chico y hace
        toda la diferencia: sin la cara, los tres puntos son un spinner; con
        la cara, es alguien del otro lado escribiendo. */
-    function escribiendo(on){
+    function escribiendo(on, paso){
       var t = hilo.querySelector(".fescr");
       if(on && !t){
+        /* Si lo que viene es un audio, en vez de los tres puntos se ve el
+           micrófono grabando: es lo que muestra WhatsApp del otro lado. */
+        var cuerpo = (paso && paso.audio)
+          ? '<div class="msg el escr grab"><span class="mic">'+ICONO_MIC+'</span><span class="rec"></span>Grabando audio…</div>'
+          : '<div class="msg el escr"><i></i><i></i><i></i></div>';
         hilo.insertAdjacentHTML("beforeend",
           '<div class="fescr">'
           + '<span class="mini'+(fotoRota?" falta":"")+'">'
             + '<img src="/v2/assets/'+esc(foto)+'.webp" alt="" '
             + 'onerror="this.closest(\'.mini\').classList.add(\'falta\')">'
           + '</span>'
-          + '<div class="msg el escr"><i></i><i></i><i></i></div>'
+          + cuerpo
           + '</div>');
         abajo();
       }else if(!on && t){ t.remove(); }
@@ -581,26 +587,36 @@
       abajo();
     }
 
-    function preguntar(paso){
-      var e = paso.espera;
-      if(e.pregunta){
-        hilo.insertAdjacentHTML("beforeend",
-          '<div class="msg el">'+esc(variables(e.pregunta))+'<span class="h">'+hora()+'</span></div>');
-        abajo();
-      }
-      /* La pista ("Escribí SI para continuar") es un mensaje chico de él,
-         como en la referencia. Sale un momento después de la pregunta. */
-      if(e.pista){
+    /* Un mensaje de él con su respiro y sus tres puntos, y después sigue
+       con lo que venga. Es lo que hace que nunca salgan dos de golpe. */
+    function decir(html, paso, luego){
+      setTimeout(function(){
+        if(!vivo) return;
+        escribiendo(true, paso);
         setTimeout(function(){
           if(!vivo) return;
-          hilo.insertAdjacentHTML("beforeend",
-            '<div class="msg el pista">'+esc(variables(e.pista))+'<span class="h">'+hora()+'</span></div>');
+          escribiendo(false);
+          hilo.insertAdjacentHTML("beforeend", html);
           abajo();
-          if(e.fecha) pedirFecha(e); else mostrarOpciones(e);
-        }, azar(500, 800));
-        return;
+          luego();
+        }, demora(paso));
+      }, respiro());
+    }
+
+    function preguntar(paso){
+      var e = paso.espera;
+      function pedir(){ if(e.fecha) pedirFecha(e); else mostrarOpciones(e); }
+      /* La pista ("Escribí SI para continuar") es un mensaje chico de él,
+         como en la referencia. Sale después de la pregunta, con su demora. */
+      function conPista(){
+        if(!e.pista) return pedir();
+        decir('<div class="msg el pista">'+esc(variables(e.pista))+'<span class="h">'+hora()+'</span></div>',
+              {txt:e.pista}, pedir);
       }
-      if(e.fecha) pedirFecha(e); else mostrarOpciones(e);
+      if(e.pregunta){
+        decir('<div class="msg el">'+esc(variables(e.pregunta))+'<span class="h">'+hora()+'</span></div>',
+              {txt:e.pregunta}, conPista);
+      }else conPista();
     }
 
     /* La fecha se pide con el calendario del teléfono, dentro de la barra
@@ -726,13 +742,16 @@
          ~100 ms que el teléfono espera para confirmar un click. */
       var cta = sugs.querySelector("[data-checkout]");
       var yendo = false;
+      /* La URL se arma ahora, no al tocar: al tocar sólo queda el salto. */
+      var urlCheckout = window.NOCTRA_V2_CHECKOUT();
       function ir(ev){
         if(yendo) return; yendo = true;
         if(ev && ev.preventDefault) ev.preventDefault();
         cta.classList.add("yendo");
         evento({ event:"noctra_inicio_checkout" });
-        location.href = window.NOCTRA_V2_CHECKOUT();
+        location.href = urlCheckout;
       }
+      cta.addEventListener("touchstart", ir, {passive:false});
       cta.addEventListener("pointerdown", ir);
       cta.addEventListener("click", ir);
       abajo();
@@ -749,10 +768,14 @@
          el último audio y la lista se terminen de leer antes de que aparezca. */
       if(paso.cta)    return setTimeout(function(){ if(vivo) ponerCTA(paso); }, 2000);
 
-      /* Primero el respiro, después los tres puntos, después el mensaje. */
+      /* Primero el respiro, después los tres puntos (o el micrófono),
+         después el mensaje. Entre un audio y el siguiente el respiro es
+         más largo: nadie graba dos seguidos sin soltar el botón. */
+      var previo = guion[S.chat-1];
+      var r = (paso.audio && previo && previo.audio) ? azar(1500, 2100) : respiro();
       setTimeout(function(){
         if(!vivo) return;
-        escribiendo(true);
+        escribiendo(true, paso);
         setTimeout(function(){
           if(!vivo) return;
           escribiendo(false);
@@ -761,7 +784,7 @@
           S.chat++; guardar();
           seguirChat();
         }, demora(paso));
-      }, respiro());
+      }, r);
     }
 
     /* La provincia se pide una sola vez y antes de arrancar, para que el
