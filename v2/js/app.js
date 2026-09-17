@@ -36,7 +36,17 @@
 
   function cargar(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
   function guardar(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
-  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){
+  /* Género. El copy se escribe en femenino —que es a quien apuntan los
+     anuncios— y lleva la variante masculina al lado: {sola|solo}. Hasta que
+     conteste, y si nunca contesta, sale la primera. La expansión vive acá
+     adentro de esc() a propósito: por esc() pasa todo el texto que se
+     dibuja, así que no hay pantalla que se pueda olvidar de hacerlo. */
+  var GENERO = /\{([^{}|]*)\|([^{}|]*)\}/g;
+  function genero(t){
+    var h = S.a.genero === "hombre";
+    return t.replace(GENERO, function(_, f, m){ return h ? m : f; });
+  }
+  function esc(s){ return genero(String(s==null?"":s)).replace(/[&<>"]/g,function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
   function evento(o){ try{ dl.push(o); }catch(e){} }
 
@@ -185,29 +195,17 @@
      El boton va al FINAL del cuerpo, no flotando arriba: para continuar hay
      que bajar, que es justamente lo que hace que la nota se lea. */
   function nota(p){
-    var n = p.nota || {};
-    var cuerpo = (n.cuerpo||[]).map(function(t){ return '<p>'+esc(t)+'</p>'; }).join("");
+    /* Por ahora esta pantalla es un lugar vacío a propósito: la pieza la
+       carga Maxi a mano en assets/nota/<archivo>.webp y entra sola, sin
+       tocar código. Mientras no esté, el hueco guarda el alto y dice qué
+       archivo falta, así el botón no salta cuando la imagen llegue. */
+    var f = (p.nota && p.nota.foto) || "nota";
     return '<section class="pant">'
-      + '<h2>'+esc(p.titulo)+'</h2>'
-      + '<p class="badge chico">'+esc(p.badge)+'</p>'
-      + '<article class="nota">'
-        + '<div class="nmast">'+esc(n.marca||"NOCTRA")+'</div>'
-        + '<div class="nsec">'+esc(n.seccion||"")+'</div>'
-        + '<h3>'+esc(n.titular||"")+'</h3>'
-        + (n.bajada ? '<p class="nbaj">'+esc(n.bajada)+'</p>' : '')
-        + (n.foto
-            ? '<figure class="nfoto">'
-              + '<span class="nimg">'
-                + '<img src="assets/nota/'+esc(n.foto)+'.webp" alt="" loading="lazy" '
-                + 'decoding="async" onerror="this.closest(\'.nimg\').classList.add(\'falta\')">'
-                + '<i class="ph">'+esc(n.foto)+'</i>'
-              + '</span>'
-              + (n.pieFoto ? '<figcaption>'+esc(n.pieFoto)+'</figcaption>' : '')
-              + '</figure>'
-            : '')
-        + '<div class="ncuerpo">'+cuerpo+'</div>'
-        + (n.firma ? '<p class="nfirma">'+esc(n.firma)+'</p>' : '')
-      + '</article>'
+      + '<span class="nimg">'
+        + '<img src="assets/nota/'+esc(f)+'.webp" alt="" loading="lazy" '
+        + 'decoding="async" onerror="this.closest(\'.nimg\').classList.add(\'falta\')">'
+        + '<i class="ph">assets/nota/'+esc(f)+'.webp</i>'
+      + '</span>'
       + '<button class="cta" data-seguir-nota>'+esc(p.boton||"Continuar")+'</button>'
       + '</section>';
   }
