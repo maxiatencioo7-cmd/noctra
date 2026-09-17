@@ -255,7 +255,7 @@
       + '<h2 class="multi">'+esc(p.titulo).replace(/\n/g,"<br>")+'</h2>'
       + '<div class="persona">'
         + '<span class="pav">'
-          + '<img src="/v2/assets/'+esc(q.foto||"elian-avatar_2")+'.webp" alt="" '
+          + '<img src="/v2/assets/'+esc(q.foto||"elian-avatar_3")+'.webp" alt="" '
           + 'loading="lazy" decoding="async" onerror="this.closest(\'.pav\').classList.add(\'falta\')">'
           + '<i class="ph">'+esc(q.foto||"")+'</i>'
         + '</span>'
@@ -407,7 +407,7 @@
     return '<section class="pant chat">'
       + '<header class="chead">'
         + '<span class="cav">'
-          + '<img src="/v2/assets/'+esc(c.foto||"elian-avatar_2")+'.webp" alt="" '
+          + '<img src="/v2/assets/'+esc(c.foto||"elian-avatar_3")+'.webp" alt="" '
           + 'onerror="this.closest(\'.cav\').classList.add(\'falta\')">'
           + '<i class="ph">'+esc(c.foto||"")+'</i></span>'
         + '<span class="cinfo"><b>'+esc(c.nombre)+'</b><i>'+esc(c.estado)+'</i></span>'
@@ -436,7 +436,7 @@
     var entrada  = app.querySelector("[data-entrada]");
     var campoTxt = app.querySelector("[data-campo-txt]");
     var vivo     = true;
-    var foto     = (p.contacto && p.contacto.foto) || "elian-avatar_2";
+    var foto     = (p.contacto && p.contacto.foto) || "elian-avatar_3";
     /* Si la foto del encabezado ya falló, el mini arranca en modo hueco y
        no se ve el parpadeo de la imagen rota en cada mensaje. */
     var fotoRota = !!app.querySelector(".cav.falta");
@@ -775,7 +775,13 @@
          después el mensaje. Entre un audio y el siguiente el respiro es
          más largo: nadie graba dos seguidos sin soltar el botón. */
       var previo = guion[S.chat-1];
-      var r = (paso.audio && previo && previo.audio) ? azar(1500, 2100) : respiro();
+      var r = respiro();
+      /* Entre un audio y el siguiente, más pausa: nadie graba dos seguidos
+         sin soltar el botón. */
+      if(paso.audio && previo && previo.audio) r = azar(1500, 2100);
+      /* Antes de la primera foto de clientes, un respiro largo: el mensaje
+         que las anuncia hay que alcanzar a leerlo antes de que aparezcan. */
+      else if(paso.img && previo && !previo.img) r = azar(2600, 3200);
       setTimeout(function(){
         if(!vivo) return;
         escribiendo(true, paso);
