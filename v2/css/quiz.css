@@ -148,7 +148,9 @@ h1,h2{
 
 .sg{
   display:flex; flex-direction:column; padding:0; border:0; overflow:hidden;
-  border-radius:18px; background:rgba(255,255,255,.055);
+  /* Radio chico: la carta ya trae sus propias esquinas redondeadas en la
+     ilustración, y uno grande acá se las comería. */
+  border-radius:9px; background:rgba(255,255,255,.055);
   box-shadow:0 4px 14px rgba(0,0,0,.28);
   color:#fff; font:inherit; cursor:pointer; touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;
@@ -157,22 +159,27 @@ h1,h2{
 .sg:active{transform:scale(.96)}
 .sg.sel{box-shadow:0 0 0 3px rgba(255,255,255,.8), 0 0 26px rgba(224,88,208,.6)}
 
-/* Alto fijo desde el principio: cuando lleguen las ilustraciones reales, la
-   grilla no va a saltar al cargarlas. */
+/* 2:3 es el recorte exacto de las cartas: la grilla reserva el alto
+   definitivo antes de que baje una sola imagen y no salta al cargarlas. */
 .sgart{
   position:relative; display:grid; place-items:center;
-  aspect-ratio:1/1.06; width:100%;
+  aspect-ratio:2/3; width:100%;
   background:linear-gradient(170deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
 }
 .sgart img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
-/* El símbolo del signo se ve mientras no exista la ilustración. Se lee como
-   una decisión de diseño y no como una imagen rota. */
-.glifo{font-style:normal; font-size:40px; line-height:1; color:#E9C6FF; opacity:.92}
+/* El símbolo del signo aparece solo si la ilustración no cargó: ahí se lee
+   como una decisión de diseño y no como una imagen rota. */
+.glifo{display:none; font-style:normal; font-size:40px; line-height:1; color:#E9C6FF; opacity:.92}
+.sg.sin-img .glifo{display:block}
 
+/* El nombre ya viene impreso dentro de la carta. Este cartel queda de
+   respaldo: solo aparece si la ilustración no llegó. */
 .sgn{
+  display:none;
   padding:9px 4px; font-size:14px; font-weight:700;
   background:linear-gradient(96deg,#C24BE8,#E05CD0);
 }
+.sg.sin-img .sgn{display:block}
 
 @media (max-width:360px){
   h1{font-size:24px}
