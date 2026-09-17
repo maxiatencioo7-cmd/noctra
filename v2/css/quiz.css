@@ -1,84 +1,226 @@
-/* Noctra v2 — estilos base del quiz nuevo.
+/* Noctra v2 — el quiz.
 
-   Deliberadamente sobrio: son los huesos, no la piel. Cuando definamos la
-   estética del embudo nuevo esto se reemplaza entero. Lo que sí vale la pena
-   dejar fijado desde ahora son las decisiones que después cuesta caro
-   corregir: área de toque grande, nada que dependa del hover, y el contenido
-   sin saltos cuando cambia de pantalla. */
+   Dos referencias cruzadas a propósito: la estructura de los botones y los
+   emojis viene del embudo que queremos batir, y el fondo es la noche de
+   Noctra. La idea es que se sienta conocido y que igual sea nuestro.
+
+   Todo lo que se mueve dura 120–200 ms. Por encima de eso, en un embudo de
+   nueve pantallas, la persona empieza a esperar al sitio en vez de al revés. */
 
 :root{
-  --fondo:#0d0a1a;
-  --texto:#f2eefc;
-  --suave:#a99fc4;
-  --acento:#9974F6;
-  --borde:rgba(255,255,255,.12);
-  --carta:rgba(255,255,255,.04);
-  --r:16px;
+  --ink:#F4EFFF;
+  --suave:#B9AEDC;
+
+  /* La noche. Fija al viewport: si el fondo hace scroll con el contenido,
+     el degradé se corta y se ve como una pantalla partida. */
+  --noche:
+    radial-gradient(1100px 620px at 50% -10%, rgba(140,92,214,.42), transparent 62%),
+    radial-gradient(760px 520px at 88% 22%, rgba(74,72,190,.34), transparent 60%),
+    linear-gradient(176deg,#151233 0%,#1B1A47 38%,#241C55 68%,#161335 100%);
+
+  /* El botón. El mismo salmón→magenta de la referencia. */
+  --pill:linear-gradient(96deg,#F6849F 0%,#EE6BB8 46%,#D94BE8 100%);
+  --pill-glow:0 0 22px rgba(224,88,208,.34), 0 6px 18px rgba(0,0,0,.34);
+
+  --r:22px;
   --font:'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 }
 
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
+html{background:#151233}
 body{
-  background:var(--fondo); color:var(--texto);
-  font-family:var(--font); font-size:17px; line-height:1.5;
+  margin:0; min-height:100dvh;
+  background:var(--noche); background-attachment:fixed;
+  color:var(--ink); font-family:var(--font); font-size:17px; line-height:1.45;
   -webkit-font-smoothing:antialiased;
-  /* el gutter de 16px de los costados no se negocia en teléfono */
-  padding:0 16px env(safe-area-inset-bottom,0px);
+  padding:0 16px calc(36px + env(safe-area-inset-bottom,0px));
   overflow-x:hidden;
 }
 
-#app{max-width:520px;margin:0 auto;padding-bottom:40px}
+/* Un polvo de estrellas muy tenue. Son sombras, no imágenes: cuesta cero
+   pedidos y no retrasa el primer pintado, que es lo único que decide si la
+   persona se queda. */
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 18%, rgba(255,255,255,.55), transparent),
+    radial-gradient(1.2px 1.2px at 78% 12%, rgba(255,255,255,.42), transparent),
+    radial-gradient(1.6px 1.6px at 62% 34%, rgba(255,255,255,.38), transparent),
+    radial-gradient(1.2px 1.2px at 28% 52%, rgba(255,255,255,.34), transparent),
+    radial-gradient(1.5px 1.5px at 88% 62%, rgba(255,255,255,.30), transparent),
+    radial-gradient(1.2px 1.2px at 42% 78%, rgba(255,255,255,.28), transparent),
+    radial-gradient(1.3px 1.3px at 8% 88%, rgba(255,255,255,.26), transparent);
+}
 
-/* Barra de avance. Que la persona vea cuánto falta sostiene la caída:
-   un quiz sin barra se siente infinito y la gente abandona por las dudas. */
-.prog{height:4px;background:rgba(255,255,255,.08);border-radius:99px;margin:18px 0 26px}
-.prog i{display:block;height:100%;background:var(--acento);border-radius:99px;
-  transition:width .35s ease}
+#app{position:relative; z-index:1; max-width:520px; margin:0 auto}
 
-.pant{animation:entra .25s ease}
-.centro{text-align:center}
-@keyframes entra{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-/* Quien pidió menos animación no la recibe. */
-@media (prefers-reduced-motion:reduce){ .pant{animation:none} .prog i{transition:none} }
+/* ── barra superior ─────────────────────────────────────────────── */
 
-h1{font-size:28px;line-height:1.25;margin:0 0 12px;font-weight:800}
-h2{font-size:22px;line-height:1.3;margin:0 0 10px;font-weight:700}
-.sub{color:var(--suave);margin:0 0 24px}
-.hero{width:100%;border-radius:var(--r);margin:0 0 22px;display:block}
+.top{display:flex; align-items:center; gap:12px; padding:18px 0 26px}
 
-/* Opciones. 56px de alto mínimo: por debajo de eso el dedo falla y la
-   persona cree que el sitio no anda. */
-.ops{display:flex;flex-direction:column;gap:10px;margin:0 0 20px}
+.volver{
+  flex:none; width:40px; height:40px; border-radius:50%;
+  display:grid; place-items:center;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+  color:var(--ink); cursor:pointer;
+  transition:background .12s, transform .12s;
+  touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+}
+.volver:active{background:rgba(255,255,255,.18); transform:scale(.92)}
+
+.prog{flex:1; height:7px; border-radius:99px; background:rgba(255,255,255,.14); overflow:hidden}
+.prog i{
+  display:block; height:100%; border-radius:99px;
+  background:linear-gradient(90deg,#FFD166 0%,#FF9E52 52%,#FF5E8A 100%);
+  transition:width .28s cubic-bezier(.22,.9,.3,1);
+}
+
+/* ── pantalla ───────────────────────────────────────────────────── */
+
+.pant{animation:entra .16s ease-out}
+@keyframes entra{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .pant{animation:none}
+  .prog i{transition:none}
+  .op,.sg,.volver{transition:none}
+}
+
+/* La tarjeta que envuelve la pregunta, como en la referencia. */
+.tarjeta{
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:26px; padding:26px 18px 24px;
+  backdrop-filter:blur(2px);
+}
+
+h1,h2{margin:0 0 10px; text-align:center; font-weight:800; letter-spacing:-.01em}
+h1{font-size:27px; line-height:1.2; text-transform:uppercase}
+h2{font-size:22px; line-height:1.3}
+
+/* El título en dorado→salmón, igual que la referencia. */
+h1,h2{
+  background:linear-gradient(94deg,#FFD98A 0%,#FFB070 48%,#FF8E86 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+
+.nota{margin:0 0 20px; text-align:center; font-size:14px; color:#E9D58C}
+
+.paso{margin:22px 0 16px; text-align:center; font-size:20px; font-weight:800; color:#fff}
+
+.badge{
+  margin:0 auto; padding:13px 16px; max-width:460px;
+  border-radius:16px; text-align:center;
+  font-size:15px; font-weight:700; line-height:1.35; color:#fff;
+  background:linear-gradient(96deg,#C24BE8,#E05CD0);
+  box-shadow:0 6px 20px rgba(180,70,220,.32);
+}
+
+.portada h1{margin-bottom:18px; padding-top:22px}
+
+/* ── botones de respuesta ───────────────────────────────────────── */
+
+.ops{display:flex; flex-direction:column; gap:14px; margin-top:22px}
+
 .op{
-  display:flex;align-items:center;gap:12px;width:100%;min-height:56px;
-  padding:14px 16px;border-radius:var(--r);
-  background:var(--carta);border:1px solid var(--borde);
-  color:var(--texto);font:inherit;text-align:left;cursor:pointer;
-  transition:border-color .15s, background .15s;
-  touch-action:manipulation;
+  position:relative; display:flex; align-items:center; gap:12px;
+  width:100%; min-height:62px; padding:15px 22px;
+  border:0; border-radius:99px;
+  background:var(--pill); box-shadow:var(--pill-glow);
+  color:#fff; font:inherit; font-weight:700; font-size:17px; text-align:left;
+  cursor:pointer; touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .12s cubic-bezier(.3,1.3,.5,1), box-shadow .12s, filter .12s;
 }
-.op:active{background:rgba(255,255,255,.08)}
-.op.sel{border-color:var(--acento);background:rgba(153,116,246,.14)}
-.op .em{font-size:22px;line-height:1}
+/* Textos largos: más aire y el renglón centrado en el alto. */
+.ops.largo .op{min-height:66px; align-items:center}
+.op .em{font-size:21px; line-height:1; flex:none}
+.op .tx{flex:1}
 
-.txt{
-  width:100%;min-height:56px;padding:14px 16px;margin:0 0 20px;
-  border-radius:var(--r);background:var(--carta);
-  border:1px solid var(--borde);color:var(--texto);
-  /* 16px o más: por debajo, iOS hace zoom al enfocar y descuadra la pantalla */
-  font:inherit;font-size:17px;
+.op:active{transform:scale(.975); filter:brightness(1.06)}
+.op.sel{
+  transform:scale(.975);
+  box-shadow:0 0 0 3px rgba(255,255,255,.72), 0 0 30px rgba(233,95,215,.55);
 }
-.txt:focus{outline:none;border-color:var(--acento)}
+
+/* ── grilla de signos ───────────────────────────────────────────── */
+
+.grilla{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+
+.sg{
+  display:flex; flex-direction:column; padding:0; border:0; overflow:hidden;
+  border-radius:18px; background:rgba(255,255,255,.055);
+  box-shadow:0 4px 14px rgba(0,0,0,.28);
+  color:#fff; font:inherit; cursor:pointer; touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .12s cubic-bezier(.3,1.3,.5,1), box-shadow .12s;
+}
+.sg:active{transform:scale(.96)}
+.sg.sel{box-shadow:0 0 0 3px rgba(255,255,255,.8), 0 0 26px rgba(224,88,208,.6)}
+
+/* Alto fijo desde el principio: cuando lleguen las ilustraciones reales, la
+   grilla no va a saltar al cargarlas. */
+.sgart{
+  position:relative; display:grid; place-items:center;
+  aspect-ratio:1/1.06; width:100%;
+  background:linear-gradient(170deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+}
+.sgart img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+/* El símbolo del signo se ve mientras no exista la ilustración. Se lee como
+   una decisión de diseño y no como una imagen rota. */
+.glifo{font-style:normal; font-size:40px; line-height:1; color:#E9C6FF; opacity:.92}
+
+.sgn{
+  padding:9px 4px; font-size:14px; font-weight:700;
+  background:linear-gradient(96deg,#C24BE8,#E05CD0);
+}
+
+@media (max-width:360px){
+  h1{font-size:24px}
+  h2{font-size:20px}
+  .op{font-size:16px; padding:14px 18px}
+  .glifo{font-size:34px}
+}
+
+/* ── prueba social: carrusel ────────────────────────────────────── */
+
+.badge.chico{font-size:14px; padding:11px 14px; font-weight:600; margin-bottom:18px}
+.prueba h2{margin-bottom:14px}
+
+/* Scroll-snap nativo: el deslizar es el del sistema, con su inercia y su
+   rebote. Una animación propia acá se siente pegajosa en cuanto el teléfono
+   no es de gama alta. */
+.carru{
+  display:flex; gap:0; overflow-x:auto; overscroll-behavior-x:contain;
+  scroll-snap-type:x mandatory; scrollbar-width:none;
+  border-radius:18px; -webkit-overflow-scrolling:touch;
+}
+.carru::-webkit-scrollbar{display:none}
+
+.slide{
+  position:relative; flex:0 0 100%; scroll-snap-align:center;
+  aspect-ratio:1/1.24; border-radius:18px; overflow:hidden;
+  background:linear-gradient(170deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
+  display:grid; place-items:center;
+}
+.slide img{width:100%; height:100%; object-fit:cover; display:block}
+/* El nombre del archivo, visible sólo mientras la foto no exista. Es para
+   nosotros: dice exactamente qué archivo falta y dónde va. */
+.slide .ph{display:none; font-size:13px; color:var(--suave); letter-spacing:.04em}
+.slide.falta .ph{display:block}
+
+.puntos{display:flex; justify-content:center; gap:9px; margin:16px 0 20px}
+.puntos i{
+  width:9px; height:9px; border-radius:50%;
+  background:rgba(255,255,255,.28); transition:background .18s, transform .18s;
+}
+.puntos i.on{background:#E05CD0; transform:scale(1.15)}
 
 .cta{
-  display:block;width:100%;min-height:56px;padding:16px;
-  border:0;border-radius:99px;background:var(--acento);color:#140f26;
-  font:inherit;font-weight:800;font-size:17px;cursor:pointer;
-  touch-action:manipulation;
+  width:100%; min-height:62px; padding:16px; border:0; border-radius:99px;
+  background:var(--pill); box-shadow:var(--pill-glow);
+  color:#fff; font:inherit; font-weight:800; font-size:18px;
+  cursor:pointer; touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .12s cubic-bezier(.3,1.3,.5,1), filter .12s;
 }
-.cta:active{filter:brightness(.92)}
-
-.barra{height:8px;background:rgba(255,255,255,.08);border-radius:99px;
-  overflow:hidden;margin:28px 0}
-.barra i{display:block;height:100%;width:0;background:var(--acento);border-radius:99px}
+.cta:active{transform:scale(.975); filter:brightness(1.06)}
