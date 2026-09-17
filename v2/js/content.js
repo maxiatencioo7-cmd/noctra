@@ -188,7 +188,7 @@ window.NOCTRA_V2 = {
     /* 11 — La autoridad, justo antes de pedir los datos.
 
        El título y el aviso son los de la referencia, con el nombre de él.
-       La pieza de abajo la carga Maxi a mano en v2/assets/nota/nota.webp y
+       La pieza de abajo la carga Maxi a mano en v2/assets/nota.webp y
        entra sola, sin tocar código. El hueco es alto a propósito: la pieza
        tiene que cruzar el borde de la pantalla, así la persona baja para
        verla entera y recién ahí encuentra el botón. */
@@ -354,7 +354,7 @@ window.NOCTRA_V2 = {
     }
   ],
 
-  /* Los 12 signos. La ilustración va en assets/signos/<id>.webp; hasta que
+  /* Los 12 signos. La ilustración va en assets/<id>.webp; hasta que
      existan, se dibuja el símbolo unicode, que se ve intencional y no como
      una imagen rota. */
   signos: [
