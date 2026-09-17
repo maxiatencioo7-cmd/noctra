@@ -561,9 +561,9 @@ body.en-chat{padding:0; height:100dvh; overflow:hidden}
 /* Las respuestas son botones de verdad, con el mismo degradé y el mismo
    brillo que los del quiz: tienen que verse desde lejos y pedir el dedo. */
 .sug{
-  padding:14px 22px; border-radius:99px; border:0;
+  padding:10px 16px; border-radius:99px; border:0;
   background:var(--pill); box-shadow:var(--pill-glow);
-  color:#fff; font:inherit; font-weight:800; font-size:16px;
+  color:#fff; font:inherit; font-weight:700; font-size:14px;
   cursor:pointer; touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;
   transition:transform .12s cubic-bezier(.3,1.3,.5,1), filter .14s;
@@ -606,22 +606,36 @@ body.en-chat{padding:0; height:100dvh; overflow:hidden}
 /* La aclaración chica de él ("Escribí SI para continuar"). */
 .msg.el.pista{font-size:14px; padding:9px 60px 16px 13px; opacity:.92}
 
-/* La barra, cuando pide la fecha: por un momento es un campo real. */
+/* La barra, cuando pide la fecha. */
 .entrada.pide{border-color:rgba(255,210,90,.6); box-shadow:0 0 18px rgba(255,190,70,.25)}
-.entrada .fechw{position:relative; display:block; width:100%; min-height:24px}
 .entrada .fechtxt{
   display:block; font-size:15px; line-height:24px; color:#FFD25A;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.entrada .fechtxt.con{color:#fff; font-size:17px}
+.entrada .fechtxt.con{color:#fff; font-size:17px; font-weight:700}
 .entrada .fechtxt.mal{color:#FF8E86}
-/* El campo real: invisible, del tamaño de la barra, encima del texto.
-   16px mínimo para que iPhone no haga zoom al enfocarlo. */
-.entrada .fech{
-  position:absolute; inset:0; width:100%; height:100%; margin:0; padding:0;
-  border:0; background:transparent; opacity:0; font-size:16px;
-  -webkit-appearance:none; appearance:none; color-scheme:dark;
+.entrada.pide .enviar{cursor:pointer; opacity:.55; transition:opacity .2s, transform .2s}
+/* Con la fecha completa el botón de enviar se enciende y late: es el paso
+   que falta y tiene que gritarlo. */
+.entrada.lista .enviar{opacity:1; animation:late 1.4s ease-in-out infinite; box-shadow:0 0 22px rgba(224,88,208,.7)}
+
+/* Las tres ruedas de la fecha, arriba de la barra. */
+.sugs .fecha{
+  width:100%; padding:12px 12px 10px; border-radius:18px;
+  background:rgba(255,255,255,.07); border:1px solid rgba(255,210,90,.35);
+  animation:sube .22s cubic-bezier(.2,.9,.3,1.2) backwards;
 }
-.entrada.pide .enviar{cursor:pointer}
+.fechalab{margin:0 0 10px; font-size:14px; font-weight:800; color:#FFD25A; text-align:center}
+.fechasel{display:grid; grid-template-columns:1fr 1.5fr 1.1fr; gap:8px}
+.fsel{
+  width:100%; min-width:0; padding:12px 26px 12px 12px; border-radius:12px;
+  border:1px solid rgba(255,255,255,.18); background-color:rgba(20,12,50,.85);
+  color:#fff; font:inherit; font-size:16px; font-weight:700;
+  -webkit-appearance:none; appearance:none; outline:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23FFD25A' stroke-width='2' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat; background-position:right 10px center;
+}
+.fsel:focus{border-color:rgba(255,210,90,.7)}
+.fsel option{color:#111; background:#fff}
 
 @media (prefers-reduced-motion:reduce){ .sug{animation:none} .sugs .cta{animation:none} }
