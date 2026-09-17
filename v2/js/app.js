@@ -443,9 +443,18 @@
       vivo = false; removeEventListener("hashchange", corta);
     });
 
+    /* Cuando algo aparece abajo de la conversación (opciones, la fecha), el
+       pie crece y el hilo se achica: si no se vuelve a bajar DESPUÉS de que
+       el navegador acomodó todo, el último mensaje queda tapado justo
+       detrás de los botones. Por eso se baja ahora y otra vez en el
+       siguiente cuadro. */
     function abajo(){
-      try{ hilo.scrollTo({ top: hilo.scrollHeight, behavior: "smooth" }); }
-      catch(e){ hilo.scrollTop = hilo.scrollHeight; }
+      function ir(){
+        try{ hilo.scrollTo({ top: hilo.scrollHeight, behavior: "smooth" }); }
+        catch(e){ hilo.scrollTop = hilo.scrollHeight; }
+      }
+      ir();
+      requestAnimationFrame(function(){ requestAnimationFrame(ir); });
     }
 
     /* ── los audios ──────────────────────────────────────────────
@@ -599,35 +608,72 @@
        Al enviar, la fecha aparece como mensaje de ella y la barra vuelve a
        ser decorativa. */
     function pedirFecha(e){
+      /* Nada de <input type=date>: en iPhone abre un calendario parado en
+         el mes de hoy y para llegar a 1995 hay que descubrir que el título
+         se toca. Tres ruedas —día, mes, año— se entienden solas, y el año
+         arranca en el más nuevo que puede tener una persona de 14. La barra
+         de abajo muestra la fecha elegida y el botón de enviar se enciende
+         cuando está completa. */
       var hoy = new Date();
-      var max = new Date(hoy.getFullYear()-14, hoy.getMonth(), hoy.getDate());
-      var iso = function(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); };
+      var maxAnio = hoy.getFullYear()-14, minAnio = 1930;
+      var MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio",
+                   "Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+      var AVISO = "Elegí día, mes y año ☝️";
+      function opts(label, arr){
+        return '<option value="">'+label+'</option>' + arr.map(function(o){
+          return '<option value="'+o[0]+'">'+o[1]+'</option>'; }).join("");
+      }
+      var dias=[], meses=[], anios=[];
+      for(var d=1; d<=31; d++) dias.push([d, d]);
+      for(var m=0; m<12; m++) meses.push([m+1, MESES[m]]);
+      for(var a=maxAnio; a>=minAnio; a--) anios.push([a, a]);
+
       entrada.classList.add("pide");
-      /* En iPhone un <input type=date> vacío se dibuja vacío: la barra
-         parecía muerta y nadie sabía dónde tocar. El texto visible es
-         nuestro; el campo de fecha va invisible encima, del mismo tamaño,
-         y recibe el toque. Cuando elige, el texto muestra la fecha. */
-      var AVISO = "📅 Tocá acá y elegí tu fecha";
-      campoTxt.innerHTML = '<span class="fechw"><span class="fechtxt">'+AVISO+'</span>'
-        + '<input type="date" class="fech" aria-label="Fecha de nacimiento" '
-        + 'min="1930-01-01" max="'+iso(max)+'"></span>';
-      var inp = campoTxt.querySelector(".fech");
+      campoTxt.innerHTML = '<span class="fechtxt">'+AVISO+'</span>';
       var txt = campoTxt.querySelector(".fechtxt");
       var env = entrada.querySelector(".enviar");
+      sugs.innerHTML = '<div class="fecha">'
+        + '<p class="fechalab">📅 Tu fecha de nacimiento</p>'
+        + '<div class="fechasel">'
+          + '<select class="fsel" data-f="d" aria-label="Día">'+opts("Día", dias)+'</select>'
+          + '<select class="fsel" data-f="m" aria-label="Mes">'+opts("Mes", meses)+'</select>'
+          + '<select class="fsel" data-f="a" aria-label="Año">'+opts("Año", anios)+'</select>'
+        + '</div></div>';
+      sugs.classList.add("con");
+      var sel = { d: sugs.querySelector('[data-f="d"]'),
+                  m: sugs.querySelector('[data-f="m"]'),
+                  a: sugs.querySelector('[data-f="a"]') };
       abajo();
+
+      /* null = incompleta, false = no existe (30 de febrero), texto = ISO */
+      function leer(){
+        var d=+sel.d.value, m=+sel.m.value, a=+sel.a.value;
+        if(!d||!m||!a) return null;
+        var dt = new Date(a, m-1, d);
+        if(dt.getFullYear()!==a || dt.getMonth()!==m-1 || dt.getDate()!==d) return false;
+        return a+"-"+("0"+m).slice(-2)+"-"+("0"+d).slice(-2);
+      }
+      function falta(){
+        return !sel.d.value ? "Falta elegir el día" : !sel.m.value ? "Falta elegir el mes" : "Falta elegir el año";
+      }
       function mostrar(){
-        var v = inp.value;
-        txt.textContent = v ? fechaLinda(v) : AVISO;
-        txt.classList.toggle("con", !!v);
+        var v = leer();
+        txt.classList.remove("mal","con"); entrada.classList.remove("lista");
+        if(v){ txt.textContent = fechaLinda(v); txt.classList.add("con"); entrada.classList.add("lista"); }
+        else if(v===false){ txt.textContent = "Esa fecha no existe, revisala"; txt.classList.add("mal"); }
+        else txt.textContent = AVISO;
       }
       function mandar(){
-        var v = inp.value;
-        var anio = parseInt(v.slice(0,4), 10);
-        if(!/^\d{4}-\d{2}-\d{2}$/.test(v) || anio < 1920 || anio > max.getFullYear()){
-          txt.classList.add("mal"); if(!v) txt.textContent = AVISO; inp.focus(); return;
+        var v = leer();
+        if(!v){
+          txt.textContent = (v===false) ? "Esa fecha no existe, revisala" : falta();
+          txt.classList.add("mal");
+          return;
         }
-        env.onclick = null; inp.onkeydown = null;
-        entrada.classList.remove("pide");
+        env.onclick = null;
+        sel.d.onchange = sel.m.onchange = sel.a.onchange = null;
+        entrada.classList.remove("pide","lista");
+        sugs.innerHTML = ""; sugs.classList.remove("con");
         campoTxt.textContent = "Escribí acá…";
         S.a[e.campo] = v; guardar();
         ponerElla(fechaLinda(v));
@@ -636,8 +682,7 @@
         setTimeout(seguirChat, azar(1000, 1500));
       }
       env.onclick = mandar;
-      inp.onkeydown = function(ev){ if(ev.key==="Enter") mandar(); };
-      inp.oninput = inp.onchange = function(){ txt.classList.remove("mal"); mostrar(); };
+      sel.d.onchange = sel.m.onchange = sel.a.onchange = mostrar;
     }
 
     function mostrarOpciones(e){
@@ -650,6 +695,7 @@
       }).join("");
       sugs.classList.add("con");
       campoTxt.textContent = "Elegí una respuesta…";
+      abajo();
       sugs.onclick = function(ev){
         var b = ev.target.closest ? ev.target.closest(".sug") : null;
         if(!b) return;
@@ -855,7 +901,16 @@
     location.hash = "";
   }
 
-  if(desdeHash()===null && S.paso>0) location.hash = "#/"+S.paso;
+  /* Entrar por el link pelado (sin #/N) muestra SIEMPRE los signos, aunque
+     haya un estado guardado de otra visita: la portada es el gancho del
+     anuncio y arrancar en "Mujer / Hombre" desconcierta. Las respuestas
+     anteriores quedan marcadas, así que rehacer el camino es tocar de
+     corrido. La única excepción es quien ya estaba en el chat: ahí sí se
+     retoma donde estaba, porque volver a empezar le rompe la conversación. */
+  if(desdeHash()===null){
+    if(S.paso===TOTAL-1) location.hash = "#/"+S.paso;
+    else { S.paso = 0; guardar(); pintar(); }
+  }
   else pintar();
 
   /* El link del checkout con la atribución pegada.
