@@ -441,6 +441,18 @@
        no se ve el parpadeo de la imagen rota en cada mensaje. */
     var fotoRota = !!app.querySelector(".cav.falta");
 
+    /* El ritmo no es el mismo todo el tiempo. La presentación y las tres
+       preguntas de la ficha —empezar, fecha, relaciones— van un poco más
+       rápido: ahí no hay nada para leer con atención, es trámite, y es el
+       tramo donde más gente se va. De la lectura en adelante vuelve el
+       ritmo normal, que es lo que la hace creíble. */
+    var RAPIDO = (function(){
+      var n = 0;
+      for(var i=0; i<guion.length; i++){ if(guion[i].espera && ++n === 3) return i+1; }
+      return guion.length;
+    })();
+    function apuro(){ return S.chat < RAPIDO ? 0.78 : 1; }
+
     S.chat = S.chat || 0;
 
     addEventListener("hashchange", function corta(){
@@ -592,7 +604,7 @@
 
     /* Un mensaje de él con su respiro y sus tres puntos, y después sigue
        con lo que venga. Es lo que hace que nunca salgan dos de golpe. */
-    function decir(html, paso, luego){
+    function decir(html, paso, luego, ya){
       setTimeout(function(){
         if(!vivo) return;
         escribiendo(true, paso);
@@ -602,11 +614,11 @@
           hilo.insertAdjacentHTML("beforeend", html);
           abajo();
           luego();
-        }, demora(paso));
-      }, respiro());
+        }, demora(paso) * apuro());
+      }, ya ? 0 : respiro() * apuro());
     }
 
-    function preguntar(paso){
+    function preguntar(paso, ya){
       var e = paso.espera;
       function pedir(){ if(e.fecha) pedirFecha(e); else mostrarOpciones(e); }
       /* La pista ("Escribí SI para continuar") es un mensaje chico de él,
@@ -618,7 +630,7 @@
       }
       if(e.pregunta){
         decir('<div class="msg el">'+esc(variables(e.pregunta))+'<span class="h">'+hora()+'</span></div>',
-              {txt:e.pregunta}, conPista);
+              {txt:e.pregunta}, conPista, ya);
       }else conPista();
     }
 
@@ -698,7 +710,7 @@
         ponerElla(fechaLinda(v));
         evento({ event:"noctra_chat_"+e.campo });
         S.chat++; guardar();
-        setTimeout(seguirChat, azar(1000, 1500));
+        seguirChat(true);
       }
       env.onclick = mandar;
       sel.d.onchange = sel.m.onchange = sel.a.onchange = mostrar;
@@ -726,8 +738,7 @@
         ponerElla(op ? op.txt : val);
         evento({ event:"noctra_chat_"+e.campo, valor:val });
         S.chat++; guardar();
-        /* Leer lo que ella contestó también lleva un momento. */
-        setTimeout(seguirChat, azar(1000, 1500));
+        seguirChat(true);
       };
     }
 
@@ -760,13 +771,13 @@
       abajo();
     }
 
-    function seguirChat(){
+    function seguirChat(ya){
       if(!vivo) return;
       if(S.chat >= guion.length) return;
       var paso = guion[S.chat];
 
-      if(!corresponde(paso)){ S.chat++; guardar(); return seguirChat(); }
-      if(paso.espera) return preguntar(paso);
+      if(!corresponde(paso)){ S.chat++; guardar(); return seguirChat(ya); }
+      if(paso.espera) return preguntar(paso, ya);
       /* El botón de compra espera 2 s después del último mensaje, para que
          el último audio y la lista se terminen de leer antes de que aparezca. */
       if(paso.cta)    return setTimeout(function(){ if(vivo) ponerCTA(paso); }, 2000);
@@ -782,6 +793,10 @@
       /* Antes de la primera foto de clientes, un respiro largo: el mensaje
          que las anuncia hay que alcanzar a leerlo antes de que aparezcan. */
       else if(paso.img && previo && !previo.img) r = azar(2600, 3200);
+      r *= apuro();
+      /* Apenas ella contesta, los tres puntos salen en el acto: cualquier
+         hueco ahí se siente como que el mensaje no se mandó. */
+      if(ya) r = 0;
       setTimeout(function(){
         if(!vivo) return;
         escribiendo(true, paso);
@@ -792,7 +807,7 @@
           abajo();
           S.chat++; guardar();
           seguirChat();
-        }, demora(paso));
+        }, demora(paso) * apuro());
       }, r);
     }
 
