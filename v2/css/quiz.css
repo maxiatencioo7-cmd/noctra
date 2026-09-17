@@ -1,0 +1,84 @@
+/* Noctra v2 — estilos base del quiz nuevo.
+
+   Deliberadamente sobrio: son los huesos, no la piel. Cuando definamos la
+   estética del embudo nuevo esto se reemplaza entero. Lo que sí vale la pena
+   dejar fijado desde ahora son las decisiones que después cuesta caro
+   corregir: área de toque grande, nada que dependa del hover, y el contenido
+   sin saltos cuando cambia de pantalla. */
+
+:root{
+  --fondo:#0d0a1a;
+  --texto:#f2eefc;
+  --suave:#a99fc4;
+  --acento:#9974F6;
+  --borde:rgba(255,255,255,.12);
+  --carta:rgba(255,255,255,.04);
+  --r:16px;
+  --font:'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--fondo); color:var(--texto);
+  font-family:var(--font); font-size:17px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  /* el gutter de 16px de los costados no se negocia en teléfono */
+  padding:0 16px env(safe-area-inset-bottom,0px);
+  overflow-x:hidden;
+}
+
+#app{max-width:520px;margin:0 auto;padding-bottom:40px}
+
+/* Barra de avance. Que la persona vea cuánto falta sostiene la caída:
+   un quiz sin barra se siente infinito y la gente abandona por las dudas. */
+.prog{height:4px;background:rgba(255,255,255,.08);border-radius:99px;margin:18px 0 26px}
+.prog i{display:block;height:100%;background:var(--acento);border-radius:99px;
+  transition:width .35s ease}
+
+.pant{animation:entra .25s ease}
+.centro{text-align:center}
+@keyframes entra{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* Quien pidió menos animación no la recibe. */
+@media (prefers-reduced-motion:reduce){ .pant{animation:none} .prog i{transition:none} }
+
+h1{font-size:28px;line-height:1.25;margin:0 0 12px;font-weight:800}
+h2{font-size:22px;line-height:1.3;margin:0 0 10px;font-weight:700}
+.sub{color:var(--suave);margin:0 0 24px}
+.hero{width:100%;border-radius:var(--r);margin:0 0 22px;display:block}
+
+/* Opciones. 56px de alto mínimo: por debajo de eso el dedo falla y la
+   persona cree que el sitio no anda. */
+.ops{display:flex;flex-direction:column;gap:10px;margin:0 0 20px}
+.op{
+  display:flex;align-items:center;gap:12px;width:100%;min-height:56px;
+  padding:14px 16px;border-radius:var(--r);
+  background:var(--carta);border:1px solid var(--borde);
+  color:var(--texto);font:inherit;text-align:left;cursor:pointer;
+  transition:border-color .15s, background .15s;
+  touch-action:manipulation;
+}
+.op:active{background:rgba(255,255,255,.08)}
+.op.sel{border-color:var(--acento);background:rgba(153,116,246,.14)}
+.op .em{font-size:22px;line-height:1}
+
+.txt{
+  width:100%;min-height:56px;padding:14px 16px;margin:0 0 20px;
+  border-radius:var(--r);background:var(--carta);
+  border:1px solid var(--borde);color:var(--texto);
+  /* 16px o más: por debajo, iOS hace zoom al enfocar y descuadra la pantalla */
+  font:inherit;font-size:17px;
+}
+.txt:focus{outline:none;border-color:var(--acento)}
+
+.cta{
+  display:block;width:100%;min-height:56px;padding:16px;
+  border:0;border-radius:99px;background:var(--acento);color:#140f26;
+  font:inherit;font-weight:800;font-size:17px;cursor:pointer;
+  touch-action:manipulation;
+}
+.cta:active{filter:brightness(.92)}
+
+.barra{height:8px;background:rgba(255,255,255,.08);border-radius:99px;
+  overflow:hidden;margin:28px 0}
+.barra i{display:block;height:100%;width:0;background:var(--acento);border-radius:99px}
