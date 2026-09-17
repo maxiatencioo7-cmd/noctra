@@ -118,7 +118,7 @@
       return '<button class="sg'+(sel?" sel":"")+'" data-val="'+esc(s.id)+'" '
         + 'aria-label="'+esc(s.nombre)+'">'
         + '<span class="sgart">'
-          + '<img src="assets/signos/'+esc(s.id)+'.webp" alt="" loading="lazy" decoding="async" '
+          + '<img src="assets/'+esc(s.id)+'.webp" alt="" loading="lazy" decoding="async" '
           + 'onload="this.closest(\'.sg\').classList.add(\'con-img\')" '
           + 'onerror="this.closest(\'.sg\').classList.add(\'sin-img\'); this.remove()">'
           + '<i class="glifo">'+s.glifo+'</i>'
@@ -137,7 +137,7 @@
     var ims = p.imagenes || [];
     var slides = ims.map(function(id){
       return '<div class="slide">'
-        + '<img src="assets/prueba/'+esc(id)+'.webp" alt="" loading="lazy" '
+        + '<img src="assets/'+esc(id)+'.webp" alt="" loading="lazy" '
         + 'decoding="async" onerror="this.closest(\'.slide\').classList.add(\'falta\')">'
         + '<span class="ph">'+esc(id)+'</span></div>';
     }).join("");
@@ -196,7 +196,7 @@
      que bajar, que es justamente lo que hace que la nota se lea. */
   function nota(p){
     /* Título y aviso arriba; abajo, la pieza que Maxi carga a mano en
-       assets/nota/<archivo>.webp. Mientras no esté, el hueco guarda un alto
+       assets/<archivo>.webp. Mientras no esté, el hueco guarda un alto
        parecido al de la pieza y dice qué archivo falta: el botón queda
        donde va a quedar y no salta cuando la imagen llegue. */
     var f = (p.nota && p.nota.foto) || "nota";
@@ -204,9 +204,9 @@
       + (p.titulo ? '<h2 class="ntit">'+esc(p.titulo)+'</h2>' : '')
       + (p.badge  ? '<p class="nbadge">'+esc(p.badge)+'</p>' : '')
       + '<span class="nimg">'
-        + '<img src="assets/nota/'+esc(f)+'.webp" alt="" loading="lazy" '
+        + '<img src="assets/'+esc(f)+'.webp" alt="" loading="lazy" '
         + 'decoding="async" onerror="this.closest(\'.nimg\').classList.add(\'falta\')">'
-        + '<i class="ph">assets/nota/'+esc(f)+'.webp</i>'
+        + '<i class="ph">assets/'+esc(f)+'.webp</i>'
       + '</span>'
       + '<button class="cta" data-seguir-nota>'+esc(p.boton||"Continuar")+'</button>'
       + '</section>';
@@ -247,7 +247,7 @@
       + '<h2 class="multi">'+esc(p.titulo).replace(/\n/g,"<br>")+'</h2>'
       + '<div class="persona">'
         + '<span class="pav">'
-          + '<img src="assets/nota/'+esc(q.foto||"elian-avatar")+'.webp" alt="" '
+          + '<img src="assets/'+esc(q.foto||"elian-avatar")+'.webp" alt="" '
           + 'loading="lazy" decoding="async" onerror="this.closest(\'.pav\').classList.add(\'falta\')">'
           + '<i class="ph">'+esc(q.foto||"")+'</i>'
         + '</span>'
@@ -385,7 +385,7 @@
     }
     if(paso.img){
       return '<div class="msg el foto">'
-        + '<span class="fi"><img src="assets/chat/'+esc(paso.img)+'.webp" alt="" '
+        + '<span class="fi"><img src="assets/'+esc(paso.img)+'.webp" alt="" '
         + 'onload="var h=this.closest(\'.hilo\'); if(h) h.scrollTop=h.scrollHeight" '
         + 'loading="lazy" decoding="async" onerror="this.closest(\'.fi\').classList.add(\'falta\')">'
         + '<i class="ph">'+esc(paso.img)+'</i></span>' + h + '</div>';
@@ -398,7 +398,7 @@
     return '<section class="pant chat">'
       + '<header class="chead">'
         + '<span class="cav">'
-          + '<img src="assets/nota/'+esc(c.foto||"elian-avatar")+'.webp" alt="" '
+          + '<img src="assets/'+esc(c.foto||"elian-avatar")+'.webp" alt="" '
           + 'onerror="this.closest(\'.cav\').classList.add(\'falta\')">'
           + '<i class="ph">'+esc(c.foto||"")+'</i></span>'
         + '<span class="cinfo"><b>'+esc(c.nombre)+'</b><i>'+esc(c.estado)+'</i></span>'
@@ -534,7 +534,7 @@
         hilo.insertAdjacentHTML("beforeend",
           '<div class="fescr">'
           + '<span class="mini'+(fotoRota?" falta":"")+'">'
-            + '<img src="assets/nota/'+esc(foto)+'.webp" alt="" '
+            + '<img src="assets/'+esc(foto)+'.webp" alt="" '
             + 'onerror="this.closest(\'.mini\').classList.add(\'falta\')">'
           + '</span>'
           + '<div class="msg el escr"><i></i><i></i><i></i></div>'
