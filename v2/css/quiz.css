@@ -242,7 +242,15 @@ h1,h2{
 /* Título centrado y aviso chico, como en la referencia. */
 .ntit{margin:18px 0 10px; text-align:center; font-size:26px; line-height:1.25}
 .nbadge{margin:0 0 16px; text-align:center; font-size:15px; font-weight:700; color:#F3ECFF}
-.nimg{display:block; margin:0 0 22px; border-radius:18px; overflow:hidden}
+/* El hueco reserva 4:5 desde el primer momento, no sólo cuando falla: si
+   la imagen pesa y tarda, el botón igual queda abajo del pliegue en vez de
+   aparecer arriba y saltar cuando llega. Con una imagen más alta que 4:5
+   el hueco crece a su medida. */
+.nimg{
+  display:block; margin:0 0 22px; border-radius:18px; overflow:hidden;
+  aspect-ratio:4/5;
+  background:linear-gradient(170deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+}
 .nimg img{width:100%; display:block}
 .nimg .ph{display:none}
 .nimg.falta{
