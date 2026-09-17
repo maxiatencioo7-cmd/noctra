@@ -857,7 +857,7 @@
   /* pointerdown y no click: en teléfono, "click" llega hasta 80 ms después
      de levantar el dedo. Esos 80 ms por pantalla, nueve veces, son casi un
      segundo de sensación de lentitud sobre un embudo que se paga por clic. */
-  app.addEventListener("pointerdown", function(e){
+  app.addEventListener("click", function(e){
     var t = e.target.closest ? e.target.closest(".op,.sg,[data-atras]") : null;
     if(!t) return;
 
@@ -887,7 +887,7 @@
     var t = e.target.closest ? e.target.closest(".op,.sg,[data-atras]") : null;
     if(!t) return;
     e.preventDefault();
-    t.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true}));
+    t.click();
   });
 
   addEventListener("hashchange", pintar);
