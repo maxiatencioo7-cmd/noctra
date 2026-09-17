@@ -252,7 +252,7 @@
       + '<h2 class="multi">'+esc(p.titulo).replace(/\n/g,"<br>")+'</h2>'
       + '<div class="persona">'
         + '<span class="pav">'
-          + '<img src="/v2/assets/'+esc(q.foto||"elian-avatar")+'.webp" alt="" '
+          + '<img src="/v2/assets/'+esc(q.foto||"elian-avatar_2")+'.webp" alt="" '
           + 'loading="lazy" decoding="async" onerror="this.closest(\'.pav\').classList.add(\'falta\')">'
           + '<i class="ph">'+esc(q.foto||"")+'</i>'
         + '</span>'
@@ -403,7 +403,7 @@
     return '<section class="pant chat">'
       + '<header class="chead">'
         + '<span class="cav">'
-          + '<img src="/v2/assets/'+esc(c.foto||"elian-avatar")+'.webp" alt="" '
+          + '<img src="/v2/assets/'+esc(c.foto||"elian-avatar_2")+'.webp" alt="" '
           + 'onerror="this.closest(\'.cav\').classList.add(\'falta\')">'
           + '<i class="ph">'+esc(c.foto||"")+'</i></span>'
         + '<span class="cinfo"><b>'+esc(c.nombre)+'</b><i>'+esc(c.estado)+'</i></span>'
@@ -432,7 +432,7 @@
     var entrada  = app.querySelector("[data-entrada]");
     var campoTxt = app.querySelector("[data-campo-txt]");
     var vivo     = true;
-    var foto     = (p.contacto && p.contacto.foto) || "elian-avatar";
+    var foto     = (p.contacto && p.contacto.foto) || "elian-avatar_2";
     /* Si la foto del encabezado ya falló, el mini arranca en modo hueco y
        no se ve el parpadeo de la imagen rota en cada mensaje. */
     var fotoRota = !!app.querySelector(".cav.falta");
