@@ -722,11 +722,19 @@
       /* Acá aparece la oferta: es el ViewContent del embudo, el momento
          equivalente a la página de precio del quiz viejo. */
       evento({ event:"noctra_oferta" });
-      sugs.onclick = function(ev){
-        if(!ev.target.closest || !ev.target.closest("[data-checkout]")) return;
+      /* pointerdown en vez de click: sale al checkout apenas toca, sin los
+         ~100 ms que el teléfono espera para confirmar un click. */
+      var cta = sugs.querySelector("[data-checkout]");
+      var yendo = false;
+      function ir(ev){
+        if(yendo) return; yendo = true;
+        if(ev && ev.preventDefault) ev.preventDefault();
+        cta.classList.add("yendo");
         evento({ event:"noctra_inicio_checkout" });
         location.href = window.NOCTRA_V2_CHECKOUT();
-      };
+      }
+      cta.addEventListener("pointerdown", ir);
+      cta.addEventListener("click", ir);
       abajo();
     }
 
@@ -737,7 +745,9 @@
 
       if(!corresponde(paso)){ S.chat++; guardar(); return seguirChat(); }
       if(paso.espera) return preguntar(paso);
-      if(paso.cta)    return ponerCTA(paso);
+      /* El botón de compra espera 2 s después del último mensaje, para que
+         el último audio y la lista se terminen de leer antes de que aparezca. */
+      if(paso.cta)    return setTimeout(function(){ if(vivo) ponerCTA(paso); }, 2000);
 
       /* Primero el respiro, después los tres puntos, después el mensaje. */
       setTimeout(function(){
