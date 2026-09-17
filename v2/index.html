@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
 <meta name="theme-color" content="#9974F6">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/quiz.css">
+<link rel="stylesheet" href="css/quiz.css?v=7">
 
 <!-- Meta Pixel — el mismo de siempre, a propósito.
      Un píxel nuevo empezaría a aprender de cero y tiraría a la basura todo
@@ -51,8 +51,14 @@ src="https://www.facebook.com/tr?id=1563930394938040&ev=PageView&noscript=1"></n
 <script src="../js/perfil-codigo.js"></script>
 <script src="../js/pixel.js"></script>
 
-<!-- Propios del v2: acá se construye el quiz nuevo. -->
-<script src="js/content.js"></script>
-<script src="js/app.js"></script>
+<!-- Propios del v2: acá se construye el quiz nuevo.
+
+     Los tres llevan el MISMO ?v=. El copy (content.js) y el motor (app.js)
+     viajan juntos: si el navegador guardara uno viejo y bajara el otro
+     nuevo, el copy nuevo saldría sin procesar (por ejemplo, con las llaves
+     de género a la vista). Al cambiar cualquiera de los tres, se sube el
+     número en los tres. -->
+<script src="js/content.js?v=7"></script>
+<script src="js/app.js?v=7"></script>
 </body>
 </html>
