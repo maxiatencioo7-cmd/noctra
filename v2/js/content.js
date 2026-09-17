@@ -249,7 +249,7 @@ window.NOCTRA_V2 = {
       persona: {
         nombre: "Maestro Elian",
         estado: "En línea",
-        foto: "elian-avatar",
+        foto: "elian-avatar_3",
         sobre: "Artista y lector de carta astral. Hace más de 15 años que dibuja el rostro de quien todavía no conociste."
       },
       boton: "EMPEZAR MI DIBUJO"
@@ -291,7 +291,7 @@ window.NOCTRA_V2 = {
     {
       tipo: "chat",
       sinBarra: true,
-      contacto: { nombre:"Maestro Elian", estado:"En línea", foto:"elian-avatar" },
+      contacto: { nombre:"Maestro Elian", estado:"En línea", foto:"elian-avatar_3" },
       guion: [
 
         { de:"el", txt:"⏳ Iniciando la lectura de {nombre}…" },
