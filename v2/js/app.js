@@ -118,7 +118,7 @@
       return '<button class="sg'+(sel?" sel":"")+'" data-val="'+esc(s.id)+'" '
         + 'aria-label="'+esc(s.nombre)+'">'
         + '<span class="sgart">'
-          + '<img src="assets/'+esc(s.id)+'.webp" alt="" loading="lazy" decoding="async" '
+          + '<img src="/v2/assets/'+esc(s.id)+'.webp" alt="" loading="lazy" decoding="async" '
           + 'onload="this.closest(\'.sg\').classList.add(\'con-img\')" '
           + 'onerror="this.closest(\'.sg\').classList.add(\'sin-img\'); this.remove()">'
           + '<i class="glifo">'+s.glifo+'</i>'
@@ -137,7 +137,7 @@
     var ims = p.imagenes || [];
     var slides = ims.map(function(id){
       return '<div class="slide">'
-        + '<img src="assets/'+esc(id)+'.webp" alt="" loading="lazy" '
+        + '<img src="/v2/assets/'+esc(id)+'.webp" alt="" loading="lazy" '
         + 'decoding="async" onerror="this.closest(\'.slide\').classList.add(\'falta\')">'
         + '<span class="ph">'+esc(id)+'</span></div>';
     }).join("");
@@ -204,14 +204,14 @@
       + (p.titulo ? '<h2 class="ntit">'+esc(p.titulo)+'</h2>' : '')
       + (p.badge  ? '<p class="nbadge">'+esc(p.badge)+'</p>' : '')
       + '<span class="nimg">'
-        + '<img src="assets/'+esc(f)+'.webp" alt="" loading="lazy" decoding="async" '
+        + '<img src="/v2/assets/'+esc(f)+'.webp" alt="" loading="lazy" decoding="async" '
         /* Si no hay .webp prueba .jpg, .png y .jpeg antes de darse por vencida,
            así Maxi sube la foto con el formato que tenga. */
         + 'data-alt="jpg,png,jpeg" '
         + 'onerror="var a=(this.dataset.alt||\'\').split(\',\').filter(Boolean);'
         + 'if(a.length){this.dataset.alt=a.slice(1).join(\',\');this.src=this.src.replace(/\\.\\w+$/,\'.\'+a[0])}'
         + 'else{this.closest(\'.nimg\').classList.add(\'falta\')}">'
-        + '<i class="ph">assets/'+esc(f)+'.webp / .jpg / .png</i>'
+        + '<i class="ph">v2/assets/'+esc(f)+'.webp / .jpg / .png</i>'
       + '</span>'
       + '<button class="cta" data-seguir-nota>'+esc(p.boton||"Continuar")+'</button>'
       + '</section>';
@@ -252,7 +252,7 @@
       + '<h2 class="multi">'+esc(p.titulo).replace(/\n/g,"<br>")+'</h2>'
       + '<div class="persona">'
         + '<span class="pav">'
-          + '<img src="assets/'+esc(q.foto||"elian-avatar")+'.webp" alt="" '
+          + '<img src="/v2/assets/'+esc(q.foto||"elian-avatar")+'.webp" alt="" '
           + 'loading="lazy" decoding="async" onerror="this.closest(\'.pav\').classList.add(\'falta\')">'
           + '<i class="ph">'+esc(q.foto||"")+'</i>'
         + '</span>'
@@ -385,12 +385,12 @@
         + '<span class="dur">'+esc(paso.dur||"0:07")+'</span>'
         /* preload="none": cinco audios bajándose al abrir el chat compiten
            con las fotos y con el resto. Se baja el que toca. */
-        + '<audio preload="none" src="assets/chat/'+esc(paso.audio)+'.mp3"></audio>'
+        + '<audio preload="none" src="/v2/assets/chat/'+esc(paso.audio)+'.mp3"></audio>'
         + h + '</div>';
     }
     if(paso.img){
       return '<div class="msg el foto">'
-        + '<span class="fi"><img src="assets/'+esc(paso.img)+'.webp" alt="" '
+        + '<span class="fi"><img src="/v2/assets/'+esc(paso.img)+'.webp" alt="" '
         + 'onload="var h=this.closest(\'.hilo\'); if(h) h.scrollTop=h.scrollHeight" '
         + 'loading="lazy" decoding="async" onerror="this.closest(\'.fi\').classList.add(\'falta\')">'
         + '<i class="ph">'+esc(paso.img)+'</i></span>' + h + '</div>';
@@ -403,7 +403,7 @@
     return '<section class="pant chat">'
       + '<header class="chead">'
         + '<span class="cav">'
-          + '<img src="assets/'+esc(c.foto||"elian-avatar")+'.webp" alt="" '
+          + '<img src="/v2/assets/'+esc(c.foto||"elian-avatar")+'.webp" alt="" '
           + 'onerror="this.closest(\'.cav\').classList.add(\'falta\')">'
           + '<i class="ph">'+esc(c.foto||"")+'</i></span>'
         + '<span class="cinfo"><b>'+esc(c.nombre)+'</b><i>'+esc(c.estado)+'</i></span>'
@@ -539,7 +539,7 @@
         hilo.insertAdjacentHTML("beforeend",
           '<div class="fescr">'
           + '<span class="mini'+(fotoRota?" falta":"")+'">'
-            + '<img src="assets/'+esc(foto)+'.webp" alt="" '
+            + '<img src="/v2/assets/'+esc(foto)+'.webp" alt="" '
             + 'onerror="this.closest(\'.mini\').classList.add(\'falta\')">'
           + '</span>'
           + '<div class="msg el escr"><i></i><i></i><i></i></div>'
@@ -673,6 +673,9 @@
       entrada.remove();
       sugs.innerHTML = '<button class="cta verde" data-checkout>'+esc(paso.cta)+'</button>';
       sugs.classList.add("con","solo-cta");
+      /* Acá aparece la oferta: es el ViewContent del embudo, el momento
+         equivalente a la página de precio del quiz viejo. */
+      evento({ event:"noctra_oferta" });
       sugs.onclick = function(ev){
         if(!ev.target.closest || !ev.target.closest("[data-checkout]")) return;
         evento({ event:"noctra_inicio_checkout" });
