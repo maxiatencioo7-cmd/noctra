@@ -167,10 +167,11 @@ h1,h2{
   background:linear-gradient(170deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
 }
 .sgart img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
-/* El símbolo del signo aparece solo si la ilustración no cargó: ahí se lee
-   como una decisión de diseño y no como una imagen rota. */
-.glifo{display:none; font-style:normal; font-size:40px; line-height:1; color:#E9C6FF; opacity:.92}
-.sg.sin-img .glifo{display:block}
+/* El símbolo sostiene la tarjeta mientras la ilustración baja, y se apaga
+   cuando llega. Si nunca llega, se queda: se lee como una decisión de
+   diseño y no como una imagen rota. */
+.glifo{font-style:normal; font-size:40px; line-height:1; color:#E9C6FF; opacity:.92}
+.sg.con-img .glifo{display:none}
 
 /* El nombre ya viene impreso dentro de la carta. Este cartel queda de
    respaldo: solo aparece si la ilustración no llegó. */
