@@ -194,7 +194,7 @@ window.NOCTRA_V2 = {
        verla entera y recién ahí encuentra el botón. */
     {
       tipo: "nota",
-      titulo: "El Maestro Elian te va a guiar hasta tu alma gemela según tu carta astral! Es vidente hace más de 12 años.",
+      titulo: "El Maestro Elian te va a guiar hasta tu alma gemela según tu carta astral! Es vidente hace más de 15 años.",
       badge: "👇 Mirá el reportaje sobre él: 👇",
       boton: "Continuar",
       nota: { foto: "nota" }
