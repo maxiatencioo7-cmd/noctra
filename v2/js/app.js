@@ -102,13 +102,14 @@
   function signos(p){
     var grilla = (Q.signos||[]).map(function(s){
       var sel = S.a[p.campo]===s.id;
-      /* La ilustracion ya trae el nombre impreso abajo, asi que el cartel de
-         texto solo aparece si la imagen no carga: ahi el glifo y el nombre
-         sostienen la tarjeta en vez de dejar un hueco. */
+      /* El glifo sostiene la tarjeta mientras la ilustracion baja y se apaga
+         cuando llega; el nombre en texto solo aparece si la imagen falla,
+         porque la carta ya lo trae impreso abajo. */
       return '<button class="sg'+(sel?" sel":"")+'" data-val="'+esc(s.id)+'" '
         + 'aria-label="'+esc(s.nombre)+'">'
         + '<span class="sgart">'
           + '<img src="assets/signos/'+esc(s.id)+'.webp" alt="" loading="lazy" decoding="async" '
+          + 'onload="this.closest(\'.sg\').classList.add(\'con-img\')" '
           + 'onerror="this.closest(\'.sg\').classList.add(\'sin-img\'); this.remove()">'
           + '<i class="glifo">'+s.glifo+'</i>'
         + '</span>'
