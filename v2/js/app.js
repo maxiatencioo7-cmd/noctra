@@ -195,12 +195,14 @@
      El boton va al FINAL del cuerpo, no flotando arriba: para continuar hay
      que bajar, que es justamente lo que hace que la nota se lea. */
   function nota(p){
-    /* Por ahora esta pantalla es un lugar vacío a propósito: la pieza la
-       carga Maxi a mano en assets/nota/<archivo>.webp y entra sola, sin
-       tocar código. Mientras no esté, el hueco guarda el alto y dice qué
-       archivo falta, así el botón no salta cuando la imagen llegue. */
+    /* Título y aviso arriba; abajo, la pieza que Maxi carga a mano en
+       assets/nota/<archivo>.webp. Mientras no esté, el hueco guarda un alto
+       parecido al de la pieza y dice qué archivo falta: el botón queda
+       donde va a quedar y no salta cuando la imagen llegue. */
     var f = (p.nota && p.nota.foto) || "nota";
     return '<section class="pant">'
+      + (p.titulo ? '<h2 class="ntit">'+esc(p.titulo)+'</h2>' : '')
+      + (p.badge  ? '<p class="nbadge">'+esc(p.badge)+'</p>' : '')
       + '<span class="nimg">'
         + '<img src="assets/nota/'+esc(f)+'.webp" alt="" loading="lazy" '
         + 'decoding="async" onerror="this.closest(\'.nimg\').classList.add(\'falta\')">'
@@ -433,7 +435,10 @@
       vivo = false; removeEventListener("hashchange", corta);
     });
 
-    function abajo(){ hilo.scrollTop = hilo.scrollHeight; }
+    function abajo(){
+      try{ hilo.scrollTo({ top: hilo.scrollHeight, behavior: "smooth" }); }
+      catch(e){ hilo.scrollTop = hilo.scrollHeight; }
+    }
 
     /* ── los audios ──────────────────────────────────────────────
        La onda se llena con el audio real, no con un temporizador: si el
@@ -480,9 +485,23 @@
 
       if(!a.__listo){
         a.__listo = true;
-        a.addEventListener("timeupdate", function(){ pintarAudio(box, a); });
-        a.addEventListener("play",  function(){ box.classList.add("suena"); box.querySelector(".play").innerHTML = ICONO_PAUSA; });
-        a.addEventListener("pause", function(){ box.classList.remove("suena"); box.querySelector(".play").innerHTML = ICONO_PLAY; });
+        /* Mientras suena, la onda y el contador se redibujan en cada
+           cuadro (60 veces por segundo). "timeupdate" llega 4 veces por
+           segundo y la barra avanza a saltos. */
+        var cuadro = null;
+        function animar(){
+          if(a.paused || a.ended){ cuadro = null; return; }
+          pintarAudio(box, a);
+          cuadro = requestAnimationFrame(animar);
+        }
+        a.addEventListener("play",  function(){
+          box.classList.add("suena"); box.querySelector(".play").innerHTML = ICONO_PAUSA;
+          if(!cuadro) cuadro = requestAnimationFrame(animar);
+        });
+        a.addEventListener("pause", function(){
+          box.classList.remove("suena"); box.querySelector(".play").innerHTML = ICONO_PLAY;
+          pintarAudio(box, a);
+        });
         a.addEventListener("ended", function(){
           a.currentTime = 0; pintarAudio(box, a);
           box.querySelector(".dur").textContent = box.getAttribute("data-total");
@@ -688,6 +707,8 @@
     if(!dibujar){ console.error("[v2] tipo desconocido:", p.tipo); return; }
 
     app.innerHTML = barra() + dibujar(p);
+    /* En el chat la página no se desplaza: sólo la conversación. */
+    document.body.classList.toggle("en-chat", p.tipo==="chat");
     /* Arriba de todo sin animar el scroll: un scroll suave acá se superpone
        con la entrada de la pantalla y se ve como un tirón. */
     window.scrollTo(0,0);
