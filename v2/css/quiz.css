@@ -224,3 +224,353 @@ h1,h2{
   transition:transform .12s cubic-bezier(.3,1.3,.5,1), filter .12s;
 }
 .cta:active{transform:scale(.975); filter:brightness(1.06)}
+
+/* ── la nota ────────────────────────────────────────────────────── */
+
+/* Fondo claro dentro de la noche: el contraste hace que se lea como
+   "esto es otra cosa, esto es una nota" sin tener que imitar a nadie.
+   El cuerpo va en serif y con renglón ancho porque es texto para leer,
+   no para escanear. */
+.nota{
+  /* Alineado a la izquierda a propósito: un texto largo centrado obliga al
+     ojo a buscar el arranque de cada renglón y se abandona a la mitad. */
+  text-align:left;
+  background:#fff; color:#15131f; border-radius:20px;
+  padding:22px 20px 26px; margin:0 0 22px;
+  box-shadow:0 14px 40px rgba(0,0,0,.42);
+}
+
+.nmast{
+  font-weight:800; font-size:22px; letter-spacing:.20em;
+  text-align:center; color:#2A1E4A; padding-bottom:12px;
+  border-bottom:1px solid #E6E2F0;
+}
+.nsec{
+  margin:14px 0 8px; font-size:12px; font-weight:800;
+  letter-spacing:.14em; color:#8E63D6;
+}
+
+.nota h3{
+  margin:0 0 12px; font-size:26px; line-height:1.22; font-weight:800;
+  letter-spacing:-.015em; color:#15131f;
+  /* el título hereda el degradé de h1/h2 si no lo apagamos */
+  background:none; -webkit-background-clip:border-box; background-clip:border-box;
+}
+.nbaj{margin:0 0 18px; font-size:17px; line-height:1.5; color:#4A4560}
+
+.nfoto{margin:0 0 18px}
+.nimg{display:block}
+.nimg img{width:100%; display:block; border-radius:12px}
+.nimg .ph{display:none}
+.nimg.falta{
+  /* Sin la foto, el hueco mantiene el alto para que el texto no salte
+     cuando llegue, y dice qué archivo falta. */
+  aspect-ratio:4/3; border-radius:12px; display:grid; place-items:center;
+  background:linear-gradient(150deg,#EAE5F6,#D8D0EC);
+  color:#6B6288; font-size:13px; font-style:normal;
+}
+.nimg.falta img{display:none}
+.nimg.falta .ph{display:block; font-style:normal}
+.nfoto figcaption{margin-top:8px; font-size:13px; color:#6B6288; text-align:left}
+
+.ncuerpo p{
+  margin:0 0 15px;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:18px; line-height:1.62; color:#241F36;
+}
+.ncuerpo p:last-child{margin-bottom:0}
+.nfirma{margin:18px 0 0; font-weight:700; font-size:16px; color:#5B4B86}
+
+/* En la nota el botón no flota: vive al final, después del texto. */
+.nota + .cta{margin-bottom:8px}
+
+/* ── la espera ──────────────────────────────────────────────────── */
+
+/* Todo gira con transform: el navegador lo manda a la GPU y sigue fluido
+   aunque el hilo principal esté ocupado. Animar width o top acá se traba
+   justo cuando la persona está mirando la pantalla fija. */
+.carga{
+  min-height:82vh; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; text-align:center;
+}
+
+.orbita{position:relative; width:180px; height:180px; margin-bottom:34px}
+.aro{
+  position:absolute; inset:0; border-radius:50%;
+  border:3px solid transparent; animation:gira 3s linear infinite;
+}
+.a1{border-top-color:rgba(255,255,255,.34); border-left-color:rgba(255,255,255,.34);
+    animation-duration:5.5s}
+.a2{inset:6px; border-top-color:#E05CD0; border-right-color:#E05CD0;
+    animation-duration:2.6s; animation-direction:reverse;
+    filter:drop-shadow(0 0 6px rgba(224,92,208,.65))}
+.a3{inset:6px; border-bottom-color:#FFD166; border-left-color:#FFD166;
+    animation-duration:3.4s; filter:drop-shadow(0 0 6px rgba(255,209,102,.6))}
+@keyframes gira{to{transform:rotate(360deg)}}
+
+.nucleo{
+  position:absolute; inset:0; margin:auto; width:22px; height:22px;
+  border-radius:50%; background:#fff;
+  box-shadow:0 0 14px 6px rgba(255,214,140,.85), 0 0 46px 22px rgba(255,180,90,.28);
+  animation:latir 2.2s ease-in-out infinite;
+}
+@keyframes latir{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.14);opacity:.9}}
+
+.ctit{
+  font-size:26px; background:none; color:#FFE9A8; -webkit-text-fill-color:#FFE9A8;
+  text-shadow:0 0 22px rgba(255,220,130,.45); margin-bottom:8px;
+}
+.csub{
+  margin:0; font-size:15px; letter-spacing:.14em;
+  color:#B9AEDC; text-transform:uppercase;
+}
+
+/* Quien pidió menos animación ve el círculo quieto, y la pantalla avanza
+   igual porque el salto lo maneja un temporizador, no la animación. */
+@media (prefers-reduced-motion:reduce){
+  .aro,.nucleo{animation:none}
+}
+
+/* ── resultado ──────────────────────────────────────────────────── */
+
+.res{padding-top:26px}
+.brilla{
+  font-size:34px; line-height:1.12; margin-bottom:22px;
+  text-shadow:0 0 30px rgba(255,190,110,.42);
+}
+.rcard{
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.14);
+  border-radius:18px; padding:20px 18px; margin:0 0 34px;
+  font-size:17px; line-height:1.5; color:#F2ECFF;
+}
+
+/* El campo con borde magenta encendido: en una pantalla oscura el input
+   tiene que gritar dónde se escribe, o la persona toca el botón sin
+   escribir nada y se frustra.
+
+   17px de fuente y no menos: por debajo de 16, iOS hace zoom al enfocar y
+   descuadra la pantalla entera justo cuando aparece el teclado. */
+.txt{
+  display:block; width:100%; min-height:62px; padding:16px 18px;
+  margin:0 0 18px; border-radius:99px;
+  font:inherit; font-size:17px; font-weight:600;
+  color:var(--ink); -webkit-appearance:none;
+  border:2px solid #C24BE8; background:rgba(255,255,255,.07);
+  box-shadow:0 0 18px rgba(194,75,232,.28); text-align:center;
+  transition:border-color .15s, box-shadow .15s;
+}
+.txt::placeholder{color:#9D90C4; font-weight:500}
+.txt:focus{outline:none; border-color:#E05CD0; box-shadow:0 0 24px rgba(224,92,208,.42)}
+.txt.mal{border-color:#FF6B8A; box-shadow:0 0 18px rgba(255,107,138,.3)}
+.msgmal{margin:-10px 0 16px; font-size:14px; color:#FF9FB2}
+
+.cta.verde{
+  background:linear-gradient(96deg,#63E6A4 0%,#45DCC0 100%);
+  color:#0B2A22; text-transform:uppercase; letter-spacing:.02em;
+  box-shadow:0 0 26px rgba(80,225,175,.40), 0 6px 18px rgba(0,0,0,.34);
+}
+
+/* ── conectado ──────────────────────────────────────────────────── */
+
+.aviso{
+  background:linear-gradient(96deg,#F97A4D,#FF9A5B);
+  border-radius:18px; padding:16px 14px; margin:6px 0 26px;
+  box-shadow:0 8px 26px rgba(249,122,77,.34);
+}
+.aviso b{display:block; font-size:21px; font-weight:800; color:#fff; margin-bottom:10px}
+.cupo{
+  display:block; background:rgba(255,255,255,.22); border-radius:12px;
+  padding:9px 12px; font-size:15px; font-weight:700; color:#fff;
+}
+
+h2.multi{font-size:23px; line-height:1.34; margin-bottom:30px}
+
+.persona{
+  display:flex; align-items:center; gap:13px; text-align:left;
+  background:#fff; border-radius:18px; padding:13px 15px; margin:0 0 20px;
+  box-shadow:0 10px 28px rgba(0,0,0,.34);
+}
+.pav{position:relative; flex:none; width:54px; height:54px; border-radius:50%; overflow:hidden}
+.pav img{width:100%; height:100%; object-fit:cover; display:block}
+.pav .ph{display:none}
+.pav.falta{background:linear-gradient(150deg,#EAE5F6,#CFC5E8); display:grid; place-items:center}
+.pav.falta img{display:none}
+.pav.falta .ph{display:block; font-size:9px; font-style:normal; color:#6B6288; text-align:center; padding:2px}
+
+.pinfo{flex:1; display:flex; flex-direction:column; gap:2px; min-width:0}
+.pinfo b{font-size:17px; font-weight:800; color:#15131f}
+.pest{font-style:normal; font-size:14px; font-weight:700; color:#2FB86F}
+.psobre{font-style:normal; font-size:12px; line-height:1.35; color:#6B6288; margin-top:3px}
+
+.ppunto{
+  flex:none; width:13px; height:13px; border-radius:50%; background:#3ED47E;
+  box-shadow:0 0 0 4px rgba(62,212,126,.22);
+}
+
+/* ── el chat ────────────────────────────────────────────────────── */
+
+/* Estética propia, no la de WhatsApp. Aparte de lo obvio —clonar la
+   interfaz de otro producto es hacerse pasar por él—, sobre la noche de
+   Noctra se ve mejor y no compite con la marca. Lo que convierte es el
+   ritmo, no el verde. */
+
+.chat{
+  display:flex; flex-direction:column;
+  height:100dvh; margin:0 -16px;   /* a sangre: el chat ocupa la pantalla */
+}
+
+.chead{
+  flex:none; display:flex; align-items:center; gap:12px;
+  padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;
+  background:rgba(18,15,44,.92); backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(255,255,255,.10);
+}
+.cav{position:relative; flex:none; width:42px; height:42px; border-radius:50%; overflow:hidden}
+.cav img{width:100%; height:100%; object-fit:cover; display:block}
+.cav .ph{display:none}
+.cav.falta{background:linear-gradient(150deg,#4B3B7A,#2C2350); display:grid; place-items:center}
+.cav.falta img{display:none}
+.cav.falta .ph{display:block; font-size:8px; font-style:normal; color:#B9AEDC; text-align:center}
+.cinfo{display:flex; flex-direction:column; line-height:1.25}
+.cinfo b{font-size:16px; font-weight:800; color:#fff}
+.cinfo i{font-style:normal; font-size:13px; color:#6FE3A8}
+
+.hilo{
+  flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  padding:18px 16px 10px; display:flex; flex-direction:column; gap:9px;
+  scroll-behavior:smooth;
+}
+
+.msg{
+  position:relative; max-width:84%; padding:11px 14px 18px;
+  border-radius:16px; font-size:16px; line-height:1.42;
+  animation:entramsg .18s ease-out;
+}
+@keyframes entramsg{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){ .msg{animation:none} .hilo{scroll-behavior:auto} }
+
+/* Él: vidrio oscuro. Ella: magenta, el mismo de los botones, para que la
+   conversación se lea como parte del embudo y no como un injerto. */
+.msg.el{
+  align-self:flex-start; background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.10); color:#F2ECFF;
+  border-bottom-left-radius:5px;
+}
+.msg.ella{
+  align-self:flex-end; background:linear-gradient(96deg,#B845DE,#E05CD0);
+  color:#fff; font-weight:600; border-bottom-right-radius:5px;
+}
+.msg .h{
+  position:absolute; right:12px; bottom:5px;
+  font-size:10.5px; opacity:.55; letter-spacing:.02em;
+}
+
+/* "escribiendo…" — con la cara al lado.
+   Sin la foto, los tres puntos son un spinner. Con la foto, es alguien del
+   otro lado escribiendo. */
+.fescr{
+  align-self:flex-start; display:flex; align-items:flex-end; gap:8px;
+  animation:entramsg .18s ease-out;
+}
+.mini{
+  flex:none; width:28px; height:28px; border-radius:50%; overflow:hidden;
+  margin-bottom:2px;
+}
+.mini img{width:100%; height:100%; object-fit:cover; display:block}
+.mini.falta{background:linear-gradient(150deg,#6B55A8,#3A2E68)}
+.mini.falta img{display:none}
+
+.fescr .msg.escr{align-self:auto}
+.msg.escr{padding:14px 16px; display:flex; gap:5px; align-items:center}
+.msg.escr i{
+  width:7px; height:7px; border-radius:50%; background:#C9BCEB;
+  animation:punto 1.25s infinite ease-in-out;
+}
+.msg.escr i:nth-child(2){animation-delay:.16s}
+.msg.escr i:nth-child(3){animation-delay:.32s}
+@keyframes punto{0%,70%,100%{opacity:.3;transform:translateY(0)}35%{opacity:1;transform:translateY(-4px)}}
+
+/* audio */
+.msg.audio{display:flex; align-items:center; gap:11px; min-width:224px; padding-right:52px}
+.msg.audio .play{
+  flex:none; width:36px; height:36px; border-radius:50%;
+  background:rgba(255,255,255,.14); display:grid; place-items:center;
+  font-size:13px; color:#fff;
+}
+.msg.audio .onda{
+  flex:1; height:22px;
+  background:repeating-linear-gradient(90deg,
+    rgba(255,255,255,.55) 0 2px, transparent 2px 5px);
+  mask-image:linear-gradient(90deg,#000 0 100%);
+}
+.msg.audio .dur{font-size:12px; opacity:.7}
+.msg.audio .ph{display:none}
+
+/* foto */
+/* Ancho fijo y no "lo que ocupe el contenido": mientras la foto no existe,
+   el hueco tiene que ocupar el mismo lugar que va a ocupar la foto, o al
+   cargarla se mueve toda la conversación. */
+.msg.foto{padding:5px 5px 18px; width:76%; max-width:76%}
+.fi{display:block; width:100%; border-radius:12px; overflow:hidden}
+.fi img{width:100%; display:block}
+.fi .ph{display:none}
+.fi.falta{
+  aspect-ratio:3/4; display:grid; place-items:center;
+  background:linear-gradient(150deg,#4B3B7A,#2C2350);
+}
+.fi.falta img{display:none}
+.fi.falta .ph{display:block; font-style:normal; font-size:12px; color:#C9BCEB}
+
+/* ── el pie: sugerencias + barra de escribir ─────────────────────
+
+   Las respuestas van como sugerencias arriba de la barra, no como botones
+   grandes. La diferencia no es estética: un botón gigante corta la
+   conversación y se lee como formulario, y una sugerencia se lee como algo
+   que el chat te ofrece mientras seguís charlando. */
+
+.pie{
+  flex:none; display:flex; flex-direction:column; gap:10px;
+  padding:0 12px calc(12px + env(safe-area-inset-bottom,0px));
+}
+
+.sugs{display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end}
+.sugs.con{padding-top:4px}
+
+/* Contorno y no relleno: una sugerencia no compite con el botón de compra.
+   Se ve tocable pero no grita. */
+.sug{
+  padding:10px 16px; border-radius:99px;
+  background:rgba(224,92,208,.12);
+  border:1.5px solid rgba(224,92,208,.65);
+  color:#F7E6FB; font:inherit; font-weight:600; font-size:15px;
+  cursor:pointer; touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .12s cubic-bezier(.3,1.3,.5,1), background .14s;
+  animation:sube .22s cubic-bezier(.2,.9,.3,1.2) backwards;
+}
+.sug:active{transform:scale(.95); background:rgba(224,92,208,.3)}
+@keyframes sube{from{opacity:0; transform:translateY(10px) scale(.94)}to{opacity:1; transform:none}}
+
+/* La barra de escribir. Decorativa: no es un input, así que tocarla no
+   abre el teclado para tapar media pantalla sin que pase nada. */
+.entrada{
+  display:flex; align-items:center; gap:10px;
+  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12);
+  border-radius:99px; padding:9px 9px 9px 14px;
+}
+.entrada .mas{font-size:21px; line-height:1; color:#9D90C4; flex:none}
+.entrada .campo{
+  flex:1; font-size:15px; color:#8B7FB0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.entrada .enviar{
+  flex:none; width:38px; height:38px; border-radius:50%;
+  display:grid; place-items:center; font-size:15px; color:#fff;
+  background:var(--pill); box-shadow:0 0 14px rgba(224,88,208,.3);
+}
+
+/* Cuando llega el botón de compra, la barra ya se fue y queda él solo. */
+.sugs.solo-cta{display:block; padding-top:6px}
+.sugs .cta{margin:0}
+
+@media (prefers-reduced-motion:reduce){ .sug{animation:none} }
