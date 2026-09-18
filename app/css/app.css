@@ -280,6 +280,20 @@ label.f>span{display:block;margin:0 0 7px}
 #revelado .rnom .lab{display:block;margin:0 0 5px}
 #revelado #racts .btn{margin:0 0 9px}
 #revelado #racts .btn:last-child{margin:0}
+/* "Ver mi lectura": el único botón que tiene que verse desde lejos. Los
+   otros dos quedan en segundo plano a propósito —guardar y compartir son
+   para después; ahora lo que sigue es leer. */
+#revelado #racts .btn.lec{
+  min-height:60px;font-size:17.5px;letter-spacing:.01em;
+  background:linear-gradient(96deg,var(--oro),#FFE9A8 55%,var(--oro-hondo));
+  box-shadow:0 0 30px rgba(245,214,123,.42),0 12px 34px rgba(0,0,0,.4);
+  will-change:transform;animation:lecLate 1.5s ease-in-out .6s infinite;
+}
+#revelado #racts .btn.lec svg{width:21px;height:21px}
+#revelado #racts .btn.lec:active{animation:none}
+#revelado #racts .btn.ghost{min-height:46px;font-size:15px;opacity:.82}
+@keyframes lecLate{0%,100%{transform:scale(1)}50%{transform:scale(1.032)}}
+@media (prefers-reduced-motion:reduce){ #revelado #racts .btn.lec{animation:none} }
 /* Teléfonos bajos: el retrato y los títulos ceden lo necesario para que
    "Ver mi lectura" y "Compartir" queden a la vista sin tener que bajar. */
 @media (max-height:700px){
@@ -290,6 +304,8 @@ label.f>span{display:block;margin:0 0 7px}
   #revelado .rnom b{font-size:26px;line-height:31px}
   #revelado .rnom .lab{margin:0 0 3px}
   #revelado #racts .btn{margin:0 0 7px}
+  #revelado #racts .btn.lec{min-height:54px;font-size:16.5px}
+  #revelado #racts .btn.ghost{min-height:42px}
 }
 #revelado .rnom b{display:block;font-family:"Fraunces","Iowan Old Style","Times New Roman",Georgia,serif;font-weight:700;font-size:31px;line-height:37px;letter-spacing:-.01em;color:var(--oro)}
 .etq{position:absolute;padding:8px 13px;border-radius:var(--r-pill);background:rgba(10,17,40,.86);border:1px solid rgba(245,214,123,.34);color:var(--oro);font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;opacity:0;transform:translateY(8px);transition:opacity .5s var(--ease),transform .5s var(--ease);white-space:nowrap;backdrop-filter:blur(8px)}
