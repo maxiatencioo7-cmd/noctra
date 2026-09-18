@@ -203,7 +203,9 @@ function abrir(nom, ciudad, alSeguir){
         +'<div class="op2pre"><s>Valor total: '+miles(PROD.pack.ancla)+'</s>'
           +'<b>Hoy: '+miles(PROD.pack.precio)+'</b></div>'
         +'<button class="btn obig op2btn" data-prod="pack">'
-          +'<span>Desbloquear todo</span><i>'+plata(PROD.pack.precio)+'</i></button>'
+          /* El número grande y "ARS" chiquito al lado: lo que la persona
+             está buscando es la cifra, la moneda es una aclaración. */
+          +'<span>Desbloquear todo</span><i>'+miles(PROD.pack.precio)+'<u>'+MONEDA+'</u></i></button>'
         +'<p class="op2mas">Incluye además <b>La señal</b> —cómo reconocerlo cuando lo tengas enfrente— y <b>Por qué vos</b>. Esas dos no se venden por separado.</p>'
         +'</div>'
       : '')
