@@ -147,7 +147,7 @@ function vRetrato(){
         <div class="oth">Cuándo, Dónde y Cómo</div>
         <p class="otp">La ventana, el lugar, el mapa de ${ciudad()?esc(ciudad()):"tu ciudad"}, la señal y por qué vos. Ya está desbloqueado.</p>
         <button class="btn obig" data-act="verPlan" style="margin:12px 0 0"><span>Abrir el pack</span></button></div>`
-    : (window.NOCTRA_OFERTA?`<div class="sep"></div>${window.NOCTRA_OFERTA.tarjeta(NOMBRE)}`:"")):""}
+    : (window.NOCTRA_OFERTA?`<div class="sep"></div>${window.NOCTRA_OFERTA.alerta(NOMBRE,"retrato")}`:"")):""}
   <div class="sep"></div>
   <div class="lab" style="margin:0 0 10px">De dónde salió cada rasgo</div>
   ${tarjetasDato()}
@@ -223,6 +223,7 @@ function vLectura(){
     <p class="small muted" style="margin:0 0 12px">La lectura completa leída en voz alta, para escuchar en vez de leer. Son entre cinco y siete minutos.</p>
     <button class="btn ghost" data-act="audio">${hablando?I.check+" Detener":I.maia+" Reproducir"}</button></div>
   <button class="btn" data-act="pdf" style="margin:6px 0 12px">${I.pdf} Descargar la lectura en PDF</button>
+  ${window.NOCTRA_OFERTA?window.NOCTRA_OFERTA.alerta(NOMBRE,"lectura"):""}
   <p class="small muted center">Contenido interpretativo, con fines de entretenimiento. No sustituye asesoramiento profesional.</p>`;
 }
 function postLectura(){}
@@ -246,7 +247,8 @@ function encVentanas(){
   const piso=new Date(base.getTime()+((AS.MARGEN_VENTANA||14)*86400000));
   const estado=(v)=> v.inicio>=piso ? "" : (base<=v.fin ? "curso" : "pasada");
   const mapa={}; vs.forEach(v=>{mapa[v.inicio.getFullYear()+"-"+v.inicio.getMonth()]=v;});
-  let out=`<p class="muted small" style="margin:0 0 16px">Los próximos doce meses según tu carta. Una ventana no promete a nadie: marca los tramos en que es más probable que estés disponible y en circulación.</p>`;
+  let out=`<p class="muted small" style="margin:0 0 16px">Los próximos doce meses según tu carta. Una ventana no promete a nadie: marca los tramos en que es más probable que estés disponible y en circulación.</p>`
+    + (window.NOCTRA_OFERTA?window.NOCTRA_OFERTA.alerta(NOMBRE,"ventanas"):"");
   for(let k=0;k<12;k++){
     const m=new Date(base.getFullYear(),base.getMonth()+k,1);
     const v=mapa[m.getFullYear()+"-"+m.getMonth()];
