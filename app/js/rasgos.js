@@ -66,9 +66,15 @@ function dibujar(retrato, alRevelar){
     const e=suave(p);
     arco.style.strokeDashoffset=largo*(1-e);
     pct.firstChild.nodeValue=String(Math.round(e*100));
-    /* nunca baja de 14px de desenfoque: el revelado tiene que seguir siendo un revelado */
-    img.style.filter="blur("+(34-18*e).toFixed(1)+"px) sepia(.3) contrast("+(1+(1-e)*.35).toFixed(2)+")";
-    img.style.opacity=(0.12+0.50*e).toFixed(3);
+    /* Acá el retrato NO se revela. Antes el desenfoque bajaba de 34 a 16 px
+       y la opacidad subía a 62%, asi que la cara ya se entreveia en esta
+       pantalla; despues el revelado arrancaba en 24 px —mas borroso que lo
+       que la persona acababa de ver— y se sentia como si el mismo dibujo se
+       revelara dos veces, la segunda yendo para atras. Acá adentro hay una
+       forma detras del vidrio y nada mas. La que revela es la pantalla que
+       sigue, una sola vez. */
+    img.style.filter="blur(34px) sepia(.3) contrast(1.22)";
+    img.style.opacity=(0.10+0.05*e).toFixed(3);
 
     const idx=Math.min(FRASES.length-1,Math.floor(p*FRASES.length));
     if(idx!==ultima){
@@ -97,7 +103,7 @@ function dibujar(retrato, alRevelar){
   };
 
   if(quieto){ DURACION_corto(); } else requestAnimationFrame(tic);
-  function DURACION_corto(){ setTimeout(()=>{ arco.style.strokeDashoffset=0; pct.firstChild.nodeValue="100"; img.style.filter="blur(16px) sepia(.3)"; img.style.opacity=".62"; listo(); },1200); }
+  function DURACION_corto(){ setTimeout(()=>{ arco.style.strokeDashoffset=0; pct.firstChild.nodeValue="100"; img.style.filter="blur(34px) sepia(.3)"; img.style.opacity=".15"; listo(); },1200); }
 }
 
 /* Cielo del momento del dibujo: estrellas a la deriva y una constelación
