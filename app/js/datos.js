@@ -54,6 +54,20 @@ let D=cargar();
 function guardar(){ try{localStorage.setItem(KEY_APP,JSON.stringify(D));}catch(e){} }
 function borrarTodo(){ try{localStorage.removeItem(KEY_APP);}catch(e){} D=Object.assign({},vacio,{creado:Date.now()}); }
 
+/* ?repasar=1 — vuelve a reproducir la intro entera: la pantalla del dibujo,
+   el revelado y la oferta. NO borra nada de lo que la persona escribió
+   —diario, personas, chat, favoritos quedan intactos—: sólo baja las dos
+   banderas que marcan "esto ya lo viste". Sirve para revisar el recorrido
+   sin tener que limpiar el navegador.
+
+   Se lee acá y no en app.js porque desdeURL(), unas líneas más abajo, deja
+   la barra de direcciones limpia apenas termina. */
+try{
+  if(new URLSearchParams(location.search).get("repasar")==="1"){
+    D.revelado=false; D.ofertaVista=false; guardar();
+  }
+}catch(e){}
+
 /* Si el enlace trae el perfil (viene del mail de la compra), lo guardamos
    en este dispositivo. Desde ahí en más la app ya no necesita el enlace. */
 function desdeURL(){
