@@ -209,11 +209,20 @@ label.f>span{display:block;margin:0 0 7px}
    trababa el scroll en teléfonos modestos. */
 .opack2 .btn.op2btn{
   position:relative;overflow:hidden;margin:0;
-  padding:19px 20px;font-size:16.5px;
+  padding:18px 16px;font-size:15.5px;
   background:linear-gradient(96deg,var(--oro),#FFEDB4 52%,var(--oro-hondo));
   box-shadow:0 0 36px rgba(245,214,123,.50),0 14px 36px rgba(0,0,0,.45);
   will-change:transform;animation:respira 2.8s ease-in-out infinite}
-.opack2 .btn.op2btn i{background:rgba(20,16,7,.24);font-size:14.5px}
+/* El precio, invertido: chapa oscura y número dorado sobre el botón dorado.
+   Es el contraste más fuerte de la pantalla, así que es lo primero que se
+   lee del botón —y es justo el dato que la persona está buscando—. */
+.opack2 .btn.op2btn i{
+  background:#17110A;color:var(--oro);
+  font-size:18.5px;font-weight:800;letter-spacing:-.015em;
+  padding:7px 11px;box-shadow:0 3px 12px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.07)}
+.opack2 .btn.op2btn i u{text-decoration:none;font-size:10px;font-weight:700;
+  letter-spacing:.05em;opacity:.65;margin-left:4px;vertical-align:2px}
+.opack2 .btn.op2btn span{white-space:nowrap}
 .opack2 .btn.op2btn::after{
   content:"";position:absolute;top:0;bottom:0;left:0;width:42%;pointer-events:none;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
