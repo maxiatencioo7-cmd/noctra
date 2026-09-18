@@ -327,7 +327,7 @@ const rango=(a,b)=>window.NOCTRA_PLAN.dia(a)+" al "+window.NOCTRA_PLAN.dia(b);
 function planCerrado(){
   const n=NOMBRE?esc(NOMBRE):null;
   const O=window.NOCTRA_OFERTA;
-  const pk=(O&&O.pack)||{nombre:"Cuándo, Dónde y Cómo",precio:9997,moneda:"ARS"};
+  const pk=(O&&O.pack)||{nombre:"Cuándo, Dónde y Cómo",precio:13497,moneda:"ARS"};
   /* el precio y la moneda salen de un solo lado (js/oferta.js): si mañana
      cambian, no hay que acordarse de tocarlos acá también */
   const pl=v=>O&&O.plata?O.plata(v):("$"+String(v).replace(/\B(?=(\d{3})+(?!\d))/g,".")+" ARS");
