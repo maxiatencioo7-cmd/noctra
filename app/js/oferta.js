@@ -260,8 +260,65 @@ function tarjeta(nom){
       +'<span>'+(algo?("Ver "+esc(of.nombre)):("Ver "+esc(PACK.nombre)))+'</span><i>'+plata(of.precio)+'</i></button></div>';
 }
 
+/* ─── el bloque de alerta que va suelto en las pestañas ──────────────
+   La tarjeta de antes era demasiado discreta: se leía como una sección más
+   de la app y la gente la pasaba de largo. Esta grita más —barra ámbar
+   arriba con el punto latiendo, el precio tachado al lado del de hoy y el
+   mismo botón dorado que respira— pero NO miente: no hay contador, no hay
+   "quedan 3 lugares", no hay una oferta que venza a medianoche. La persona
+   ya pagó una vez; inventarle urgencia acá es lo que después vuelve como
+   reembolso. Lo llamativo es el diseño, no una mentira. */
+var COPY = {
+  retrato:{
+    tag:"Te falta una parte",
+    tit:function(q){ return q ? ("¿Cuándo llega "+q+"?") : "¿Cuándo llega?"; },
+    txt:function(q){ return "Tenés su cara y su nombre. Falta el día, el lugar, y cómo vas a reconocer"
+      +(q?(" a "+q):"lo")+" cuando lo tengas enfrente."; }
+  },
+  lectura:{
+    tag:"Esto es la mitad",
+    tit:function(q){ return q ? ("Ya sabés cómo es "+q+". Falta cuándo.") : "Ya sabés cómo es. Falta cuándo."; },
+    txt:function(){ return "La lectura te dice quién es y cómo ama. La fecha exacta, el lugar del encuentro"
+      +" y la señal para reconocerlo están del otro lado."; }
+  },
+  ventanas:{
+    tag:"Una ventana no es una fecha",
+    tit:function(){ return "Acá ves el tramo. Falta el día."; },
+    txt:function(){ return "Las ventanas marcan los meses en que es más probable. La fecha exacta del"
+      +" encuentro, el lugar y cómo reconocerlo se abren aparte."; }
+  }
+};
+
+function alerta(nom, donde){
+  if(comprada()) return "";
+  var c = COPY[donde] || COPY.retrato;
+  var quien = nom ? esc(nom) : null;
+  /* Si ya compró una parte, se le ofrece lo que le falta al precio de eso,
+     no el pack entero: volver a mostrarle el precio completo al que ya puso
+     plata se lee como que le quieren cobrar dos veces. */
+  var algo = tiene("fecha") || tiene("lugar") || tiene("senal");
+  var falta = !tiene("fecha") ? PROD.fecha : (!tiene("lugar") ? PROD.lugar : PROD.pack);
+  var of = algo ? falta : PACK;
+  var ahorro = (!algo && PACK.ancla) ? (PACK.ancla - PACK.precio) : 0;
+
+  return '<div class="card oalerta">'
+    +'<div class="oabarra"><span class="opunto"></span>'+esc(c.tag)+'</div>'
+    +'<div class="oath">'+esc(c.tit(quien))+'</div>'
+    +'<p class="oatp">'+esc(c.txt(quien))+'</p>'
+    + (ahorro
+        ? '<div class="oapre"><s>'+miles(PACK.ancla)+'</s><b>'+miles(PACK.precio)+'</b>'
+          +'<i class="oaoff">ahorrás '+miles(ahorro)+'</i></div>'
+        : '')
+    +'<button class="btn obig op2btn" '
+      + (algo ? ('data-act="comprar" data-id="'+of.id+'"') : 'data-act="oferta"')+'>'
+      +'<span>'+(algo?("Desbloquear "+esc(of.nombre)):"Desbloquear todo")+'</span>'
+      +'<i>'+miles(of.precio)+'<u>'+MONEDA+'</u></i></button>'
+    +'<p class="oanota">Pago único. No es suscripción.</p>'
+    +'</div>';
+}
+
 window.NOCTRA_OFERTA={
-  abrir:abrir, tarjeta:tarjeta, prod:PROD, pack:PACK,
+  abrir:abrir, tarjeta:tarjeta, alerta:alerta, prod:PROD, pack:PACK,
   plata:plata, miles:miles, ir:irAlCheckout,
   /* Para cargar las variantes sin tocar el archivo:
      NOCTRA_OFERTA.variantes({fecha:"123", lugar:"456"}) */
