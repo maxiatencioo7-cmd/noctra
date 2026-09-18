@@ -30,8 +30,10 @@ var U=window.NOCTRA_UI, I=U.I, esc=U.esc;
               cosa, y puede costar menos que la suma sin que el número
               quede raro.
 
-   El ancla de 12.994 es la suma real de dos productos que cualquiera puede
-   ir a comprar por separado. No es un número puesto a dedo.
+   El ancla de 20.000 es la suma real de dos productos que cualquiera puede
+   ir a comprar por separado. No es un número puesto a dedo: el que hace la
+   cuenta ve que el pack le sale 6.503 menos y encima trae dos secciones
+   que sueltas no existen.
 
    Los checkout de fecha y lugar van vacíos hasta que existan los productos
    en Shopify: con la variante en blanco el botón avisa en vez de mandar a
@@ -41,19 +43,19 @@ var MONEDA="ARS";
 
 var PROD={
   fecha:{
-    id:"fecha", nombre:"Fecha Exacta", precio:6497, variante:"50411348000982",
+    id:"fecha", nombre:"Fecha Exacta", precio:10000, variante:"50411348000982",
     titulo:"La fecha exacta del encuentro",
     sub:"El momento preciso en el que sus caminos se cruzan",
     boton:"Fecha Exacta"
   },
   lugar:{
-    id:"lugar", nombre:"Dónde y Cómo", precio:6497, variante:"50411352817878",
+    id:"lugar", nombre:"Dónde y Cómo", precio:10000, variante:"50411352817878",
     titulo:"Dónde y cómo vas a conocerlo",
     sub:"El contexto exacto, lugar y situación del primer encuentro",
     boton:"Dónde y Cómo"
   },
   pack:{
-    id:"pack", nombre:"Cuándo, Dónde y Cómo", precio:9997, ancla:12994,
+    id:"pack", nombre:"Cuándo, Dónde y Cómo", precio:13497, ancla:20000,
     variante:"50408908652758",
     boton:"Desbloquear todo"
   }
