@@ -174,7 +174,10 @@ function tarjetaProd(k){
     +'</div>';
 }
 
-function abrir(nom, ciudad){
+/* alSeguir: adónde va la persona si dice que no. Cuando la oferta sale en
+   el camino a la lectura, el botón de salida la lleva ahí —no la deja
+   parada donde estaba—. */
+function abrir(nom, ciudad, alSeguir){
   if(document.getElementById("oferta")) return;
   var d=document.createElement("div");
   d.id="oferta";
@@ -207,7 +210,7 @@ function abrir(nom, ciudad){
     +'<p>'+(quien?("La fecha de "+quien+" ya está escrita."):"La fecha ya está escrita.")
     +' Se abre cuando vos quieras.</p></div>'
 
-    +'<button class="olink" id="ono">Ahora no, me quedo con el retrato</button>'
+    +'<button class="olink" id="ono">'+(alSeguir?"Ahora no, llevame a mi lectura":"Ahora no, me quedo con el retrato")+'</button>'
     +'<p class="onota">Pago único, en pesos argentinos. No es suscripción: no hay renovación ni cobros después.<br>'
     +'Noctra es contenido interpretativo, con fines de entretenimiento.</p>'
     +'</div>';
@@ -224,7 +227,10 @@ function abrir(nom, ciudad){
 
   d.querySelector("#ono").onclick=function(){
     d.classList.remove("on");
-    setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },320);
+    setTimeout(function(){
+      if(d.parentNode) d.parentNode.removeChild(d);
+      if(typeof alSeguir==="function") alSeguir();
+    },320);
   };
 }
 
