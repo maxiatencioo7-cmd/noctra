@@ -51,8 +51,14 @@ const API     = process.env.SHOPIFY_API_VERSION || '2024-10';
 function ids(v) { return String(v || '').split(',').map(s => s.trim()).filter(Boolean); }
 
 const VARIANTES = {
-  fecha: ids(process.env.VARIANTE_FECHA),
-  lugar: ids(process.env.VARIANTE_LUGAR),
+  /* Los tres llevan el ID escrito como respaldo. La variable de entorno
+     sigue mandando si esta cargada —sirve para agregar una variante nueva
+     sin tocar el codigo— pero si falta, el producto igual se reconoce.
+     Antes fecha y lugar dependian SOLO de la variable: si no estaba puesta
+     en Vercel, alguien pagaba y no recibia nada, sin ningun error visible.
+     Un cobro que no entrega es el peor modo de fallar que puede tener esto. */
+  fecha: ids(process.env.VARIANTE_FECHA || '50411348000982'),
+  lugar: ids(process.env.VARIANTE_LUGAR || '50411352817878'),
   /* PACK_VARIANT_IDS se sigue leyendo con el nombre viejo para no romper lo
      que ya esta cargado en Vercel. */
   pack:  ids(process.env.VARIANTE_PACK || process.env.PACK_VARIANT_IDS || '50408908652758'),
@@ -295,7 +301,7 @@ export default async function handler(request) {
      valen. Sin esto, la segunda compra no abriria nada. */
   const suma = {};
   mias.forEach((o) => partesDe(o).forEach((x) => { suma[x] = true; }));
-  /* Quien compro los dos sueltos puso 12.994, que es mas que los 9.997 del
+  /* Quien compro los dos sueltos puso 20.000, que es mas que los 13.497 del
      pack. Seria injusto —y se leeria como una trampa— que encima le faltaran
      dos secciones que el pack si trae. Con los dos, se le da todo. */
   if (suma.fecha && suma.lugar) suma.senal = true;
