@@ -1045,9 +1045,9 @@ function revelado(revisita,auto){
     ${NOMBRE?`<div class="rnom" id="rnom"><span class="lab">El nombre</span><b>${esc(NOMBRE)}</b></div>`:""}
     <button class="btn" id="rev">${I.estrella} Revelar</button>
     <div id="racts" style="display:none">
-      <button class="btn" id="rdesc">${I.descarga} Guardar en el teléfono</button>
+      <button class="btn lec" id="rlec">${I.lectura} Ver mi lectura</button>
+      <button class="btn ghost" id="rdesc">${I.descarga} Guardar en el teléfono</button>
       <button class="btn ghost" id="rcomp">${I.compartir} Compartir</button>
-      <button class="btn ghost" id="rlec">${I.lectura} Ver mi lectura</button>
     </div></div>`;
   document.body.appendChild(d);
   const cerrar=()=>{d.remove();};
@@ -1064,17 +1064,11 @@ function revelado(revisita,auto){
       U.chispas(2400);
       const a=$("#racts",d);a.style.display="block";a.classList.add("enter");
       if(!revisita){D.revelado=true;fijarNombre();guardar();}
-      /* El Segundo Trazo. Entra unos segundos después de los botones, no
-         encima: primero que se quede con lo que compró, después le
-         ofrecemos lo que sigue. Sólo la primera vez y sólo si no lo compró. */
-      if(!revisita && window.NOCTRA_OFERTA && !D.segundoTrazo && !D.ofertaVista){
-        setTimeout(()=>{
-          if(document.getElementById("revelado")){
-            D.ofertaVista=true; guardar();
-            window.NOCTRA_OFERTA.abrir(NOMBRE, ciudad());
-          }
-        },4500);
-      }
+      /* La oferta NO salta sola acá. Antes entraba a los 4,5 segundos, y
+         eso tenía dos problemas: le tapaba la cara justo cuando la estaba
+         mirando, y si cerraba el revelado antes no salía nunca. Ahora sale
+         cuando toca "Ver mi lectura" —ver más abajo—: va camino a algo
+         que pidió, no encima de lo que acaba de recibir. */
     },3100);
   };
   const brev=$("#rev",d);
@@ -1082,7 +1076,20 @@ function revelado(revisita,auto){
   else brev.onclick=abrir;
   $("#rdesc",d).onclick=()=>descargarRetrato();
   $("#rcomp",d).onclick=()=>compartirRetrato();
-  $("#rlec",d).onclick=()=>{cerrar();ir("lectura");};
+  /* "Ver mi lectura" es el botón grande del revelado: después de la cara,
+     leer quién es esa persona es lo único que quiere hacer. Y es el único
+     momento en que la oferta entra sin interrumpir nada —va en el camino,
+     no encima—. Si dice que no, sigue a la lectura igual: el botón cumple
+     lo que prometió. Una sola vez, y nunca al que ya compró. */
+  $("#rlec",d).onclick=()=>{
+    const O=window.NOCTRA_OFERTA;
+    if(!revisita && O && !D.segundoTrazo && !D.ofertaVista){
+      D.ofertaVista=true; guardar();
+      O.abrir(NOMBRE, ciudad(), ()=>{ cerrar(); ir("lectura"); });
+      return;
+    }
+    cerrar(); ir("lectura");
+  };
   if(matchMedia("(prefers-reduced-motion: reduce)").matches){
     $$(".etq",d).forEach(x=>x.classList.add("on"));
     const nr=$("#rnom",d); if(nr) nr.classList.add("on");
