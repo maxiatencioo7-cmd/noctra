@@ -207,7 +207,8 @@ label.f>span{display:block;margin:0 0 7px}
    como animación, pero el ojo vuelve ahí— y cada tanto le cruza un brillo.
    Todo con transform y filter, que van por GPU; animar la sombra acá
    trababa el scroll en teléfonos modestos. */
-.opack2 .btn.op2btn{
+.opack2 .btn.op2btn,
+.oalerta .btn.op2btn{
   position:relative;overflow:hidden;margin:0;
   padding:18px 16px;font-size:15.5px;
   background:linear-gradient(96deg,var(--oro),#FFEDB4 52%,var(--oro-hondo));
@@ -216,29 +217,78 @@ label.f>span{display:block;margin:0 0 7px}
 /* El precio, invertido: chapa oscura y número dorado sobre el botón dorado.
    Es el contraste más fuerte de la pantalla, así que es lo primero que se
    lee del botón —y es justo el dato que la persona está buscando—. */
-.opack2 .btn.op2btn i{
+.opack2 .btn.op2btn i,
+.oalerta .btn.op2btn i{
   background:#17110A;color:var(--oro);
   font-size:18.5px;font-weight:800;letter-spacing:-.015em;
   padding:7px 11px;box-shadow:0 3px 12px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.07)}
-.opack2 .btn.op2btn i u{text-decoration:none;font-size:10px;font-weight:700;
+.opack2 .btn.op2btn i u,
+.oalerta .btn.op2btn i u{text-decoration:none;font-size:10px;font-weight:700;
   letter-spacing:.05em;opacity:.65;margin-left:4px;vertical-align:2px}
-.opack2 .btn.op2btn span{white-space:nowrap}
-.opack2 .btn.op2btn::after{
+.opack2 .btn.op2btn span,
+.oalerta .btn.op2btn span{white-space:nowrap}
+.opack2 .btn.op2btn::after,
+.oalerta .btn.op2btn::after{
   content:"";position:absolute;top:0;bottom:0;left:0;width:42%;pointer-events:none;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
   transform:translateX(-260%) skewX(-18deg);
   animation:brilloPasa 3.6s ease-in-out infinite}
-.opack2 .btn.op2btn:active{animation:none;transform:scale(.985)}
+.opack2 .btn.op2btn:active,
+.oalerta .btn.op2btn:active{animation:none;transform:scale(.985)}
 @keyframes respira{0%,100%{transform:scale(1);filter:brightness(1)}
   50%{transform:scale(1.028);filter:brightness(1.07)}}
 @keyframes brilloPasa{0%,62%{transform:translateX(-260%) skewX(-18deg)}
   100%{transform:translateX(320%) skewX(-18deg)}}
 @media (prefers-reduced-motion:reduce){
-  .opack2 .btn.op2btn{animation:none}
-  .opack2 .btn.op2btn::after{display:none}
+  .opack2 .btn.op2btn,.oalerta .btn.op2btn{animation:none}
+  .opack2 .btn.op2btn::after,.oalerta .btn.op2btn::after{display:none}
+  .oalerta .opunto{animation:none}
 }
 .opack2 .op2mas{margin:12px 0 0;color:var(--tx2);font-size:12.5px;line-height:19px}
 .opack2 .op2mas b{color:var(--tx)}
+
+/* ─── el bloque de oferta suelto en las pestañas ───────────────────
+   La tarjeta anterior (.otar) se leía como una sección más de la app y la
+   gente la pasaba de largo. Esta tiene barra ámbar arriba con un punto
+   latiendo, el precio viejo tachado al lado del de hoy, y el mismo botón
+   dorado que respira. Se ve como un aviso, no como contenido.
+
+   Lo que NO tiene, a propósito: contador, "quedan 3 lugares", oferta que
+   vence. La persona ya pagó una vez y sigue usando la app; inventarle una
+   urgencia falsa acá se nota, y vuelve como reembolso. */
+.oalerta{
+  border:1.5px solid rgba(245,214,123,.5);padding:0;overflow:hidden;
+  background:linear-gradient(180deg,rgba(245,214,123,.10),rgba(245,214,123,.02));
+  box-shadow:0 0 30px rgba(245,214,123,.12),0 16px 44px rgba(0,0,0,.42)}
+.oalerta .oabarra{
+  display:flex;align-items:center;gap:9px;
+  background:linear-gradient(96deg,rgba(245,214,123,.22),rgba(245,214,123,.08));
+  border-bottom:1px solid rgba(245,214,123,.28);
+  padding:10px 16px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:800;color:var(--oro)}
+.oalerta .opunto{
+  flex:none;width:9px;height:9px;border-radius:50%;background:#FFB84D;
+  animation:oPulso 1.9s ease-out infinite}
+@keyframes oPulso{
+  0%{box-shadow:0 0 0 0 rgba(255,184,77,.55)}
+  70%{box-shadow:0 0 0 9px rgba(255,184,77,0)}
+  100%{box-shadow:0 0 0 0 rgba(255,184,77,0)}}
+.oalerta .oath{
+  font-family:"Fraunces","Iowan Old Style",Georgia,serif;font-weight:700;
+  font-size:24px;line-height:30px;color:var(--tx);margin:16px 16px 8px}
+.oalerta .oatp{margin:0 16px 14px;font-size:14px;line-height:21px;color:var(--tx2)}
+.oalerta .oapre{
+  display:flex;align-items:baseline;flex-wrap:wrap;gap:9px;margin:0 16px 14px}
+.oalerta .oapre s{color:var(--tx3,#5E6785);font-size:15px}
+.oalerta .oapre b{
+  font-family:"Fraunces",Georgia,serif;font-size:27px;font-weight:700;color:var(--ok,#6FD39A)}
+.oalerta .oaoff{
+  font-style:normal;font-size:11.5px;font-weight:800;letter-spacing:.05em;
+  text-transform:uppercase;color:#1A1408;background:var(--oro);
+  padding:4px 9px;border-radius:99px}
+.oalerta .btn.op2btn{margin:0 16px}
+.oalerta .oanota{
+  margin:11px 16px 16px;text-align:center;font-size:11.5px;color:var(--tx2);opacity:.8}
 
 /* La sección cerrada dentro de la pestaña Encuentro. */
 .plcerrada{border-style:dashed}
