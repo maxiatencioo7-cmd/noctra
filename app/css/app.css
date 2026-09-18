@@ -190,7 +190,7 @@ label.f>span{display:block;margin:0 0 7px}
 
 /* El bloque del pack. Es el único con borde dorado y fondo propio: tiene que
    ganarle visualmente a las dos tarjetas de arriba sin gritar. */
-.opack2{border:1px solid rgba(245,214,123,.38);border-radius:var(--r);padding:20px 16px 16px;
+.opack2{border:1.5px solid rgba(245,214,123,.52);border-radius:var(--r);padding:20px 16px 16px;
   background:linear-gradient(180deg,rgba(245,214,123,.08),rgba(245,214,123,.02));
   text-align:center;margin:0 0 18px;
   opacity:0;transform:translateY(14px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
@@ -202,7 +202,32 @@ label.f>span{display:block;margin:0 0 7px}
   flex-wrap:wrap;margin:0 0 14px}
 .opack2 .op2pre s{color:var(--tx3,#5E6785);font-size:14px}
 .opack2 .op2pre b{color:var(--ok,#6FD39A);font-size:19px;font-weight:700}
-.opack2 .op2btn{margin:0}
+/* "Desbloquear todo" es la acción que queremos: tiene que ganarle a todo lo
+   demás de la pantalla. Respira despacio —escala apenas: nadie lo registra
+   como animación, pero el ojo vuelve ahí— y cada tanto le cruza un brillo.
+   Todo con transform y filter, que van por GPU; animar la sombra acá
+   trababa el scroll en teléfonos modestos. */
+.opack2 .btn.op2btn{
+  position:relative;overflow:hidden;margin:0;
+  padding:19px 20px;font-size:16.5px;
+  background:linear-gradient(96deg,var(--oro),#FFEDB4 52%,var(--oro-hondo));
+  box-shadow:0 0 36px rgba(245,214,123,.50),0 14px 36px rgba(0,0,0,.45);
+  will-change:transform;animation:respira 2.8s ease-in-out infinite}
+.opack2 .btn.op2btn i{background:rgba(20,16,7,.24);font-size:14.5px}
+.opack2 .btn.op2btn::after{
+  content:"";position:absolute;top:0;bottom:0;left:0;width:42%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:translateX(-260%) skewX(-18deg);
+  animation:brilloPasa 3.6s ease-in-out infinite}
+.opack2 .btn.op2btn:active{animation:none;transform:scale(.985)}
+@keyframes respira{0%,100%{transform:scale(1);filter:brightness(1)}
+  50%{transform:scale(1.028);filter:brightness(1.07)}}
+@keyframes brilloPasa{0%,62%{transform:translateX(-260%) skewX(-18deg)}
+  100%{transform:translateX(320%) skewX(-18deg)}}
+@media (prefers-reduced-motion:reduce){
+  .opack2 .btn.op2btn{animation:none}
+  .opack2 .btn.op2btn::after{display:none}
+}
 .opack2 .op2mas{margin:12px 0 0;color:var(--tx2);font-size:12.5px;line-height:19px}
 .opack2 .op2mas b{color:var(--tx)}
 
