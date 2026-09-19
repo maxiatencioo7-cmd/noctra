@@ -12,15 +12,38 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Open+Sans:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
 
-<!-- Meta Pixel: el mismo del quiz. Esta pantalla es parte del embudo. -->
+<!-- Meta Pixel: EL MISMO del quiz, con el mismo cargador diferido.
+     Tiene que ser el mismo píxel o esta pantalla aprende de cero y encima
+     rompe el público de retargeting: para Meta la persona que llega acá ya
+     vio la oferta del quiz, es la misma. Los eventos se separan por el cart
+     attribute "origen=espera", no por píxel. -->
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-document,'script','https://connect.facebook.net/en_US/fbevents.js');
-fbq('init','1563930394938040'); fbq('track','PageView');
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];
+var pedido=false;
+f.__pixelNoctra=function(){if(pedido)return;pedido=true;
+  t=b.createElement(e);t.async=!0;t.src=v;
+  s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s);};
+}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1563930394938040');fbq('track','PageView');
+addEventListener('load',function(){
+  if(window.requestIdleCallback)requestIdleCallback(window.__pixelNoctra,{timeout:2000});
+  else setTimeout(window.__pixelNoctra,600);
+});
+setTimeout(function(){window.__pixelNoctra();},2500);
 </script>
+<noscript><img height="1" width="1" style="display:none" alt=""
+src="https://www.facebook.com/tr?id=1563930394938040&ev=PageView&noscript=1"></noscript>
+
+<!-- UTMify: el mismo del quiz. Sin esto, la venta que sale de esta página
+     le llega a UTMify sin origen y queda como orgánica. -->
+<script src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+  data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+
+<!-- Compartidos con el quiz: la atribución tiene que ser IDÉNTICA en los
+     tres lugares (portada, quiz, esta página) o el webhook deja de poder
+     atar la venta al anuncio. -->
 <script src="/js/perfil-codigo.js"></script>
 <script src="/js/pixel.js"></script>
 
@@ -462,6 +485,18 @@ function armar(){
   return u;
 }
 var URL_COMPRA = armar();
+
+/* Esta pantalla ES la oferta, igual que la pantalla de precio del quiz.
+   Sin un evento propio, para Meta la persona que llega acá no se distingue
+   de la que abrió cualquier página, y no se puede armar el público de
+   "vio la oferta de rescate y no compró", que es el único retargeting que
+   vale la pena de este embudo. */
+try{ if(window.fbq) fbq("track","ViewContent",{
+  content_name:"Retrato Alma Gemela - Acceso Especial",
+  content_ids:[CONFIG.VARIANTE_NOMBRE||"espera"],
+  value:CONFIG.PRECIO, currency:"ARS"
+}); }catch(e){}
+try{ (window.dataLayer=window.dataLayer||[]).push({event:"noctra_espera_vista"}); }catch(e){}
 
 function ir(ev){
   if(ev && ev.preventDefault) ev.preventDefault();
