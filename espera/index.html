@@ -546,14 +546,25 @@ tic(); var late = setInterval(tic, 1000);
    Encerrar a alguien apretando atrás diez veces no vende nada y es lo que
    hace que después cuenten que no los dejaban salir: con un solo salto, el
    que igual se quiere ir sale con el segundo atrás. */
+var LLAVE_REBOTE = "noctra_espera_rebote";
+function yaReboto(){
+  try{ return sessionStorage.getItem(LLAVE_REBOTE) === "1"; }catch(e){ return false; }
+}
 try{
-  history.pushState({noctra:"espera"}, "", location.href);
-  window.addEventListener("popstate", function(){
-    if(!URL_COMPRA) return;
-    try{ if(window.fbq) fbq("track","InitiateCheckout"); }catch(e){}
-    try{ (window.dataLayer=window.dataLayer||[]).push({event:"noctra_espera_atras_checkout"}); }catch(e){}
-    location.replace(URL_COMPRA);
-  });
+  /* Una sola vez por visita. El atrás desde el checkout vuelve a caer acá,
+     y si esta pantalla lo mandara de nuevo al checkout quedaría rebotando
+     entre las dos sin poder salir nunca. Eso no es un embudo, es una
+     trampa: la segunda vez el atrás funciona como en cualquier página. */
+  if(!yaReboto()){
+    history.pushState({noctra:"espera"}, "", location.href);
+    window.addEventListener("popstate", function(){
+      if(!URL_COMPRA || yaReboto()) return;
+      try{ sessionStorage.setItem(LLAVE_REBOTE,"1"); }catch(e){}
+      try{ if(window.fbq) fbq("track","InitiateCheckout"); }catch(e){}
+      try{ (window.dataLayer=window.dataLayer||[]).push({event:"noctra_espera_atras_checkout"}); }catch(e){}
+      location.replace(URL_COMPRA);
+    });
+  }
 }catch(e){}
 
 })();
