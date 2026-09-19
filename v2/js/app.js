@@ -758,12 +758,35 @@
       var yendo = false;
       /* La URL se arma ahora, no al tocar: al tocar sólo queda el salto. */
       var urlCheckout = window.NOCTRA_V2_CHECKOUT();
+
+      /* El candado tiene que abrirse de nuevo.
+
+         "yendo" existe para que un toque no dispare tres saltos (touchstart,
+         pointerdown y click son el mismo dedo). El problema es que al volver
+         del checkout el teléfono no recarga la página: la saca tal cual la
+         dejó, con "yendo" todavía en true. Desde ahí el botón queda muerto y
+         la persona toca y no pasa nada, justo en el único lugar donde sí
+         quería comprar. Por eso se vuelve a abrir cuando la página se
+         muestra otra vez, y también por tiempo: si el salto no llegó a
+         ocurrir —porque el navegador lo bloqueó o la red se cortó— a los dos
+         segundos el botón vuelve a estar vivo en vez de quedar tildado. */
+      function reabrir(){ yendo = false; cta.classList.remove("yendo"); }
+      addEventListener("pageshow", reabrir);
+      addEventListener("visibilitychange", function(){
+        if(!document.hidden) reabrir();
+      });
+
       function ir(ev){
         if(yendo) return; yendo = true;
         if(ev && ev.preventDefault) ev.preventDefault();
         cta.classList.add("yendo");
         evento({ event:"noctra_inicio_checkout" });
-        location.href = urlCheckout;
+        /* Si por lo que sea la URL no se armó al pintar, se arma ahora: es
+           preferible un salto unos milisegundos más lento que un botón que
+           no lleva a ningún lado. */
+        var destino = urlCheckout || window.NOCTRA_V2_CHECKOUT();
+        setTimeout(reabrir, 2000);
+        location.href = destino;
       }
       cta.addEventListener("touchstart", ir, {passive:false});
       cta.addEventListener("pointerdown", ir);
@@ -817,6 +840,14 @@
     pedirLugar().then(function(){
       if(!vivo) return;
       repintar();
+      /* Al volver del checkout la conversación se rearma desde cero. Si la
+         persona ya había llegado al botón, el botón va AHORA: los dos
+         segundos de espera que tiene cuando aparece por primera vez —para
+         que termine de leer el último audio— acá son dos segundos de
+         pantalla vacía, que es exactamente lo que se siente como "el botón
+         no anda". Ya lo leyó una vez. */
+      var pasoActual = guion[S.chat];
+      if(pasoActual && pasoActual.cta) return ponerCTA(pasoActual);
       seguirChat();
     });
   }
@@ -916,7 +947,7 @@
   /* pointerdown y no click: en teléfono, "click" llega hasta 80 ms después
      de levantar el dedo. Esos 80 ms por pantalla, nueve veces, son casi un
      segundo de sensación de lentitud sobre un embudo que se paga por clic. */
-  app.addEventListener("click", function(e){
+  app.addEventListener("pointerdown", function(e){
     var t = e.target.closest ? e.target.closest(".op,.sg,[data-atras]") : null;
     if(!t) return;
 
@@ -946,10 +977,38 @@
     var t = e.target.closest ? e.target.closest(".op,.sg,[data-atras]") : null;
     if(!t) return;
     e.preventDefault();
-    t.click();
+    t.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true}));
   });
 
   addEventListener("hashchange", pintar);
+
+  /* ---- atrás en la portada ----
+
+     En el resto de las etapas el atrás retrocede una pregunta, como
+     siempre. Sólo en la portada —la primera pantalla, donde todavía no
+     contestó nada— en vez de salir del sitio se la lleva a /espera/, que
+     es la misma oferta con el precio de acceso especial.
+
+     Se apila una entrada de más al cargar para que ese primer atrás tenga
+     dónde caer: entrando por el link pelado el historial arranca con una
+     sola entrada y el atrás se iba directo a Instagram.
+
+     Un solo salto y nada más. Si desde /espera/ también quiere salir, sale:
+     encerrar a alguien a fuerza de atrás no vende, y es lo que después
+     aparece escrito abajo del anuncio. */
+  var SALIDA = "/espera/";
+  var saliendoDelQuiz = false;
+  try{
+    history.pushState({noctra:"quiz"}, "", location.href);
+    addEventListener("popstate", function(){
+      if(saliendoDelQuiz) return;
+      /* popstate también salta con los cambios de hash entre pasos; ahí
+         S.paso todavía es el paso viejo, así que esto no se mete. */
+      if(S.paso !== 0) return;
+      saliendoDelQuiz = true;
+      location.replace(SALIDA + location.search);
+    });
+  }catch(e){}
 
   /* ?reset=1 limpia todo. Sirve para probar el embudo entero de nuevo sin
      tener que borrar el storage a mano desde el inspector. */
