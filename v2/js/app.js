@@ -786,6 +786,22 @@
            no lleva a ningún lado. */
         var destino = urlCheckout || window.NOCTRA_V2_CHECKOUT();
         setTimeout(reabrir, 2000);
+        /* El checkout vive en el dominio de Shopify y ahí no podemos poner
+           una línea de código. Para que el atrás desde el checkout caiga en
+           la oferta de rescate y no de vuelta acá, se deja /espera/ como la
+           entrada anterior del historial justo antes de saltar. El cambio
+           de URL no se llega a ver: el salto ocurre en el mismo instante.
+
+           Si el salto no ocurriera —navegador que lo bloquea, red que se
+           corta— quedaríamos en el quiz con la URL de otra página. Por eso
+           el respaldo: a los 4 s, si seguimos acá, se va a /espera/ de
+           verdad, que es una pantalla con oferta y no una URL rota. */
+        try{
+          history.pushState({noctra:"prechkout"}, "", SALIDA + location.search);
+          setTimeout(function(){
+            if(location.pathname.indexOf(SALIDA) === 0) irAEspera();
+          }, 4000);
+        }catch(e){}
         location.href = destino;
       }
       cta.addEventListener("touchstart", ir, {passive:false});
@@ -1025,31 +1041,45 @@
 
   addEventListener("hashchange", pintar);
 
-  /* ---- atrás en la portada ----
+  /* ---- atrás: la portada y el chat llevan a /espera/ ----
 
-     En el resto de las etapas el atrás retrocede una pregunta, como
-     siempre. Sólo en la portada —la primera pantalla, donde todavía no
-     contestó nada— en vez de salir del sitio se la lleva a /espera/, que
-     es la misma oferta con el precio de acceso especial.
+     Dos puntas del embudo mandan a la oferta de rescate en vez de dejar
+     que la persona se vaya:
 
-     Se apila una entrada de más al cargar para que ese primer atrás tenga
-     dónde caer: entrando por el link pelado el historial arranca con una
-     sola entrada y el atrás se iba directo a Instagram.
+       · la portada, donde todavía no contestó nada;
+       · el chat, que es donde está el botón de compra.
 
-     Un solo salto y nada más. Si desde /espera/ también quiere salir, sale:
-     encerrar a alguien a fuerza de atrás no vende, y es lo que después
-     aparece escrito abajo del anuncio. */
+     En el medio el atrás sigue retrocediendo una pregunta, como siempre:
+     ahí volver atrás es corregir una respuesta, no irse.
+
+     Se apila una entrada de más al cargar para que el atrás de la portada
+     tenga dónde caer: entrando por el link pelado el historial arranca con
+     una sola entrada y el atrás se iba directo a Instagram.
+
+     Un solo salto por punta. Encerrar a alguien a fuerza de atrás no
+     vende, y es lo que después aparece escrito abajo del anuncio. */
   var SALIDA = "/espera/";
   var saliendoDelQuiz = false;
+
+  function irAEspera(){
+    if(saliendoDelQuiz) return;
+    saliendoDelQuiz = true;
+    location.replace(SALIDA + location.search);
+  }
+
   try{
     history.pushState({noctra:"quiz"}, "", location.href);
     addEventListener("popstate", function(){
-      if(saliendoDelQuiz) return;
+      /* Si la URL ya es /espera/ pero el documento sigue siendo el quiz, es
+         el atrás desde el checkout cayendo sobre la entrada que dejamos
+         puesta antes de saltar (ver "ir" en ponerCTA). El navegador a veces
+         devuelve este documento de su caché en vez de pedir la página: hay
+         que forzarla. */
+      if(location.pathname.indexOf(SALIDA) === 0) return irAEspera();
       /* popstate también salta con los cambios de hash entre pasos; ahí
          S.paso todavía es el paso viejo, así que esto no se mete. */
-      if(S.paso !== 0) return;
-      saliendoDelQuiz = true;
-      location.replace(SALIDA + location.search);
+      if(S.paso !== 0 && S.paso !== TOTAL-1) return;
+      irAEspera();
     });
   }catch(e){}
 
