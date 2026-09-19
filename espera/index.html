@@ -506,13 +506,33 @@ function tic(){
 }
 tic(); var late = setInterval(tic, 1000);
 
+/* ── atrás desde acá → checkout ─────────────────────────────────────
+   Se deja un paso de más en el historial al cargar. Cuando la persona
+   aprieta la flecha de atrás, en vez de volver al quiz cae directo en el
+   checkout con el precio de esta página.
+
+   Es UN solo salto, a propósito: se reemplaza la entrada del historial en
+   vez de apilar otra, así que desde el checkout la flecha la saca de una.
+   Encerrar a alguien apretando atrás diez veces no vende nada y es lo que
+   hace que después cuenten que no los dejaban salir. */
+var saliendo = false;
+try{
+  history.pushState({noctra:"espera"}, "", location.href);
+  window.addEventListener("popstate", function(){
+    if(saliendo || !URL_COMPRA) return;
+    try{ if(window.fbq) fbq("track","InitiateCheckout"); }catch(e){}
+    try{ (window.dataLayer=window.dataLayer||[]).push({event:"noctra_espera_atras_checkout"}); }catch(e){}
+    location.replace(URL_COMPRA);
+  });
+}catch(e){}
+
 /* ── el que dice que no ─────────────────────────────────────────────
-   Se va de verdad. Trabarla acá no la convierte en clienta: la
-   convierte en alguien que cuenta que no la dejaban salir. */
+   Éste sí se va. La bandera apaga el redirect de arriba: sería una
+   canallada mandar al checkout justo a quien acaba de decir que no. */
 $("#salir").addEventListener("click", function(){
+  saliendo = true;
   try{ (window.dataLayer=window.dataLayer||[]).push({event:"noctra_espera_no"}); }catch(e){}
-  history.go(-3);
-  setTimeout(function(){ location.href = "https://www.instagram.com/"; }, 350);
+  location.href = "https://www.instagram.com/";
 });
 })();
 </script>
