@@ -1035,43 +1035,34 @@
 
   addEventListener("hashchange", pintar);
 
-  /* ---- atrás: la portada y el chat llevan a /espera/ ----
+  /* ---- atrás en la portada ----
 
-     Dos puntas del embudo mandan a la oferta de rescate en vez de dejar
-     que la persona se vaya:
+     SÓLO la primera pantalla. Quien aprieta atrás ahí todavía no contestó
+     nada: en vez de dejarlo volver al anuncio, va a /espera/, que es la
+     misma oferta con el precio de acceso especial.
 
-       · la portada, donde todavía no contestó nada;
-       · el chat, que es donde está el botón de compra.
-
-     Sólo con el atrás del navegador, nunca sola: el quiz anda exactamente
-     como siempre y esta pantalla es una red abajo, no un desvío en el
-     camino.
-
-     En el medio el atrás sigue retrocediendo una pregunta, como siempre:
-     ahí volver atrás es corregir una respuesta, no irse.
+     En TODO el resto del quiz —las preguntas y el chat— el atrás hace lo
+     de siempre. El chat estuvo un rato incluido acá y se sacó: es la
+     pantalla donde la persona está por comprar, y cualquier desvío que se
+     dispare ahí, aunque sea por un caso raro del navegador, sale del
+     bolsillo. Una red que se cierra sola en el peor momento es peor que no
+     tener red.
 
      Se apila una entrada de más al cargar para que el atrás de la portada
      tenga dónde caer: entrando por el link pelado el historial arranca con
-     una sola entrada y el atrás se iba directo a Instagram.
-
-     Un solo salto por punta. Encerrar a alguien a fuerza de atrás no
-     vende, y es lo que después aparece escrito abajo del anuncio. */
+     una sola entrada y el atrás se iba directo a Instagram. */
   var SALIDA = "/espera/";
   var saliendoDelQuiz = false;
-
-  function irAEspera(){
-    if(saliendoDelQuiz) return;
-    saliendoDelQuiz = true;
-    location.replace(SALIDA + location.search);
-  }
 
   try{
     history.pushState({noctra:"quiz"}, "", location.href);
     addEventListener("popstate", function(){
+      if(saliendoDelQuiz) return;
       /* popstate también salta con los cambios de hash entre pasos; ahí
          S.paso todavía es el paso viejo, así que esto no se mete. */
-      if(S.paso !== 0 && S.paso !== TOTAL-1) return;
-      irAEspera();
+      if(S.paso !== 0) return;
+      saliendoDelQuiz = true;
+      location.replace(SALIDA + location.search);
     });
   }catch(e){}
 
