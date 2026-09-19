@@ -257,10 +257,6 @@ h3{
 .urgencia b #minutos{font-size:inherit;color:inherit}
 
 /* ── salida honesta ── */
-.salir{
-  display:inline-block;margin:22px auto 0;color:var(--tx3);
-  font-size:13.5px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;
-}
 .legal{font-size:11.5px;line-height:1.55;color:var(--tx3);margin-top:26px}
 
 @media (max-width:360px){
@@ -410,7 +406,6 @@ h3{
       <b>Esta oportunidad desaparece en <span id="minutos">30</span> minutos.</b>
       <span>Si cerrás esta página ahora, es posible que no vuelva a aparecer.</span>
     </div>
-    <a class="salir" id="salir">No, gracias. Prefiero irme</a>
     <p class="legal">
       Pago único en pesos argentinos. No es suscripción: no hay renovación ni cobros posteriores.
       Contenido interpretativo, con fines de entretenimiento.
@@ -514,26 +509,18 @@ tic(); var late = setInterval(tic, 1000);
    Es UN solo salto, a propósito: se reemplaza la entrada del historial en
    vez de apilar otra, así que desde el checkout la flecha la saca de una.
    Encerrar a alguien apretando atrás diez veces no vende nada y es lo que
-   hace que después cuenten que no los dejaban salir. */
-var saliendo = false;
+   hace que después cuenten que no los dejaban salir: con un solo salto, el
+   que igual se quiere ir sale con el segundo atrás. */
 try{
   history.pushState({noctra:"espera"}, "", location.href);
   window.addEventListener("popstate", function(){
-    if(saliendo || !URL_COMPRA) return;
+    if(!URL_COMPRA) return;
     try{ if(window.fbq) fbq("track","InitiateCheckout"); }catch(e){}
     try{ (window.dataLayer=window.dataLayer||[]).push({event:"noctra_espera_atras_checkout"}); }catch(e){}
     location.replace(URL_COMPRA);
   });
 }catch(e){}
 
-/* ── el que dice que no ─────────────────────────────────────────────
-   Éste sí se va. La bandera apaga el redirect de arriba: sería una
-   canallada mandar al checkout justo a quien acaba de decir que no. */
-$("#salir").addEventListener("click", function(){
-  saliendo = true;
-  try{ (window.dataLayer=window.dataLayer||[]).push({event:"noctra_espera_no"}); }catch(e){}
-  location.href = "https://www.instagram.com/";
-});
 })();
 </script>
 </body>
