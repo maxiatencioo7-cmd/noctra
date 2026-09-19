@@ -489,4 +489,30 @@ if(location.hash&&!A().experiencias&&location.hash!=="#/gracias"){location.hash=
    recargando. Ante cualquier paso invalido se vuelve al principio. */
 if(!Number.isInteger(S.step)||S.step<0||S.step>=SCREENS.length){S.step=0;save();}
 render();
+
+/* ---------- atras en la portada ----------
+   El que aprieta atras estando en la primera pantalla, en vez de irse del
+   sitio cae en /espera/, que es la misma oferta con el precio de acceso
+   especial. Se apila una entrada de mas al cargar para que ese atras tenga
+   donde caer: entrando por el link pelado el historial arranca con una
+   sola entrada.
+
+   Solo en la portada y solo sin hash: en el resto de las pantallas la
+   flecha de arriba sigue haciendo lo de siempre, y la pagina de venta
+   (#/resultado) tiene su propio aviso de salida, asi que aca no se toca.
+
+   Un salto y nada mas. Desde /espera/ el que igual se quiere ir, se va. */
+(function(){
+  var SALIDA="/espera/",yendose=false;
+  try{
+    history.pushState({noctra:"v1"},"",location.href);
+    addEventListener("popstate",function(){
+      if(yendose)return;
+      if(location.hash)return;
+      if(S.step!==0)return;
+      yendose=true;
+      location.replace(SALIDA+location.search);
+    });
+  }catch(e){}
+})();
 })();
