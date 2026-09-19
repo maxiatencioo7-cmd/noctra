@@ -49,13 +49,13 @@ src="https://www.facebook.com/tr?id=1563930394938040&ev=PageView&noscript=1"></n
 
 <style>
 :root{
-  --oro:#F5D67B; --oro-hondo:#E0A93A; --oro-claro:#FFEDB4;
-  --tx:#F2ECFF; --tx2:#B7AEDC; --tx3:#7C72A8;
-  --caja:rgba(255,255,255,.045);
-  --borde:rgba(255,255,255,.10);
-  --noche:radial-gradient(130% 90% at 50% 0%, #241a4d 0%, #140f31 44%, #0A0E1F 100%);
-  --r:18px; --pill:99px;
-  --barra:62px;
+  --oro:#F5D67B; --oro-hondo:#E0A93A; --oro-claro:#FFF0C4;
+  --tx:#F4EFFF; --tx2:#B8AFDD; --tx3:#7D73A9;
+  --linea:rgba(255,255,255,.09);
+  --caja:rgba(255,255,255,.035);
+  --noche:radial-gradient(135% 95% at 50% -5%, #2A1F58 0%, #171132 40%, #0A0E1F 100%);
+  --r:20px; --pill:99px;
+  --barra:64px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%}
@@ -64,232 +64,334 @@ body{
   color:var(--tx);background:#0A0E1F;line-height:1.55;
   min-height:100dvh;overflow-x:hidden;
 }
-/* el cielo: capa fija, no repinta al hacer scroll */
+/* El cielo: capa fija, no repinta al hacer scroll. */
 body::before{
   content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
   transform:translateZ(0);
   background-color:#0A0E1F;
   background-image:
-    radial-gradient(1.4px 1.4px at 12% 18%, rgba(255,255,255,.55), transparent),
-    radial-gradient(1.2px 1.2px at 78% 12%, rgba(255,255,255,.42), transparent),
-    radial-gradient(1.6px 1.6px at 62% 34%, rgba(255,255,255,.38), transparent),
-    radial-gradient(1.2px 1.2px at 28% 52%, rgba(255,255,255,.34), transparent),
-    radial-gradient(1.5px 1.5px at 88% 62%, rgba(255,255,255,.30), transparent),
-    radial-gradient(1.2px 1.2px at 42% 78%, rgba(255,255,255,.28), transparent),
-    radial-gradient(1.3px 1.3px at 8% 88%,  rgba(255,255,255,.26), transparent),
-    radial-gradient(1.4px 1.4px at 70% 92%, rgba(255,255,255,.24), transparent),
+    radial-gradient(1.5px 1.5px at 12% 14%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1.2px 1.2px at 78% 9%,  rgba(255,255,255,.45), transparent),
+    radial-gradient(1.7px 1.7px at 62% 31%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1.2px 1.2px at 28% 49%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1.5px 1.5px at 88% 58%, rgba(255,255,255,.32), transparent),
+    radial-gradient(1.2px 1.2px at 42% 74%, rgba(255,255,255,.3), transparent),
+    radial-gradient(1.3px 1.3px at 8% 85%,  rgba(255,255,255,.28), transparent),
+    radial-gradient(1.5px 1.5px at 70% 91%, rgba(255,255,255,.26), transparent),
     var(--noche);
 }
 
-/* ══ BARRA FIJA ══ timer + CTA. Nunca se va de pantalla. */
+/* ══ BARRA FIJA ══ */
 .barra{
   position:fixed;top:0;left:0;right:0;z-index:30;
   display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:calc(9px + env(safe-area-inset-top,0px)) 14px 9px;
-  background:rgba(7,10,22,.92);backdrop-filter:blur(12px);
-  border-bottom:1px solid rgba(245,214,123,.16);
+  padding:calc(10px + env(safe-area-inset-top,0px)) 15px 10px;
+  background:rgba(8,11,24,.9);
+  backdrop-filter:blur(14px) saturate(1.2);
+  border-bottom:1px solid rgba(245,214,123,.14);
 }
-.reloj{
+/* Un hilo dorado que recorre el borde: sugiere que algo corre, sin ruido. */
+.barra::after{
+  content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--oro),transparent);
+  background-size:42% 100%;background-repeat:no-repeat;
+  animation:hilo 4.5s linear infinite;opacity:.8;
+}
+@keyframes hilo{0%{background-position:-45% 0}100%{background-position:145% 0}}
+
+.reloj{display:flex;flex-direction:column;line-height:1}
+.reloj b{
   font-family:"Fraunces",Georgia,serif;font-weight:700;
-  font-size:27px;line-height:1;color:#fff;font-variant-numeric:tabular-nums;
-  text-shadow:0 0 18px rgba(245,214,123,.25);
+  font-size:27px;color:#fff;font-variant-numeric:tabular-nums;
+  text-shadow:0 0 20px rgba(245,214,123,.3);
 }
-.reloj.poco{color:#FF8A6B;text-shadow:0 0 18px rgba(255,138,107,.4)}
+.reloj small{
+  font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--tx3);margin-top:5px;
+}
+.reloj.poco b{color:#FF9072;text-shadow:0 0 20px rgba(255,138,107,.45)}
+.reloj.poco small{color:#FF9072}
+
 .bcta{
   flex:none;display:inline-flex;align-items:center;justify-content:center;
-  padding:11px 17px;border-radius:var(--pill);border:0;cursor:pointer;
-  background:linear-gradient(96deg,#FFE3A6,#FFF3D2 48%,var(--oro-hondo));
-  color:#191207;font:inherit;font-weight:800;font-size:11.5px;letter-spacing:.055em;
+  padding:12px 18px;border-radius:var(--pill);border:0;cursor:pointer;
+  background:linear-gradient(96deg,#FFE3A6,#FFF6DC 48%,var(--oro-hondo));
+  color:#1A1307;font:inherit;font-weight:800;font-size:11.5px;letter-spacing:.06em;
   text-transform:uppercase;text-decoration:none;white-space:nowrap;
-  box-shadow:0 0 22px rgba(245,214,123,.34);
-  animation:latido 2.6s ease-in-out infinite;
+  box-shadow:0 0 24px rgba(245,214,123,.35), 0 4px 14px rgba(0,0,0,.35);
+  animation:latido 2.8s ease-in-out infinite;
 }
 .bcta:active{transform:scale(.97);animation:none}
-@keyframes latido{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+@keyframes latido{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
 
 /* ══ CUERPO ══ */
 .envoltura{
   position:relative;z-index:1;max-width:620px;margin:0 auto;
-  padding:calc(var(--barra) + 26px + env(safe-area-inset-top,0px)) 20px calc(40px + env(safe-area-inset-bottom,0px));
+  padding:calc(var(--barra) + 30px + env(safe-area-inset-top,0px)) 20px calc(44px + env(safe-area-inset-bottom,0px));
   text-align:center;
 }
-section{margin:0 0 52px}
+section{margin:0 0 58px}
 
-/* ── el orbe: lo que se mueve ── */
-.orbeCaja{position:relative;width:min(190px,46vw);margin:0 auto 30px}
+/* Cada bloque entra cuando llega a pantalla. Da ritmo a una página que,
+   quieta, es una lista larga de cajas. */
+.ap{opacity:0;transform:translateY(18px);transition:opacity .6s ease, transform .6s cubic-bezier(.2,.9,.3,1)}
+.ap.vista{opacity:1;transform:none}
+
+/* ── el orbe ── */
+.orbeCaja{position:relative;width:min(196px,48vw);margin:0 auto 34px}
 .orbe{
   position:relative;width:100%;aspect-ratio:1;border-radius:50%;overflow:hidden;
-  border:1px solid rgba(230,220,255,.4);
-  background:radial-gradient(70% 70% at 38% 32%, #6E7BA8 0%, #45507A 38%, #232A4A 70%, #161B31 100%);
-  box-shadow:0 0 60px rgba(150,140,220,.28), inset 0 0 50px rgba(0,0,0,.55);
+  border:1px solid rgba(232,222,255,.38);
+  background:radial-gradient(70% 70% at 38% 28%, #3E4770 0%, #2C3456 38%, #1C2240 70%, #121730 100%);
+  box-shadow:0 0 70px rgba(150,140,220,.3), inset 0 0 55px rgba(0,0,0,.58);
   animation:orbeRespira 6s ease-in-out infinite;
 }
+.orbe .cara{
+  position:absolute;inset:-8%;
+  background-size:cover;background-position:50% 34%;
+  /* El archivo ya viene desenfocado: la cara no se recupera ni anulando el
+     CSS desde el inspector. El filtro de acá es para que se integre al
+     orbe, no para esconder nada. Invertido porque el dibujo es tinta
+     oscura sobre papel claro y adentro de una esfera de noche tiene que
+     leerse como una silueta que asoma, no como una mancha blanca. */
+  filter:blur(5px) invert(1) contrast(1.18) brightness(.98) saturate(.6);
+  opacity:.6;mix-blend-mode:screen;pointer-events:none;z-index:2;
+  transition:opacity .9s ease;
+}
+.orbe .cara.sin{opacity:0}
 .orbe i{
   position:absolute;border-radius:50%;pointer-events:none;
-  background:radial-gradient(circle, rgba(226,232,255,.75), rgba(226,232,255,0) 68%);
+  background:radial-gradient(circle, rgba(228,234,255,.78), rgba(228,234,255,0) 68%);
   filter:blur(12px);
 }
-.orbe .n1{inset:-18% 8% 22% -12%;animation:orbeGira 17s linear infinite;opacity:.62}
-.orbe .n2{inset:18% -16% -14% 14%;animation:orbeGira 25s linear infinite reverse;opacity:.42}
-.orbe .n3{inset:26% 24% 24% 26%;animation:orbeGira 11s linear infinite;opacity:.55}
+.orbe .n1{inset:-18% 8% 22% -12%;animation:orbeGira 17s linear infinite;opacity:.3;z-index:1}
+.orbe .n2{inset:18% -16% -14% 14%;animation:orbeGira 25s linear infinite reverse;opacity:.22;z-index:1}
+.orbe .n3{inset:26% 24% 24% 26%;animation:orbeGira 11s linear infinite;opacity:.26;z-index:1}
 .orbe::after{
   content:"";position:absolute;inset:0;border-radius:50%;
-  background:radial-gradient(60% 55% at 50% 42%, rgba(255,255,255,.14), transparent 70%),
-             linear-gradient(180deg, rgba(10,14,31,0) 40%, rgba(10,14,31,.55) 100%);
+  z-index:3;
+  background:radial-gradient(62% 58% at 50% 38%, rgba(255,255,255,.09), transparent 72%),
+             radial-gradient(100% 100% at 50% 50%, transparent 52%, rgba(16,20,42,.75) 100%),
+             linear-gradient(180deg, rgba(10,14,31,0) 45%, rgba(10,14,31,.62) 100%);
 }
 .aro{
   position:absolute;left:50%;top:50%;translate:-50% -50%;
-  width:118%;aspect-ratio:1;border-radius:50%;
-  border:1px solid rgba(245,214,123,.2);
-  border-top-color:rgba(245,214,123,.72);
+  width:120%;aspect-ratio:1;border-radius:50%;
+  border:1px solid rgba(245,214,123,.18);
+  border-top-color:rgba(245,214,123,.75);
   animation:orbeGira 9s linear infinite;pointer-events:none;
 }
+.aro.b{width:136%;border-color:rgba(245,214,123,.08);border-bottom-color:rgba(245,214,123,.35);animation-duration:16s;animation-direction:reverse}
 @keyframes orbeGira{to{transform:rotate(360deg)}}
 @keyframes orbeRespira{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
 
 /* ── tipografía ── */
+.kicker{
+  display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--oro);opacity:.85;margin-bottom:12px;
+}
 h1{
-  font-family:"Fraunces","Iowan Old Style",Georgia,serif;font-weight:700;
-  font-size:clamp(28px,7.6vw,40px);line-height:1.12;letter-spacing:-.02em;
-  margin:0 0 14px;text-shadow:0 0 34px rgba(245,214,123,.26);
+  font-family:"Open Sans",system-ui,sans-serif;font-weight:800;
+  font-size:clamp(27px,7.4vw,38px);line-height:1.12;letter-spacing:.005em;
+  text-transform:uppercase;
+  margin:0 0 14px;text-shadow:0 0 38px rgba(245,214,123,.22);
 }
 h2{
   font-family:"Fraunces","Iowan Old Style",Georgia,serif;font-weight:700;
-  font-size:clamp(22px,5.8vw,30px);line-height:1.2;letter-spacing:-.015em;
+  font-size:clamp(23px,6vw,31px);line-height:1.18;letter-spacing:-.018em;
   margin:0 0 16px;
 }
-h3{
-  font-size:15px;font-weight:800;letter-spacing:.02em;margin:0 0 6px;color:#fff;
-}
-.sub{font-size:16px;line-height:1.5;color:var(--tx2);margin:0 0 22px}
-.p{font-size:15.5px;line-height:1.62;color:var(--tx2);margin:0 0 12px}
+h3{font-size:15px;font-weight:800;letter-spacing:.01em;margin:0 0 8px;color:#fff}
+.sub{font-size:16.5px;line-height:1.5;color:var(--tx2);margin:0 0 24px}
+.p{font-size:15.5px;line-height:1.65;color:var(--tx2);margin:0 0 13px}
 .p.fuerte{color:var(--tx);font-weight:700}
-.p.it{font-style:italic;color:var(--tx2)}
+.p.it{font-style:italic}
+/* El emoji del regalo: a tamaño de titular se ve gigante al lado de la
+   serif, así que se baja un poco y se alinea con la línea base del texto. */
+.regalo{font-size:.78em;display:inline-block;vertical-align:-.04em;margin-right:.1em}
+.cita{
+  position:relative;text-align:left;
+  border:1px solid rgba(160,140,255,.22);border-radius:14px;
+  background:linear-gradient(96deg,rgba(124,98,220,.26),rgba(124,98,220,.1));
+  padding:18px 19px;margin:26px 0 0;
+  font-weight:700;font-size:15px;line-height:1.5;text-align:center;
+}
+.cita::before{
+  content:"";position:absolute;left:0;top:14%;bottom:14%;width:2.5px;border-radius:0 3px 3px 0;
+  background:linear-gradient(180deg,#C9B6FF,#7C62DC);
+}
 .linea{
-  width:140px;height:2px;margin:0 auto 26px;border-radius:2px;
-  background:linear-gradient(90deg,transparent,rgba(245,214,123,.85),transparent);
-  box-shadow:0 0 16px rgba(245,214,123,.5);
+  width:120px;height:1px;margin:0 auto 26px;
+  background:linear-gradient(90deg,transparent,rgba(245,214,123,.8),transparent);
+  box-shadow:0 0 14px rgba(245,214,123,.45);
 }
 
-/* ── listas de dolor (3 cards) ── */
-.dolor{list-style:none;display:grid;gap:12px;margin:0 0 22px;text-align:left}
+/* ── cards de dolor ── */
+.dolor{list-style:none;display:grid;gap:11px;margin:0 0 24px;text-align:left}
 .dolor li{
-  display:flex;gap:12px;align-items:flex-start;
-  background:var(--caja);border:1px solid var(--borde);border-radius:var(--r);
-  padding:15px 16px;font-size:15px;line-height:1.45;
+  position:relative;display:flex;gap:13px;align-items:flex-start;
+  background:var(--caja);border:1px solid var(--linea);border-radius:16px;
+  padding:16px 17px 16px 16px;font-size:15px;line-height:1.45;
+  overflow:hidden;
 }
-.dolor li b{color:var(--oro);font-size:14px;line-height:1.5;flex:none}
+/* Filo dorado a la izquierda: los agrupa sin necesidad de un marco. */
+.dolor li::before{
+  content:"";position:absolute;left:0;top:14%;bottom:14%;width:2px;
+  background:linear-gradient(180deg,transparent,var(--oro),transparent);opacity:.65;
+}
+.dolor li b{color:var(--oro);font-size:13px;line-height:1.55;flex:none}
 
-/* ── caja genérica con borde ── */
+/* ── caja con borde ── */
 .marco{
-  border:1px solid var(--borde);border-radius:var(--r);
-  background:rgba(255,255,255,.028);
-  padding:20px 18px;text-align:left;
+  position:relative;border:1px solid var(--linea);border-radius:var(--r);
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));
+  padding:22px 19px;text-align:left;
+  box-shadow:0 10px 40px rgba(0,0,0,.28);
 }
 .marco.centro{text-align:center}
+.marco.oro{border-color:rgba(245,214,123,.28);box-shadow:0 0 48px rgba(245,214,123,.1), 0 10px 40px rgba(0,0,0,.3)}
 
 /* ── lista con chispa ── */
-.chispas{list-style:none;display:grid;gap:11px;margin:14px 0 0;text-align:left}
-.chispas li{display:flex;gap:11px;align-items:flex-start;font-size:15px;line-height:1.45}
-.chispas li b{flex:none;color:var(--oro)}
+.chispas{list-style:none;display:grid;gap:12px;margin:15px 0 0;text-align:left}
+.chispas li{display:flex;gap:12px;align-items:flex-start;font-size:15px;line-height:1.45}
+.chispas li b{flex:none;color:var(--oro);font-size:13px;line-height:1.55}
 
-/* ── grid de tildes 2x2 ── */
-.tildes{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:26px 16px;margin:24px 0 0}
+/* ── grid de tildes ── */
+.tildes{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:28px 16px;margin:26px 0 0}
 .tildes li{font-size:13.5px;line-height:1.45;color:var(--tx2)}
 .tildes li span{
-  display:grid;place-items:center;width:34px;height:34px;margin:0 auto 12px;
-  border-radius:9px;background:linear-gradient(160deg,#4FBE7B,#2E8B52);
-  color:#fff;font-size:18px;font-weight:800;
-  box-shadow:0 0 18px rgba(79,190,123,.32);
+  display:grid;place-items:center;width:38px;height:38px;margin:0 auto 13px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, rgba(245,214,123,.28), rgba(245,214,123,.06));
+  border:1px solid rgba(245,214,123,.45);
+  color:var(--oro-claro);font-size:17px;font-weight:800;
+  box-shadow:0 0 20px rgba(245,214,123,.18);
 }
 
 /* ── testimonios ── */
 .testi{
-  text-align:left;border:1px solid var(--borde);border-left:3px solid var(--oro);
-  border-radius:0 14px 14px 0;background:linear-gradient(96deg,rgba(245,214,123,.08),rgba(245,214,123,.02));
-  padding:16px 18px;margin:0 0 14px;
+  position:relative;text-align:left;
+  border:1px solid var(--linea);border-radius:16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));
+  padding:18px 19px;margin:0 0 13px;
 }
-.estrellas{color:var(--oro);letter-spacing:3px;font-size:14px;margin-bottom:6px}
-.testi .quien{font-weight:800;font-size:14.5px;margin-bottom:6px}
-.testi .dice{font-style:italic;font-size:14.5px;line-height:1.5;color:var(--tx2)}
+.testi::before{
+  content:"";position:absolute;left:0;top:16%;bottom:16%;width:2.5px;border-radius:0 3px 3px 0;
+  background:linear-gradient(180deg,var(--oro-claro),var(--oro-hondo));
+}
+.tcab{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+.tini{
+  flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(150deg,rgba(245,214,123,.3),rgba(245,214,123,.08));
+  border:1px solid rgba(245,214,123,.35);
+  font-family:"Fraunces",Georgia,serif;font-weight:700;font-size:15px;color:var(--oro-claro);
+}
+.tquien{font-weight:800;font-size:14px;letter-spacing:.005em}
+.testi .estrellas{color:var(--oro);letter-spacing:2.5px;font-size:12px;margin-top:2px}
+.testi .dice{font-style:italic;font-size:14.5px;line-height:1.55;color:var(--tx2)}
 
 /* ── bonos ── */
-.bonos{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+.bonos{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:22px;text-align:center}
 .bono{
-  border:1px solid var(--borde);border-radius:var(--r);
-  background:rgba(255,255,255,.03);padding:18px 14px;
+  position:relative;border:1px solid var(--linea);border-radius:var(--r);
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+  padding:20px 14px;overflow:hidden;
+}
+.bono::before{
+  content:"";position:absolute;top:0;left:18%;right:18%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--oro),transparent);
+}
+.bono .ico{
+  display:grid;place-items:center;width:38px;height:38px;margin:0 auto 13px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, rgba(245,214,123,.26), rgba(245,214,123,.05));
+  border:1px solid rgba(245,214,123,.4);
+  color:var(--oro-claro);font-size:16px;line-height:1;
+  box-shadow:0 0 18px rgba(245,214,123,.16);
 }
 .tag{
   display:inline-block;padding:5px 13px;border-radius:var(--pill);
-  background:linear-gradient(96deg,#F0E6D2,#FFF6E2);color:#1A1408;
-  font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
-  margin-bottom:12px;
+  background:linear-gradient(96deg,var(--oro-claro),#FFF9EA);color:#1D1608;
+  font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  margin-bottom:13px;
 }
-.bono h3{font-family:"Fraunces",Georgia,serif;font-size:17px;line-height:1.22;margin-bottom:8px}
-.bono p{font-size:13px;line-height:1.45;color:var(--tx2)}
+.bono h3{font-family:"Fraunces",Georgia,serif;font-size:15.5px;line-height:1.24;margin-bottom:8px;letter-spacing:-.01em}
+.bono p{font-size:12.5px;line-height:1.5;color:var(--tx2)}
 
-/* ── bloque de precio ── */
+/* ── precio ── */
 .plazas{
-  display:inline-block;padding:10px 18px;border-radius:12px;
-  background:rgba(255,255,255,.07);border:1px solid var(--borde);
-  font-size:14px;font-weight:700;margin:6px 0 24px;
+  display:inline-block;padding:11px 18px;border-radius:13px;
+  background:rgba(255,255,255,.06);border:1px solid var(--linea);
+  font-size:14px;font-weight:700;margin:8px 0 26px;
+}
+.descuento{
+  display:inline-block;padding:6px 14px;border-radius:var(--pill);
+  background:linear-gradient(96deg,#FF8A6B,#FFB38F);color:#2A0E05;
+  font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  margin-bottom:14px;box-shadow:0 0 22px rgba(255,138,107,.3);
 }
 .precio{
   font-family:"Fraunces",Georgia,serif;font-weight:700;
-  font-size:clamp(40px,11vw,58px);line-height:1;letter-spacing:-.02em;
-  color:#fff;text-shadow:0 0 40px rgba(245,214,123,.35);margin:6px 0 12px;
+  font-size:clamp(42px,11.5vw,60px);line-height:1;letter-spacing:-.025em;
+  color:#fff;text-shadow:0 0 44px rgba(245,214,123,.38);margin:4px 0 12px;
 }
-.precio s{display:block;font-size:22px;color:var(--tx3);text-shadow:none;margin-bottom:6px;font-weight:600}
-.letrachica{font-size:12.5px;line-height:1.5;color:var(--tx3);margin-bottom:22px}
+.precio s{
+  display:block;font-size:21px;color:var(--tx3);text-shadow:none;
+  margin-bottom:7px;font-weight:600;text-decoration-thickness:1.5px;
+}
+.letrachica{font-size:12.5px;line-height:1.55;color:var(--tx3);margin-bottom:24px}
 
-/* ── CTA grande ── */
+/* ── CTA ── */
 .cta{
   display:block;width:100%;max-width:420px;margin:0 auto;
-  padding:19px 18px;border:0;border-radius:var(--pill);cursor:pointer;
-  background:linear-gradient(96deg,#FFDCA0,#FFF4D6 48%,var(--oro-hondo));
-  color:#191207;font:inherit;font-weight:800;font-size:15px;letter-spacing:.03em;
+  padding:20px 18px;border:0;border-radius:var(--pill);cursor:pointer;
+  background:linear-gradient(96deg,#FFDCA0,#FFF7E0 48%,var(--oro-hondo));
+  color:#1A1307;font:inherit;font-weight:800;font-size:15px;letter-spacing:.035em;
   text-transform:uppercase;text-decoration:none;line-height:1.25;
-  box-shadow:0 0 34px rgba(245,214,123,.42), 0 10px 26px rgba(0,0,0,.4);
+  box-shadow:0 0 38px rgba(245,214,123,.44), 0 12px 30px rgba(0,0,0,.42);
   position:relative;overflow:hidden;
   animation:respira 2.8s ease-in-out infinite;
 }
 .cta::after{
   content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.78),transparent);
   animation:brillo 3.4s ease-in-out infinite;
 }
 .cta:active{transform:scale(.985);animation:none}
 @keyframes respira{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
 @keyframes brillo{0%{left:-60%}55%,100%{left:130%}}
 
-/* ── contador grande del final ── */
+/* ── urgencia final ── */
 .urgencia{
-  border:1px solid rgba(245,214,123,.22);border-radius:var(--r);
-  background:rgba(255,255,255,.03);padding:26px 20px;
-  box-shadow:0 0 34px rgba(150,120,220,.14) inset;
+  position:relative;border:1px solid rgba(245,214,123,.24);border-radius:var(--r);
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));
+  padding:30px 22px;overflow:hidden;
+  box-shadow:0 0 44px rgba(150,120,220,.14) inset;
 }
 .relojGrande{
   font-family:"Fraunces",Georgia,serif;font-weight:700;
-  font-size:clamp(42px,12vw,60px);line-height:1;color:#fff;
-  font-variant-numeric:tabular-nums;text-shadow:0 0 34px rgba(245,214,123,.4);
-  margin-bottom:14px;
+  font-size:clamp(44px,13vw,64px);line-height:1;color:#fff;
+  font-variant-numeric:tabular-nums;text-shadow:0 0 40px rgba(245,214,123,.42);
+  margin-bottom:16px;letter-spacing:-.02em;
 }
-.relojGrande.poco{color:#FF8A6B}
-.urgencia b{display:block;font-size:15.5px;margin-bottom:6px}
-.urgencia span{font-size:13.5px;color:var(--tx3);line-height:1.5}
+.relojGrande.poco{color:#FF9072;text-shadow:0 0 40px rgba(255,138,107,.45)}
+.urgencia b{display:block;font-size:15.5px;margin-bottom:8px}
+.urgencia span{font-size:13.5px;color:var(--tx3);line-height:1.55}
+/* .kicker es un <span>, así que la regla de arriba se lo comía. */
+.urgencia span.kicker{font-size:10.5px;color:var(--oro);line-height:1.4}
 .urgencia b #minutos{font-size:inherit;color:inherit}
 
-/* ── salida honesta ── */
-.legal{font-size:11.5px;line-height:1.55;color:var(--tx3);margin-top:26px}
+.legal{font-size:11.5px;line-height:1.6;color:var(--tx3);margin-top:30px}
 
 @media (max-width:360px){
   .bonos,.tildes{grid-template-columns:1fr}
-  .cta{font-size:14px;padding:17px 14px}
-  .bcta{font-size:10.5px;padding:10px 13px}
-  .reloj{font-size:24px}
+  .cta{font-size:14px;padding:18px 14px}
+  .bcta{font-size:10.5px;padding:11px 13px}
+  .reloj b{font-size:24px}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important}
+  .ap{opacity:1;transform:none;transition:none}
 }
 </style>
 </head>
@@ -297,21 +399,35 @@ h3{
 
 <!-- ══════════ BARRA FIJA ══════════ -->
 <div class="barra">
-  <div class="reloj" id="reloj">--:--</div>
+  <div class="reloj" id="reloj"><b>--:--</b><small id="rotulo">Oferta activa</small></div>
   <a class="bcta" href="#" data-ir>Sí, quiero mi retrato</a>
 </div>
 
 <div class="envoltura">
 
   <!-- 1 ─ apertura -->
-  <section>
+  <section class="ap">
     <div class="orbeCaja">
-      <div class="orbe"><i class="n1"></i><i class="n2"></i><i class="n3"></i></div>
+      <div class="orbe"><b class="cara" id="cara"></b><i class="n1"></i><i class="n2"></i><i class="n3"></i></div>
       <div class="aro"></div>
+      <div class="aro b"></div>
     </div>
-    <h1>Sé exactamente cómo se siente…</h1>
-    <p class="sub">Quizás llevás años preguntándote:</p>
-    <ul class="dolor">
+    <h1><span class="regalo">🎁</span> Esperá un segundo…</h1>
+    <p class="sub" id="sub">Acabás de desbloquear un descuento especial + 2 bonos secretos antes de irte…</p>
+    <div class="linea"></div>
+    <p class="p">Puede que no lo sepas…</p>
+    <p class="p fuerte" style="font-size:16.5px;margin-bottom:24px">pero estuviste a segundos de descubrir el rostro de la persona que está destinada a encontrarte.</p>
+    <div class="cita">
+      Miles de personas ya recibieron su Retrato de Alma Gemela personalizado y descubrieron algo que jamás imaginaron.
+    </div>
+    <a class="cta" href="#" data-ir style="margin-top:30px">Sí, quiero ver el retrato de mi alma gemela</a>
+  </section>
+
+  <!-- 1b ─ el dolor -->
+  <section class="ap">
+    <span class="kicker">Sé exactamente cómo se siente</span>
+    <h2>Quizás llevás años preguntándote:</h2>
+    <ul class="dolor" style="margin-top:22px">
       <li><b>✦</b><span>¿Cuándo voy a conocer a alguien que realmente sea para mí?</span></li>
       <li><b>✦</b><span>¿Por qué siempre termino con personas equivocadas?</span></li>
       <li><b>✦</b><span>¿Existe alguien ahí afuera que realmente esté destinado para mí?</span></li>
@@ -323,82 +439,140 @@ h3{
   </section>
 
   <!-- 2 ─ el giro -->
-  <section>
-    <h2>Pero pensá esto por un segundo…</h2>
+  <section class="ap">
+    <span class="kicker">Pensalo un segundo</span>
+    <h2>¿Y si hoy pudieras descubrirlo?</h2>
+    <div class="linea"></div>
     <div class="marco">
-      <p class="p" style="margin:0">¿Qué pasaría si hoy pudieras descubrir:</p>
-      <ul class="chispas">
-        <li><b>✨</b><span>cómo se ve la persona que está destinada a cruzarse en tu camino</span></li>
-        <li><b>✨</b><span>qué rasgos físicos tiene tu alma gemela</span></li>
-        <li><b>✨</b><span>cuándo es más probable que aparezca en tu vida</span></li>
-        <li><b>✨</b><span>y qué conexión espiritual comparten</span></li>
+      <ul class="chispas" style="margin:0">
+        <li><b>✦</b><span>Cómo se ve la persona que está destinada a cruzarse en tu camino</span></li>
+        <li><b>✦</b><span>Qué rasgos físicos tiene tu alma gemela</span></li>
+        <li><b>✦</b><span>Cuándo es más probable que aparezca en tu vida</span></li>
+        <li><b>✦</b><span>Y qué conexión espiritual comparten</span></li>
       </ul>
-      <p class="p it" style="margin:18px 0 0;text-align:center">Eso es exactamente lo que miles de personas están descubriendo ahora mismo.</p>
+      <p class="p it" style="margin:20px 0 0;text-align:center">Eso es exactamente lo que miles de personas están descubriendo ahora mismo.</p>
     </div>
   </section>
 
   <!-- 3 ─ cómo funciona -->
-  <section>
-    <h2>Tu Retrato de Alma Gemela se crea usando un sistema de lectura energética y visualización intuitiva que permite revelar:</h2>
+  <section class="ap">
+    <span class="kicker">Cómo se hace</span>
+    <h2>Lectura energética y visualización intuitiva</h2>
+    <p class="p">Es el sistema con el que se crea tu Retrato de Alma Gemela. Lo que permite revelar:</p>
     <ul class="tildes">
-      <li><span>✓</span>El rostro aproximado de la persona que está destinada a cruzarse en tu vida</li>
+      <li><span>✓</span>El rostro aproximado de la persona destinada a cruzarse en tu vida</li>
       <li><span>✓</span>Rasgos físicos y características de tu alma gemela</li>
       <li><span>✓</span>Detalles de personalidad y energía emocional</li>
-      <li><span>✓</span>Señales del momento o etapa de tu vida en que podrían encontrarse</li>
+      <li><span>✓</span>Señales del momento o etapa en que podrían encontrarse</li>
     </ul>
   </section>
 
   <!-- 4 ─ prueba social -->
-  <section>
-    <h2>Y lo más impactante…</h2>
+  <section class="ap">
+    <span class="kicker">Lo más impactante</span>
+    <h2>Estaban por cerrar esta página</h2>
+    <div class="linea"></div>
     <p class="p">Muchísimas personas comenzaron a notar coincidencias y señales en los días posteriores de recibir su retrato.</p>
-    <p class="p">Personas que estaban a punto de cerrar esta página…</p>
-    <p class="p fuerte">igual que vos ahora.</p>
-    <p class="p" style="margin-bottom:24px">Pero decidieron intentarlo.</p>
+    <p class="p fuerte" style="margin-bottom:26px">Igual que vos ahora… pero decidieron intentarlo.</p>
 
     <div class="testi">
-      <div class="estrellas">★★★★★</div>
-      <div class="quien">Marina – Buenos Aires</div>
+      <div class="tcab">
+        <div class="tini">M</div>
+        <div>
+          <div class="tquien">Marina — Buenos Aires</div>
+          <div class="estrellas">★★★★★</div>
+        </div>
+      </div>
       <div class="dice">“Cuando vi el retrato me dio escalofríos… meses después conocí a alguien con rasgos muy parecidos.”</div>
     </div>
     <div class="testi">
-      <div class="estrellas">★★★★★</div>
-      <div class="quien">Camila – Córdoba</div>
+      <div class="tcab">
+        <div class="tini">C</div>
+        <div>
+          <div class="tquien">Camila — Córdoba</div>
+          <div class="estrellas">★★★★★</div>
+        </div>
+      </div>
       <div class="dice">“No sé explicarlo… pero sentí que algo dentro mío se activó cuando vi el dibujo.”</div>
     </div>
     <div class="testi">
-      <div class="estrellas">★★★★★</div>
-      <div class="quien">Lucía – Rosario</div>
+      <div class="tcab">
+        <div class="tini">L</div>
+        <div>
+          <div class="tquien">Lucía — Rosario</div>
+          <div class="estrellas">★★★★★</div>
+        </div>
+      </div>
       <div class="dice">“Sentí una paz enorme cuando recibí el retrato… como si algo en mi vida finalmente tuviera sentido.”</div>
     </div>
   </section>
 
   <!-- 5 ─ la oferta -->
-  <section>
-    <p class="p fuerte">Y por haber llegado hasta acá…</p>
-    <p class="p fuerte" style="margin-bottom:20px">Liberamos acceso especial a:</p>
+  <section class="ap">
+    <span class="kicker">Por haber llegado hasta acá</span>
     <h2>Tu Retrato Personalizado de Alma Gemela</h2>
-    <div class="marco">
+    <div class="linea"></div>
+    <div class="marco oro">
       <h3>Esto es lo que vas a recibir:</h3>
       <ul class="chispas">
-        <li><b>✨</b><span>Tu retrato digital personalizado de alma gemela</span></li>
-        <li><b>✨</b><span>Rasgos físicos y energéticos de esa persona</span></li>
-        <li><b>✨</b><span>Interpretación intuitiva de la conexión entre ustedes</span></li>
-        <li><b>✨</b><span>Información sobre el momento probable del encuentro</span></li>
+        <li><b>✦</b><span>Tu retrato digital personalizado de alma gemela</span></li>
+        <li><b>✦</b><span>Rasgos físicos y energéticos de esa persona</span></li>
+        <li><b>✦</b><span>Interpretación intuitiva de la conexión entre ustedes</span></li>
+        <li><b>✦</b><span>Información sobre el momento probable del encuentro</span></li>
       </ul>
     </div>
   </section>
 
-  <!-- 6 ─ bonos -->
-  <section>
-    <h2>Y además vas a recibir 2 BONOS secretos</h2>
+  <!-- 6 ─ lo que trae la app -->
+  <section class="ap">
+    <span class="kicker">Todo incluido</span>
+    <h2>No es un dibujo suelto: es una app</h2>
+    <p class="p" style="margin-bottom:6px">Se instala en tu teléfono y funciona aunque te quedes sin señal.</p>
     <div class="bonos">
       <div class="bono">
+        <span class="ico">◈</span>
+        <h3>Tu retrato en alta</h3>
+        <p>Para guardar, imprimir o poner de fondo de pantalla. Más una tarjeta lista para compartir.</p>
+      </div>
+      <div class="bono">
+        <span class="ico">✦</span>
+        <h3>La lectura completa</h3>
+        <p>Rasgos físicos, personalidad, su forma de amar, las señales del encuentro y los desafíos.</p>
+      </div>
+      <div class="bono">
+        <span class="ico">◇</span>
+        <h3>En PDF y en audio</h3>
+        <p>Descargala con el retrato en la portada, o escuchala leída en voz alta.</p>
+      </div>
+      <div class="bono">
+        <span class="ico">✧</span>
+        <h3>Bocetos que se abren solos</h3>
+        <p>Nuevos trazos a los 3, 7 y 30 días. El retrato sigue revelándose con el tiempo.</p>
+      </div>
+      <div class="bono">
+        <span class="ico">❖</span>
+        <h3>Tu diario</h3>
+        <p>Anotá señales y encuentros. La app los cruza con tu lectura y te dice qué coincide.</p>
+      </div>
+      <div class="bono">
+        <span class="ico">◉</span>
+        <h3>Maia, tu guía</h3>
+        <p>Un chat que responde con tus respuestas en la mano, cuando quieras.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6b ─ los dos bonos -->
+  <section class="ap">
+    <span class="kicker">Y además</span>
+    <h2>2 bonos secretos</h2>
+    <div class="bonos" style="grid-template-columns:1fr">
+      <div class="bono" style="text-align:left">
         <span class="tag">Bono 1</span>
         <h3>Señales del Universo</h3>
         <p>Aprendé a reconocer las señales que indican que tu alma gemela está cerca.</p>
       </div>
-      <div class="bono">
+      <div class="bono" style="text-align:left">
         <span class="tag">Bono 2</span>
         <h3>Activación de Atracción Energética</h3>
         <p>Un pequeño ritual guiado para alinear tu energía con la de tu alma gemela.</p>
@@ -407,24 +581,22 @@ h3{
   </section>
 
   <!-- 7 ─ precio + CTA -->
-  <section>
-    <div class="marco centro">
+  <section class="ap">
+    <div class="marco oro centro">
       <p class="p">El precio normal de este proceso personalizado es mucho más alto…</p>
       <p class="p">Pero como estuviste tan cerca de descubrirlo hoy…</p>
       <div class="plazas">reservamos solo algunas plazas con acceso especial.</div>
-      <p class="p">Hoy podés acceder por:</p>
+      <div class="descuento" id="descuento" hidden></div>
       <div class="precio" id="precio">$ 5.997 ARS</div>
-      <div class="letrachica" id="letrachica">
-        (eso equivale a poco más de 160 pesos al día)<br>
-        Pago único con descuento especial
-      </div>
+      <div class="letrachica" id="letrachica">Pago único</div>
       <a class="cta" href="#" data-ir>Sí, quiero ver el retrato de mi alma gemela</a>
     </div>
   </section>
 
   <!-- 8 ─ urgencia final -->
-  <section style="margin-bottom:0">
+  <section class="ap" style="margin-bottom:0">
     <div class="urgencia">
+      <span class="kicker">Se cierra en</span>
       <div class="relojGrande" id="relojGrande">--:--</div>
       <b>Esta oportunidad desaparece en <span id="minutos">30</span> minutos.</b>
       <span>Si cerrás esta página ahora, es posible que no vuelva a aparecer.</span>
@@ -476,6 +648,65 @@ $("#letrachica").innerHTML =
   "(eso equivale a poco más de " + miles(porDia) + " pesos al día)<br>"
   + (CONFIG.PRECIO_ANTES ? "Pago único con descuento especial" : "Pago único");
 
+/* La chapa del porcentaje se calcula, no se escribe a mano: un "50% OFF"
+   puesto a dedo sobre precios que despues cambian es la forma mas facil de
+   terminar anunciando un descuento que no existe. */
+if(CONFIG.PRECIO_ANTES && CONFIG.PRECIO_ANTES > CONFIG.PRECIO){
+  var off = Math.round((1 - CONFIG.PRECIO / CONFIG.PRECIO_ANTES) * 100);
+  var ch = $("#descuento");
+  ch.textContent = off + "% de descuento";
+  ch.hidden = false;
+  $("#rotulo").textContent = "Tu descuento";
+}
+
+/* ── el rostro que asoma dentro del orbe ─────────────────────────────
+   El quiz guarda las respuestas en el mismo dominio, así que acá se puede
+   leer qué contestó en "Yo soy" y mostrar el retrato del sexo opuesto, que
+   es el que está esperando ver. Si llegó sin pasar por el quiz —o borró
+   los datos del sitio— se muestra uno igual: el punto es que se note que
+   detrás del velo hay una cara, no acertar el género.
+
+   Va desenfocado de fábrica y encima con más desenfoque por CSS. Un
+   retrato legible acá sería regalar lo que se está vendiendo. */
+try{
+  var quien = "";
+  try{
+    var g = (JSON.parse(localStorage.getItem("noctra_q2")||"{}").a||{}).genero;
+    if(g === "hombre") quien = "ella";
+    else if(g === "mujer") quien = "el";
+  }catch(e){}
+  if(!quien) quien = "el";
+  var cara = $("#cara");
+  var img = new Image();
+  img.onload = function(){ cara.style.backgroundImage = "url(" + img.src + ")"; };
+  /* Si la imagen no llega, el orbe queda como estaba: nunca un cuadro roto. */
+  img.onerror = function(){ cara.classList.add("sin"); };
+  img.src = "/assets/retrato-" + quien + ".webp";
+}catch(e){}
+
+/* ── que cada bloque entre al llegar a pantalla ──────────────────────
+   Quieta, la pagina es una lista larga de cajas iguales. Que cada una
+   aparezca al llegar le da ritmo y ayuda a que se lea en orden en vez de
+   que el pulgar la pase de largo. Si el navegador no soporta el
+   observador, todo queda visible: nunca escondido. */
+try{
+  var bloques = document.querySelectorAll(".ap");
+  if("IntersectionObserver" in window){
+    var obs = new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add("vista"); obs.unobserve(e.target); }
+      });
+    }, { rootMargin:"0px 0px -12% 0px", threshold:0.08 });
+    [].forEach.call(bloques, function(b){ obs.observe(b); });
+    /* El primero entra solo: nadie tiene que scrollear para ver la portada. */
+    setTimeout(function(){ if(bloques[0]) bloques[0].classList.add("vista"); }, 60);
+  } else {
+    [].forEach.call(bloques, function(b){ b.classList.add("vista"); });
+  }
+}catch(e){
+  [].forEach.call(document.querySelectorAll(".ap"), function(b){ b.classList.add("vista"); });
+}
+
 /* ── el link de compra ──────────────────────────────────────────── */
 function armar(){
   if(!CONFIG.CHECKOUT) return "";
@@ -524,15 +755,15 @@ if(!vence || vence < Date.now()){
   vence = Date.now() + CONFIG.MINUTOS*60000;
   try{ localStorage.setItem(LLAVE, String(vence)); }catch(e){}
 }
-var r1 = $("#reloj"), r2 = $("#relojGrande");
+var r1 = $("#reloj b"), rc = $("#reloj"), r2 = $("#relojGrande");
 function tic(){
   var falta = Math.max(0, vence - Date.now());
   var m = Math.floor(falta/60000), s = Math.floor(falta%60000/1000);
   var txt = (m<10?"0":"")+m + ":" + (s<10?"0":"")+s;
   var poco = falta < 5*60000;
   r1.textContent = txt; r2.textContent = txt;
-  r1.classList.toggle("poco", poco); r2.classList.toggle("poco", poco);
-  if(falta <= 0) clearInterval(late);
+  rc.classList.toggle("poco", poco); r2.classList.toggle("poco", poco);
+  if(falta <= 0){ clearInterval(late); $("#rotulo").textContent = "Se terminó"; }
 }
 tic(); var late = setInterval(tic, 1000);
 
