@@ -944,13 +944,23 @@
 
   /* ---- interacción ---- */
 
-  /* pointerdown y no click: en teléfono, "click" llega hasta 80 ms después
-     de levantar el dedo. Esos 80 ms por pantalla, nueve veces, son casi un
-     segundo de sensación de lentitud sobre un embudo que se paga por clic. */
-  app.addEventListener("pointerdown", function(e){
-    var t = e.target.closest ? e.target.closest(".op,.sg,[data-atras]") : null;
-    if(!t) return;
+  /* Un toque es apoyar el dedo y levantarlo casi en el mismo lugar.
 
+     Antes alcanzaba con apoyarlo (pointerdown) y listo. En la pantalla de
+     los signos, que es una grilla más alta que el teléfono, eso hacía que
+     deslizar para ver los de abajo eligiera el signo que tocara pasar por
+     debajo del dedo, y el quiz saltaba de pantalla solo. La persona elegía
+     Tauro sin haberlo tocado nunca.
+
+     Ahora se anota dónde apoyó y se decide al levantar: si el dedo se
+     movió más de 10 px, era scroll y no se elige nada. Se sigue usando
+     pointerup y no click porque click llega hasta 80 ms después de
+     levantar el dedo, y esos 80 ms por pantalla, nueve veces, son casi un
+     segundo de sensación de lentitud sobre un embudo que se paga por clic. */
+  var TOLERANCIA = 10;
+  var tocando = null;
+
+  function elegir(t){
     if(t.hasAttribute("data-atras")){ atras(); return; }
     /* El de la prueba social tiene su propio listener: avanza el carrusel
        antes de avanzar de pantalla. */
@@ -969,6 +979,39 @@
        pantalla cambia antes de que el ojo registre la selección; más, y se
        siente lento. */
     setTimeout(siguiente, 130);
+  }
+
+  function blanco(e){
+    return e.target && e.target.closest ? e.target.closest(".op,.sg,[data-atras]") : null;
+  }
+
+  app.addEventListener("pointerdown", function(e){
+    var t = blanco(e);
+    tocando = t ? { el:t, x:e.clientX, y:e.clientY } : null;
+  }, {passive:true});
+
+  app.addEventListener("pointermove", function(e){
+    if(!tocando) return;
+    if(Math.abs(e.clientX - tocando.x) > TOLERANCIA ||
+       Math.abs(e.clientY - tocando.y) > TOLERANCIA) tocando = null;
+  }, {passive:true});
+
+  /* Cualquier scroll cancela: en algunos teléfonos el scroll arranca sin
+     mandar un pointermove que pase la tolerancia. El de la ventana y el de
+     adentro del chat, que scrollea por su cuenta. */
+  function soltar(){ tocando = null; }
+  app.addEventListener("pointercancel", soltar, {passive:true});
+  addEventListener("scroll", soltar, {passive:true});
+  app.addEventListener("scroll", soltar, {passive:true, capture:true});
+
+  app.addEventListener("pointerup", function(e){
+    var t = tocando && tocando.el;
+    tocando = null;
+    if(!t) return;
+    /* Levantar el dedo sobre otro botón tampoco elige: es el mismo gesto
+       de arrastrar. */
+    if(blanco(e) !== t) return;
+    elegir(t);
   }, {passive:true});
 
   /* Teclado: el quiz tiene que poder recorrerse sin mouse ni dedo. */
@@ -977,7 +1020,7 @@
     var t = e.target.closest ? e.target.closest(".op,.sg,[data-atras]") : null;
     if(!t) return;
     e.preventDefault();
-    t.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true}));
+    elegir(t);
   });
 
   addEventListener("hashchange", pintar);
