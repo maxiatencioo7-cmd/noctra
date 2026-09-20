@@ -60,5 +60,69 @@ function decodificar(s){
   }catch(e){ return null; }
 }
 
-window.NOCTRA_CODIGO={codificar:codificar,decodificar:decodificar};
+/* ── puente del quiz nuevo ───────────────────────────────────────────
+   El quiz nuevo (v2) y este código nacieron separados: preguntan cosas
+   distintas y guardan en claves distintas. Resultado: el comprador llegaba
+   a la app y ésta no encontraba nada suyo, así que le hacía el test corto
+   OTRA VEZ. Todos. No era un caso raro.
+
+   Esto traduce lo que el quiz nuevo sí preguntó. Lo que no preguntó se
+   completa con los mismos valores neutros que usa el test corto de la app,
+   y el perfil queda marcado como "corto" para poder ofrecerle después
+   completar la lectura. Es mejor una lectura general que una pantalla de
+   preguntas a alguien que acaba de pagar. */
+
+/* El lenguaje del amor se pregunta en los dos, con nombres distintos.
+   "actos" (actos de servicio) es lo que acá se llama "gestos"; "tiempo"
+   (tiempo de calidad) es "actividades". */
+const LENG_V2={ palabras:"palabras", actos:"gestos", regalos:"regalos",
+                tiempo:"activid" + "ades", contacto:"contacto" };
+
+/* Valores neutros, los MISMOS que usa el test corto de adentro de la app:
+   si divergieran, la misma persona leería dos lecturas distintas según por
+   dónde entró. */
+const NEUTRO_V2={
+  etnia:"libre", apariencia:"algo", decision:"emociones",
+  motivo:"comunicacion", dificultad:"abrirme", energia:"calma",
+  experiencias:"tranquilos", pelo:"a",
+  cualidades:["Leal"], futuro:["Crear lindos recuerdos"], opuestos:3
+};
+
+function tramoEdad(f){
+  try{
+    const hoy=new Date();
+    let e=hoy.getFullYear()-f.y;
+    const cumplio=(hoy.getMonth()+1>f.m)||(hoy.getMonth()+1===f.m&&hoy.getDate()>=f.d);
+    if(!cumplio) e--;
+    if(e<26) return "20";
+    if(e<36) return "30";
+    if(e<46) return "40";
+    return "50";
+  }catch(e){ return "30"; }
+}
+
+function desdeV2(a){
+  try{
+    if(!a) return null;
+    const iso=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(a.fecha_nac||""));
+    if(!iso) return null;                       /* sin fecha no hay lectura */
+    const fecha={ d:+iso[3], m:+iso[2], y:+iso[1] };
+    const genero = a.genero==="hombre" ? "m" : "f";
+    const out=Object.assign({}, NEUTRO_V2, {
+      genero:genero,
+      /* El quiz nuevo no pregunta por quién se siente atraída. Se asume el
+         opuesto, que es lo que ya asumía el retrato. */
+      interes: genero==="m" ? "f" : "m",
+      edad: tramoEdad(fecha),
+      fecha: fecha,
+      corto: true
+    });
+    const l=LENG_V2[a.lenguaje];
+    if(l) out.lenguaje=l; else out.lenguaje="palabras";
+    out.generoRetrato = out.interes;
+    return out;
+  }catch(e){ return null; }
+}
+
+window.NOCTRA_CODIGO={codificar:codificar,decodificar:decodificar,desdeV2:desdeV2};
 })();
