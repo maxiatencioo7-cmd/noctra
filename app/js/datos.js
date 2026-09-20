@@ -80,6 +80,11 @@ function desdeURL(){
     s.a=Object.assign({},s.a||{},a);
     const n=(new URLSearchParams(location.search).get("n")||"").trim().slice(0,40);
     if(n) s.nombre=n;
+    /* El código no lleva la marca de "perfil corto" —no le sobra un
+       carácter—, así que viaja aparte como &k=1 (la "c" ya la usa el código de acceso manual). Sin esto, a quien entra por el mail
+       le saldría la lectura como si hubiera contestado las veinte
+       preguntas, y no se le podría ofrecer completarla. */
+    if(new URLSearchParams(location.search).get("k")==="1") s.a.corto=true;
     localStorage.setItem(KEY_QUIZ,JSON.stringify(s));
     try{ history.replaceState(null,"",location.pathname); }catch(e){}
     return true;

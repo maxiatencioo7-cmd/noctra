@@ -214,6 +214,7 @@ function abrir(nom, ciudad, alSeguir){
     +'<p>'+(quien?("La fecha de "+quien+" ya está escrita."):"La fecha ya está escrita.")
     +' Se abre cuando vos quieras.</p></div>'
 
+    +'<button class="olink" id="oya">Ya lo compré — desbloquear</button>'
     +'<button class="olink" id="ono">'+(alSeguir?"Ahora no, llevame a mi lectura":"Ahora no, me quedo con el retrato")+'</button>'
     +'<p class="onota">Pago único, en pesos argentinos. No es suscripción: no hay renovación ni cobros después.<br>'
     +'Noctra es contenido interpretativo, con fines de entretenimiento.</p>'
@@ -228,6 +229,20 @@ function abrir(nom, ciudad, alSeguir){
   for(var j=0;j<bs.length;j++) (function(b){
     b.onclick=function(){ irAlCheckout(b.getAttribute("data-prod")); };
   })(bs[j]);
+
+  /* "Ya lo compré". Esta pantalla aparece justo después de revelar el
+     retrato, que es donde más se confunde el que ya pagó: ve un precio y
+     entiende que le están cobrando otra vez. Tiene que haber una salida
+     visible que no sea volver a pagar. */
+  var ya = d.querySelector("#oya");
+  if(ya) ya.onclick=function(){
+    d.classList.remove("on");
+    setTimeout(function(){
+      if(d.parentNode) d.parentNode.removeChild(d);
+      if(typeof window.NOCTRA_DESBLOQUEAR==="function") window.NOCTRA_DESBLOQUEAR();
+      else if(typeof alSeguir==="function") alSeguir();
+    },320);
+  };
 
   d.querySelector("#ono").onclick=function(){
     d.classList.remove("on");
@@ -313,6 +328,7 @@ function alerta(nom, donde){
       + (algo ? ('data-act="comprar" data-id="'+of.id+'"') : 'data-act="oferta"')+'>'
       +'<span>'+(algo?("Desbloquear "+esc(of.nombre)):"Desbloquear todo")+'</span>'
       +'<i>'+miles(of.precio)+'<u>'+MONEDA+'</u></i></button>'
+    +'<button class="olink" data-act="desbloquear">Ya lo compré — desbloquear</button>'
     +'<p class="oanota">Pago único. No es suscripción.</p>'
     +'</div>';
 }

@@ -449,7 +449,10 @@ function hojaDesbloquear(){
   <input id="dsorden" type="text" inputmode="numeric" placeholder="#1234">
   <div id="dsmsg" class="small" style="margin:12px 0 0;min-height:18px"></div>
   <button class="btn" id="dsok" style="margin:12px 0 8px">${I.candado} Desbloquear</button>
-  <button class="btn ghost" data-cerrar>Cerrar</button>`);
+  <button class="btn ghost" data-cerrar>Cerrar</button>
+  <p class="small muted center" style="margin:14px 0 0">¿No lo encontrás? Escribinos a
+  <a href="mailto:soporte@noctrastral.online?subject=No%20puedo%20desbloquear%20mi%20compra">soporte@noctrastral.online</a>
+  y lo abrimos a mano. No vuelvas a pagar.</p>`);
   const msg=$("#dsmsg"), b=$("#dsok");
   b.onclick=()=>{
     const e=($("#dsmail").value||"").trim(), o=($("#dsorden").value||"").trim();
@@ -465,6 +468,11 @@ function hojaDesbloquear(){
     });
   };
 }
+/* La pantalla de oferta se dibuja fuera del contenedor de la app, así que
+   no la alcanza el enganche de [data-act]. Se expone para que pueda abrir
+   la hoja de desbloquear desde ahí. */
+window.NOCTRA_DESBLOQUEAR = hojaDesbloquear;
+
 /* La ciudad la puede corregir a mano: la IP falla seguido en datos móviles. */
 function hojaCiudad(){
   U.hoja(`<h2 style="margin:0 0 6px">Tu ciudad</h2>
