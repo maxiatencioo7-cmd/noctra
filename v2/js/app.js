@@ -707,6 +707,7 @@
         sugs.innerHTML = ""; sugs.classList.remove("con");
         campoTxt.textContent = "Escribí acá…";
         S.a[e.campo] = v; guardar();
+        try{ sincronizarPerfil(); }catch(e2){}
         ponerElla(fechaLinda(v));
         evento({ event:"noctra_chat_"+e.campo });
         S.chat++; guardar();
@@ -733,6 +734,7 @@
         var val = b.getAttribute("data-val");
         var op = (e.opciones||[]).find(function(o){ return o.val===val; });
         S.a[e.campo] = val; guardar();
+        try{ sincronizarPerfil(); }catch(e2){}
         sugs.innerHTML = ""; sugs.classList.remove("con"); sugs.onclick = null;
         campoTxt.textContent = "Escribí acá…";
         ponerElla(op ? op.txt : val);
@@ -850,6 +852,9 @@
     pedirLugar().then(function(){
       if(!vivo) return;
       repintar();
+      /* El perfil se deja escrito acá, no recién al tocar comprar: si la
+         persona cierra y vuelve a abrir la app, ya está. */
+      try{ sincronizarPerfil(); }catch(e){}
       /* Al volver del checkout la conversación se rearma desde cero. Si la
          persona ya había llegado al botón, el botón va AHORA: los dos
          segundos de espera que tiene cuando aparece por primera vez —para
@@ -1098,11 +1103,57 @@
      guarda en note_attributes y el webhook lo deja pasar, con lo cual cada
      venta queda marcada con el embudo que la trajo y se pueden comparar los
      dos con los pedidos reales, no sólo con lo que diga el panel. */
+  /* ── el puente con la app ───────────────────────────────────────────
+     La app lee el perfil de "noctra_v2", que es la clave del quiz viejo.
+     Este quiz guarda en "noctra_q2" y pregunta otras cosas. Hasta ahora eso
+     significaba que TODO el que compraba llegaba a la app, la app no
+     encontraba nada suyo, y le hacía el test corto otra vez. Recién pagó y
+     le volvemos a preguntar: de ahí salen la mitad de los reclamos.
+
+     Acá se traduce lo que el quiz sí preguntó y se deja escrito donde la
+     app lo busca. Se llama en dos momentos —al entrar al chat y al armar el
+     link de compra— porque para entonces ya están el nombre y la fecha, que
+     es lo mínimo que necesita la lectura. */
+  var ultimoPerfil = "";
+  function sincronizarPerfil(){
+    try{
+      if(!window.NOCTRA_CODIGO || !window.NOCTRA_CODIGO.desdeV2) return null;
+      var perfil = window.NOCTRA_CODIGO.desdeV2(S.a);
+      if(!perfil) return null;
+      /* Escribir sólo cuando cambió algo: esto se llama en cada respuesta
+         del chat y no tiene sentido tocar el disco nueve veces seguidas. */
+      var huella = JSON.stringify(perfil) + "|" + (S.a.nombre || "");
+      if(huella === ultimoPerfil) return perfil;
+      ultimoPerfil = huella;
+
+      var guardado = {};
+      try{ guardado = JSON.parse(localStorage.getItem("noctra_v2")) || {}; }catch(e){}
+      guardado.a = Object.assign({}, guardado.a || {}, perfil);
+      if(S.a.nombre) guardado.nombre = S.a.nombre;
+      try{ localStorage.setItem("noctra_v2", JSON.stringify(guardado)); }catch(e){}
+      return perfil;
+    }catch(e){ return null; }
+  }
+
   window.NOCTRA_V2_CHECKOUT = function(){
     var u = Q.checkoutUrl;
     try{
       if(window.NOCTRA_ATRIB) u = window.NOCTRA_ATRIB(u);
       u += (u.indexOf("?")<0 ? "?" : "&") + "attributes[quiz]=v2";
+
+      /* El pedido tiene que saber de quién es.
+
+         Sin esto la orden llega a Shopify sin una sola pista de quién la
+         hizo: el mail no puede llevar un link que restaure el perfil, y
+         /api/acceso no puede reconocer al que ya pagó cuando abre la app
+         desde otro teléfono. Es lo que hace que le vuelva a aparecer
+         "pagar" a alguien que pagó. */
+      var perfil = sincronizarPerfil();
+      if(perfil && window.NOCTRA_CODIGO.codificar){
+        var cod = window.NOCTRA_CODIGO.codificar(perfil);
+        if(cod) u += "&attributes[perfil]=" + encodeURIComponent(cod);
+      }
+      if(S.a.nombre) u += "&attributes[nombre]=" + encodeURIComponent(String(S.a.nombre).slice(0,40));
     }catch(e){}
     return u;
   };
