@@ -46,7 +46,21 @@
     var h = S.a.genero === "hombre";
     return t.replace(GENERO, function(_, f, m){ return h ? m : f; });
   }
-  function esc(s){ return genero(String(s==null?"":s)).replace(/[&<>"]/g,function(c){
+  /* Lo mismo, pero para la persona del retrato. Su género sale de "me
+     atraen", no de "yo soy": [él|ella]. Antes todo el copy daba por hecho
+     que era del sexo opuesto, así que a quien contestaba otra cosa el texto
+     le hablaba de un hombre mientras el dibujo iba a ser una mujer.
+     Primero va la variante para cuando es varón, que es la que ya estaba
+     escrita en el guión. */
+  var PAREJA = /\[([^\[\]|]*)\|([^\[\]|]*)\]/g;
+  function pareja(t){
+    var i = S.a.interes;
+    var varon = i==="hombres" ? true
+              : i==="mujeres" ? false
+              : S.a.genero !== "hombre";   /* "los dos", o todavía sin contestar */
+    return t.replace(PAREJA, function(_, h, m){ return varon ? h : m; });
+  }
+  function esc(s){ return genero(pareja(String(s==null?"":s))).replace(/[&<>"]/g,function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
   function evento(o){ try{ dl.push(o); }catch(e){} }
 

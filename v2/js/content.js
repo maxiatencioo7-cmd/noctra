@@ -22,7 +22,11 @@
 
    GÉNERO. El copy se escribe en femenino —que es a quien apuntan los
    anuncios— y lleva la variante masculina pegada al lado, entre llaves y
-   separadas por una barra: {sola|solo}, {BIENVENIDA|BIENVENIDO}, {él|ella}.
+   separadas por una barra: {sola|solo}, {BIENVENIDA|BIENVENIDO}.
+
+   Los corchetes son lo mismo pero para la persona del retrato, que sale de
+   "me atraen" y no de "yo soy": [él|ella], [lo|la]. Primero va la variante
+   para cuando es varón.
    El motor elige según lo que haya contestado en la pantalla "Yo soy:".
    Hasta que conteste, y si nunca contesta, sale la primera. Para agregar
    copy nuevo no hay que tocar código: alcanza con escribir el par. */
@@ -62,6 +66,22 @@ window.NOCTRA_V2 = {
       opciones: [
         { emoji: "👩", txt: "Mujer",  val: "mujer" },
         { emoji: "👨", txt: "Hombre", val: "hombre" }
+      ]
+    },
+
+    /* 2b — Por quién se siente atraída. De acá cuelga el género del retrato.
+       Sin esta pregunta el dibujo salía siempre del sexo opuesto al de quien
+       contestaba, así que a una parte de la gente le llegaba directamente el
+       retrato equivocado. Va pegada a "Yo soy" porque son la misma idea y se
+       contestan juntas, sin pensarlo. */
+    {
+      tipo: "opciones",
+      campo: "interes",
+      titulo: "Me atraen:",
+      opciones: [
+        { emoji: "👨", txt: "Los hombres", val: "hombres" },
+        { emoji: "👩", txt: "Las mujeres", val: "mujeres" },
+        { emoji: "💫", txt: "Los dos",     val: "ambos" }
       ]
     },
 
@@ -347,7 +367,7 @@ window.NOCTRA_V2 = {
         { de:"el", audio:"audio-5", dur:"0:09" },
 
         { de:"el", txt:"Y pensando todavía más en ayudarte, te voy a dar GRATIS una lectura completa en PDF…" },
-        { de:"el", txt:"💝 Personalidad completa de {él|ella}…\n\n💝 Cuándo y dónde {lo|la} vas a encontrar?\n\n💝 Dónde vive?\n\n💝 Truco simple para que te quedes en su mente cuando {lo|la} encuentres!\n\n💝 Cómo hacer que {él|ella} te vea a VOS como {la mujer|el hombre} más importante de su vida!" },
+        { de:"el", txt:"💝 Personalidad completa de [él|ella]…\n\n💝 Cuándo y dónde [lo|la] vas a encontrar?\n\n💝 Dónde vive?\n\n💝 Truco simple para que te quedes en su mente cuando [lo|la] encuentres!\n\n💝 Cómo hacer que [él|ella] te vea a VOS como {la mujer|el hombre} más importante de su vida!" },
 
         { cta:"DESBLOQUEAR EL ROSTRO DE MI ALMA GEMELA" }
       ]
