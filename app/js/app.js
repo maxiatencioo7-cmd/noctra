@@ -135,6 +135,7 @@ function vRetrato(){
     <div class="fila" style="margin:14px 0 0">
       <button class="pill" data-act="ampliar">${I.ojo} Ampliar</button>
       <button class="pill" data-act="revivir">${I.estrella} Ver el revelado</button>
+      <button class="pill" data-act="cambiarPareja">${I.ojo} ¿No es quién buscás?</button>
     </div>
   </div>
   ${D.revelado?(
@@ -603,6 +604,12 @@ function acciones(act,b,e){
     case "ciudadPlan": return hojaCiudad();
     case "ampliar": return hojaImagen(RETRATO);
     case "revivir": return revelado(true);
+    /* Por si tocó mal la primera vez. Si cambia la respuesta se rehace el
+       retrato entero: cara, nombre y revelado. */
+    case "cambiarPareja": return window.NOCTRA_PREGUNTAS&&window.NOCTRA_PREGUNTAS.pareja(function(v,cambio){
+      if(!cambio) return location.reload();
+      D.nombrePareja=null; D.revelado=false; guardar(); location.reload();
+    });
     case "descargar": return descargarRetrato();
     case "compartir": return compartirRetrato();
     case "fondo": return fondoPantalla();
@@ -1152,6 +1159,27 @@ function primeraVez(){
 }
 
 function arrancar(){
+  /* Las dos comprobaciones van ANTES de pintar. Si se pinta primero, la
+     persona alcanza a ver el retrato que no le corresponde detrás de la
+     pregunta, y es justo lo que estamos arreglando. */
+
+  /* Quien abre el link sin haber hecho el test veía el retrato de muestra
+     como si fuera el suyo, y la invitación a responder era una hoja que se
+     podía cerrar. Ahora se le piden las respuestas antes de mostrarle nada:
+     sin test no hay retrato que mostrar. */
+  if(DT.esDemo && window.NOCTRA_PREGUNTAS) return window.NOCTRA_PREGUNTAS.abrir();
+
+  /* A quién buscás. Se le pregunta también a quien ya tiene perfil: el
+     quiz no lo preguntaba y asumía el sexo opuesto, así que hay gente con
+     el rostro equivocado dibujado. Si cambia la respuesta, el retrato se
+     rehace —y con él el nombre, que estaba congelado. */
+  if(window.NOCTRA_PREGUNTAS && window.NOCTRA_PREGUNTAS.faltaPareja()){
+    return window.NOCTRA_PREGUNTAS.pareja(function(v,cambio){
+      if(cambio){ D.nombrePareja=null; D.revelado=false; DT.guardar(); }
+      location.reload();
+    });
+  }
+
   U.cielo($("#cielo"));
   pintar();
   /* Cuando el servidor confirma la compra —al volver del checkout, o al
@@ -1163,19 +1191,9 @@ function arrancar(){
     PLAN=null; pintar();
     if(recien){ mostradoPack=true; U.toast("Tu pack está listo en Encuentro"); }
   });
-  if(!D.revelado && !DT.esDemo) setTimeout(primeraVez,220);
+  if(!D.revelado) setTimeout(primeraVez,220);
   setTimeout(revisarAvisos,1200);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)revisarAvisos();});
-  if(DT.esDemo){
-    setTimeout(()=>{
-      const p=U.hoja(`<h2 style="margin:0 0 10px">Falta un paso para armar tu retrato</h2>
-       <p>Necesito las respuestas de tu test para dibujarlo. Son quince preguntas y te lleva dos minutos.</p>
-       <button class="btn" id="responder">${I.estrella} Responder ahora</button>
-       <p class="small muted center" style="margin:16px 0 0">¿Ya las respondiste y no aparecen? Escribinos a <a href="mailto:soporte@noctrastral.online">soporte@noctrastral.online</a> con tu número de pedido y lo resolvemos.</p>`);
-      const b=$("#responder",p);
-      if(b) b.onclick=()=>{ U.cerrarHoja(); window.NOCTRA_PREGUNTAS&&window.NOCTRA_PREGUNTAS.abrir(); };
-    },700);
-  }
 }
 if(document.readyState==="loading")addEventListener("DOMContentLoaded",arrancar);else arrancar();
 })();

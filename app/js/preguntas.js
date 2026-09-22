@@ -28,7 +28,15 @@ const LARGAS=[
    el archivo de contenidos y el texto vive acá. Va primera porque es la más
    fácil de todas, y porque desde ahí la app ya puede hablarle por su nombre. */
 const PROPIAS={
-  nombre:{titulo:"¿Cómo te llamás?", sub:"Para que el retrato salga a tu nombre."}
+  nombre:{titulo:"¿Cómo te llamás?", sub:"Para que el retrato salga a tu nombre."},
+  /* Esta pisa a la del archivo de contenidos a propósito. La vieja decía
+     "¿De qué género es tu pareja ideal?" justo después de "Yo soy…", y
+     mucha gente volvía a tocar su propio género sin leer: contestaba
+     "Mujer" dos veces y le salía una mujer. También se sacó "No importa",
+     que hacía que el rostro lo decidiera el programa y no ella. */
+  interes:{titulo:"¿A quién estás buscando?",
+           sub:"De esto depende el rostro que vamos a dibujar.",
+           opts:[["m","Un hombre","👨"],["f","Una mujer","👩"]]}
 };
 
 /* Las diez que no se piden se completan con valores neutros: sin esto la
@@ -187,6 +195,7 @@ function pintar(C,largas){
       a=Object.assign({},NEUTRO,R);
       delete a.nombre;               /* el nombre es de la persona, no del retrato */
       a.generoRetrato = a.interes==="x" ? (a.genero==="m"?"f":"m") : (a.interes||(a.genero==="m"?"f":"m"));
+      a.interesConfirmado = true;    /* la contestó ella, no la asumimos */
       a.pelo="a";
       a.corto=true;                  /* para ofrecerle completar la lectura después */
     }
@@ -204,5 +213,59 @@ function pintar(C,largas){
   paso();
 }
 
-window.NOCTRA_PREGUNTAS={abrir:abrir};
+/* ── A quién buscás ──────────────────────────────────────
+
+   Va aparte del test corto porque hay que preguntarle también a quien YA
+   tiene perfil. El quiz no lo preguntaba: asumía el sexo opuesto al de
+   quien contestaba, y a toda esa gente le llegó el rostro equivocado sin
+   que nadie se lo preguntara nunca.
+
+   Se pregunta una sola vez. Queda marcado con interesConfirmado, que es
+   la diferencia entre "lo contestó" y "lo asumimos". */
+const CAJA="position:fixed;inset:0;z-index:95;background:radial-gradient(120% 80% at 50% 10%,#131C3E 0%,#080B18 55%,#04060D 100%);overflow:auto;-webkit-overflow-scrolling:touch";
+
+function leerA(){ try{ return (JSON.parse(localStorage.getItem(KEY))||{}).a||{}; }catch(e){ return {}; } }
+function escribirA(campos){
+  let s={}; try{ s=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){}
+  s.a=Object.assign({}, s.a||{}, campos);
+  try{ localStorage.setItem(KEY,JSON.stringify(s)); }catch(e){}
+}
+/* Cuál es el género que está rigiendo hoy el retrato. */
+function generoActual(){
+  const a=leerA();
+  return a.generoRetrato || (a.interes==="x" ? (a.genero==="m"?"f":"m") : a.interes) || "";
+}
+/* Falta preguntarle. Sin perfil no aplica: a esa persona le va el test entero. */
+function faltaPareja(){
+  const a=leerA();
+  if(!a||!a.fecha) return false;
+  return !a.interesConfirmado;
+}
+
+function pareja(cb){
+  const previo=generoActual();
+  const caja=document.createElement("div");
+  caja.id="preg"; caja.style.cssText=CAJA;
+  const op=(v,txt,em)=>`<button class="pill" data-v="${v}" style="width:100%;justify-content:flex-start;margin:0 0 9px;padding:15px 16px;font-size:15px;text-align:left">
+      <span style="width:22px;display:inline-block">${em}</span><span>${esc(txt)}</span></button>`;
+  caja.innerHTML=`<div style="max-width:520px;margin:0 auto;padding:calc(34px + env(safe-area-inset-top)) 22px 40px">
+      <h2 style="margin:0 0 6px;font-size:23px;line-height:30px">¿A quién estás buscando?</h2>
+      <p class="muted small" style="margin:0 0 18px">De esto depende el rostro que vamos a dibujar.</p>
+      ${op("m","Un hombre","👨")}
+      ${op("f","Una mujer","👩")}
+    </div>`;
+  document.body.appendChild(caja);
+  caja.querySelectorAll("[data-v]").forEach(b=>{
+    if(b.dataset.v===previo) b.classList.add("on");
+    b.onclick=()=>{
+      const v=b.dataset.v;
+      caja.querySelectorAll("[data-v]").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on");
+      escribirA({ interes:v, generoRetrato:v, interesConfirmado:true });
+      setTimeout(()=>{ if(cb) cb(v, !!previo && v!==previo); }, 160);
+    };
+  });
+}
+
+window.NOCTRA_PREGUNTAS={abrir:abrir, pareja:pareja, faltaPareja:faltaPareja, generoActual:generoActual};
 })();
