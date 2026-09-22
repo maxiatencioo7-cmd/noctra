@@ -108,18 +108,24 @@ function desdeV2(a){
     if(!iso) return null;                       /* sin fecha no hay lectura */
     const fecha={ d:+iso[3], m:+iso[2], y:+iso[1] };
     const genero = a.genero==="hombre" ? "m" : "f";
+    /* "Me atraen". El quiz no la preguntaba y se asumía el sexo opuesto, con
+       lo cual a quien no es heterosexual le llegaba el retrato equivocado.
+       El fallback sigue siendo el opuesto, para los perfiles guardados antes
+       de que la pregunta existiera. */
+    const interes = a.interes==="hombres" ? "m"
+                  : a.interes==="mujeres" ? "f"
+                  : a.interes==="ambos"   ? "x"
+                  : (genero==="m" ? "f" : "m");
     const out=Object.assign({}, NEUTRO_V2, {
       genero:genero,
-      /* El quiz nuevo no pregunta por quién se siente atraída. Se asume el
-         opuesto, que es lo que ya asumía el retrato. */
-      interes: genero==="m" ? "f" : "m",
+      interes: interes,
       edad: tramoEdad(fecha),
       fecha: fecha,
       corto: true
     });
     const l=LENG_V2[a.lenguaje];
     if(l) out.lenguaje=l; else out.lenguaje="palabras";
-    out.generoRetrato = out.interes;
+    out.generoRetrato = interes==="x" ? (genero==="m"?"f":"m") : interes;
     return out;
   }catch(e){ return null; }
 }
