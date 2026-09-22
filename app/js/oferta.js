@@ -62,12 +62,12 @@ var PROD={
      se puede comprar por separado, el pack deja de ser otra cosa y pasa a
      ser un descuento, que es mucho más fácil de no comprar.
 
-     La variante va vacía hasta que exista el producto en Shopify. Con la
-     variante en blanco el downsell directamente no aparece: es preferible
-     que nadie lo vea a que alguien toque un botón que lleva a una página
-     rota justo cuando estaba por pagar. */
+     Si alguna vez se despublica el producto, vaciar la variante alcanza
+     para que el downsell deje de aparecer: sin variante no se dibuja, que
+     es preferible a un botón que lleva a una página rota justo cuando la
+     persona estaba por pagar. */
   senal:{
-    id:"senal", nombre:"La señal", precio:4500, variante:"",
+    id:"senal", nombre:"La señal", precio:4500, variante:"50520637472982",
     titulo:"Cómo vas a reconocerlo",
     sub:"Los dos rasgos y los dos gestos que vas a notar primero — y lo que NO es él",
     boton:"La señal"
