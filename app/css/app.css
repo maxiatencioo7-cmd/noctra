@@ -674,3 +674,5 @@ label.f>span{display:block;margin:0 0 7px}
 #oferta.ods .oit{text-align:left;padding:13px 14px;margin:0 0 8px}
 #oferta.ods .oit b{margin:0;font-weight:600;line-height:20px}
 #oferta.ods .opack2 .op2mas{text-align:left}
+#oferta.ods .op2pre.odsc{justify-content:space-between;margin:0 0 12px;text-align:left}
+#oferta.ods .op2pre.odsc span{color:var(--tx3,#5E6785);font-size:13px}
