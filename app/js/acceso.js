@@ -60,14 +60,15 @@ function aplicar(j){
       ? j.partes
       /* respuesta de una versión anterior del servidor, sin partes: era el
          pack entero, que es lo único que existía */
-      : ["fecha","lugar","senal"];
+      : ["fecha","lugar","senal","vos"];
     var P0 = D.partes || {};
     for(var i=0;i<lista.length;i++){
       if(!P0[lista[i]]){ P0[lista[i]]=true; cambio=true; }
     }
     /* Misma regla que el servidor, por si la respuesta viene de una version
-       anterior: con la fecha y el lugar, la senal va de arriba. */
+       anterior: con la fecha y el lugar, las dos ultimas van de arriba. */
     if(P0.fecha && P0.lugar && !P0.senal){ P0.senal=true; cambio=true; }
+    if(P0.fecha && P0.lugar && !P0.vos){ P0.vos=true; cambio=true; }
     D.partes = P0;
     if(!D.segundoTrazo){
       D.segundoTrazo=true;
@@ -149,8 +150,10 @@ function abierto(){ return !!(D&&D.segundoTrazo); }
    único producto, tiene segundoTrazo pero no partes: se le dan las tres. */
 function partes(){
   if(!D||!D.segundoTrazo) return {};
-  if(D.partes && (D.partes.fecha||D.partes.lugar||D.partes.senal)) return D.partes;
-  return { fecha:true, lugar:true, senal:true };
+  if(D.partes && (D.partes.fecha||D.partes.lugar||D.partes.senal||D.partes.vos)) return D.partes;
+  /* Comprador viejo, de cuando el pack era lo unico que habia: tiene
+     segundoTrazo y ninguna parte anotada. Le corresponden las cuatro. */
+  return { fecha:true, lugar:true, senal:true, vos:true };
 }
 function tiene(x){ return !!partes()[x]; }
 /* Si la respuesta llegó antes de que app.js alcanzara a registrarse —pasa

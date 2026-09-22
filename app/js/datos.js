@@ -34,6 +34,8 @@ const DEMO={nombre:"",email:"",genero:"f",generoRetrato:"m",interes:"m",edad:"30
 const vacio={
   v:1, creado:0, nombre:"", nacimiento:{hora:"",ciudad:""},
   revelado:false, rasgos:null, nombrePareja:null, ofertaVista:false,
+  /* El downsell se muestra una sola vez, y sólo a quien no compró nada. */
+  downsellVisto:false,
   /* segundoTrazo: espejo local de lo que contesta /api/acceso sobre el pack.
      Nunca es la prueba de la compra, sólo evita esperar la red para pintar.
      Ver js/acceso.js. */
@@ -90,7 +92,7 @@ try{
        el acceso al pack también quedan: sigue siendo la que pagó. */
     localStorage.removeItem(KEY_QUIZ);
     D.revelado=false; D.rasgos=null; D.nombrePareja=null;
-    D.ofertaVista=false; D.ventana=null;
+    D.ofertaVista=false; D.downsellVisto=false; D.ventana=null;
     guardar();
     try{ history.replaceState(null,"",location.pathname); }catch(e){}
   }

@@ -54,12 +54,42 @@ var PROD={
     sub:"El contexto exacto, lugar y situación del primer encuentro",
     boton:"Dónde y Cómo"
   },
+  /* El downsell. Es la sección 4 del pack vendida sola, y la única de las
+     tres "chicas" que se puede sacar afuera sin romper nada: contesta cómo
+     reconocerlo, que es la pregunta que queda viva cuando ya vio la cara.
+
+     "Por qué vos" NO se vende suelta y sigue siendo sólo del pack: si todo
+     se puede comprar por separado, el pack deja de ser otra cosa y pasa a
+     ser un descuento, que es mucho más fácil de no comprar.
+
+     La variante va vacía hasta que exista el producto en Shopify. Con la
+     variante en blanco el downsell directamente no aparece: es preferible
+     que nadie lo vea a que alguien toque un botón que lleva a una página
+     rota justo cuando estaba por pagar. */
+  senal:{
+    id:"senal", nombre:"La señal", precio:4500, variante:"",
+    titulo:"Cómo vas a reconocerlo",
+    sub:"Los dos rasgos y los dos gestos que vas a notar primero — y lo que NO es él",
+    boton:"La señal"
+  },
   pack:{
     id:"pack", nombre:"Cuándo, Dónde y Cómo", precio:13497, ancla:20000,
     variante:"50408908652758",
     boton:"Desbloquear todo"
   }
 };
+
+/* El crédito. Quien compró La señal a 4.500 y después quiere el pack paga
+   la diferencia: 8.997. Sumado a lo que ya puso da exactamente 13.497, el
+   mismo precio que si lo hubiera comprado de una. Eso es lo que evita el
+   reclamo: nadie pagó de más por haber empezado de a poco, y el que ya
+   tiene el pack nunca ve este número.
+
+   El descuento lo aplica Shopify —un código de monto fijo limitado al
+   producto del pack—, no la app: acá sólo se muestra el precio final y se
+   agrega el código al enlace del carrito. Con CUPON en blanco no se
+   descuenta nada y el pack sigue costando lo de siempre. */
+var CREDITO={ cupon:"", monto:4500 };
 /* El resto de la app lee PACK para la tarjeta del retrato y la pestaña
    cerrada: se deja con el nombre de siempre. */
 var PACK=PROD.pack;
@@ -81,7 +111,29 @@ function tiene(x){
    alcanzaba cuando el pack era el único producto; ahora alguien puede haber
    comprado la fecha y seguir siendo cliente de las otras dos. */
 function comprada(){
-  return tiene("fecha") && tiene("lugar") && tiene("senal");
+  return tiene("fecha") && tiene("lugar") && tiene("senal") && tiene("vos");
+}
+
+/* Cuánto le sale hoy. Es el precio de lista, menos el crédito de La señal
+   cuando lo que está mirando es el pack y ya la compró. */
+function precioDe(p){
+  if(!p) return 0;
+  if(p.id==="pack" && CREDITO.cupon && tiene("senal")) return p.precio - CREDITO.monto;
+  return p.precio;
+}
+
+/* Qué ofrecerle según lo que ya tenga. Nunca se le vuelve a mostrar algo
+   que ya pagó, y al que compró sólo La señal se le ofrece el pack con el
+   crédito puesto —no las sueltas—, porque el pack con crédito le sale
+   menos que las dos sueltas juntas. */
+function falta(){
+  if(!tiene("fecha") && !tiene("lugar")) return PROD.pack;
+  if(!tiene("fecha")) return PROD.fecha;
+  if(!tiene("lugar")) return PROD.lugar;
+  return PROD.pack;
+}
+function algoComprado(){
+  return tiene("fecha") || tiene("lugar") || tiene("senal");
 }
 
 /* La atribución del anuncio que trajo a la persona. El quiz la guardó en
@@ -122,6 +174,13 @@ function irAlCheckout(prod){
     return;
   }
   var url=TIENDA+P0.variante+":1";
+  /* El crédito viaja como código de descuento en el propio enlace del
+     carrito: Shopify lo aplica solo y la persona ve el total ya corregido
+     antes de poner un dato. Que lo valide Shopify y no la app es lo que
+     impide que alguien se lo aplique escribiéndolo en la consola. */
+  if(P0.id==="pack" && CREDITO.cupon && tiene("senal")){
+    url+="?discount="+encodeURIComponent(CREDITO.cupon);
+  }
   /* el perfil viaja con la compra, igual que en el quiz: así la app puede
      reconocer a la persona aunque abra el mail en otro teléfono */
   try{
@@ -176,6 +235,86 @@ function tarjetaProd(k){
     +'</div>';
 }
 
+
+/* ─── el downsell ───────────────────────────────────────────────────
+   Aparece cuando dice que no al upsell, y sólo entonces. Nunca antes: si
+   la opción de 4.500 estuviera en la misma pantalla que el pack, una parte
+   de los que iban a pagar 13.497 elegiría la barata y perderíamos plata en
+   vez de ganarla. El downsell sólo puede sumar porque llega después de un
+   no; lo único que puede hacer es convertir un cero en 4.500.
+
+   Se muestra una sola vez y sólo a quien no compró absolutamente nada:
+   ofrecerle "una sección suelta" al que ya puso plata es ruido, y al que
+   tiene el pack sería directamente venderle lo que ya es suyo.
+
+   Y no aparece si el producto todavía no existe en Shopify (variante en
+   blanco): antes que un botón roto justo después de un no, nada. */
+function hayDownsell(){
+  var DT=window.NOCTRA_DATOS, D=DT&&DT.D;
+  if(!PROD.senal.variante) return false;
+  if(algoComprado()) return false;
+  if(D && D.downsellVisto) return false;
+  return true;
+}
+
+function puntoD(t){
+  return '<div class="oit on"><span class="oic">'+I.check+'</span><b>'+esc(t)+'</b></div>';
+}
+
+function abrirDownsell(nom, alSeguir){
+  if(document.getElementById("oferta")) return;
+  try{
+    var DT=window.NOCTRA_DATOS;
+    if(DT&&DT.D){ DT.D.downsellVisto=true; DT.guardar(); }
+  }catch(e){}
+  var quien=nom?esc(nom):null;
+  var d=document.createElement("div");
+  d.id="oferta"; d.className="ods";
+
+  d.innerHTML='<div class="ow">'
+    +'<div class="olab">'+I.estrella+' Si te llevás una sola cosa</div>'
+    +'<h1>Que sea saber<br><em>cómo reconocerlo.</em></h1>'
+    +'<p class="osub">Ya sabés qué cara tiene'+(quien?(", "+quien):"")+'. La pregunta que más vuelve después es siempre la misma: ¿y si lo tengo enfrente y no me doy cuenta?</p>'
+
+    +'<div class="opack2 on">'
+      +'<div class="op2lab">'+I.estrella+' La señal · 1 de las 5 secciones</div>'
+      +'<div class="olista">'
+        + puntoD("Dos rasgos físicos que vas a notar antes que el resto")
+        + puntoD("Dos gestos suyos, de los que no salen en ningún manual")
+        + puntoD("Cómo va a ser el primer cruce, en concreto")
+      +'</div>'
+      +'<p class="op2mas" style="margin:0 0 14px">Y <b>lo que NO es él</b>: la contraseña para no ilusionarte con la persona equivocada.</p>'
+      +'<button class="btn obig op2btn" data-prod="senal">'
+        +'<span>Abrir La señal</span><i>'+miles(PROD.senal.precio)+'<u>'+MONEDA+'</u></i></button>'
+      +'<p class="op2mas">Es la sección más chica del pack — y la única que se puede llevar sola.'
+        + (CREDITO.cupon
+            ? ' Si más adelante querés las cinco, estos '+miles(CREDITO.monto)+' se te descuentan del pack.'
+            : '')
+      +'</p>'
+    +'</div>'
+
+    +'<button class="olink" id="ono">No, gracias — llevame a mi lectura</button>'
+    +'<p class="onota">Pago único, en pesos argentinos. No es suscripción.<br>'
+    +'Noctra es contenido interpretativo, con fines de entretenimiento.</p>'
+    +'</div>';
+
+  document.body.appendChild(d);
+  requestAnimationFrame(function(){ d.classList.add("on"); });
+
+  var bs=d.querySelectorAll("[data-prod]");
+  for(var j=0;j<bs.length;j++) (function(b){
+    b.onclick=function(){ irAlCheckout(b.getAttribute("data-prod")); };
+  })(bs[j]);
+
+  d.querySelector("#ono").onclick=function(){
+    d.classList.remove("on");
+    setTimeout(function(){
+      if(d.parentNode) d.parentNode.removeChild(d);
+      if(typeof alSeguir==="function") alSeguir();
+    },320);
+  };
+}
+
 /* alSeguir: adónde va la persona si dice que no. Cuando la oferta sale en
    el camino a la lectura, el botón de salida la lleva ahí —no la deja
    parada donde estaba—. */
@@ -184,7 +323,7 @@ function abrir(nom, ciudad, alSeguir){
   var d=document.createElement("div");
   d.id="oferta";
   var quien=nom?esc(nom):null;
-  var faltaTodo = !tiene("fecha") && !tiene("lugar") && !tiene("senal");
+  var faltaTodo = !algoComprado();
 
   d.innerHTML='<div class="ow">'
     +'<div class="olab">'+I.estrella+' Hay algo más</div>'
@@ -244,10 +383,14 @@ function abrir(nom, ciudad, alSeguir){
     },320);
   };
 
+  /* El no del upsell no termina la conversación: abre el downsell, si
+     corresponde. Si no corresponde —ya compró algo, ya lo vio, o el
+     producto todavía no existe— sigue derecho a donde iba, como siempre. */
   d.querySelector("#ono").onclick=function(){
     d.classList.remove("on");
     setTimeout(function(){
       if(d.parentNode) d.parentNode.removeChild(d);
+      if(hayDownsell()) return abrirDownsell(nom, alSeguir);
       if(typeof alSeguir==="function") alSeguir();
     },320);
   };
@@ -261,18 +404,18 @@ function tarjeta(nom){
   /* Si ya compró una parte, el precio que se muestra es el de lo que le
      falta, no el del pack entero: ofrecerle de nuevo los 9.997 al que ya
      puso 6.497 se lee como que le quieren cobrar dos veces. */
-  var algo = tiene("fecha")||tiene("lugar")||tiene("senal");
-  var falta = !tiene("fecha") ? PROD.fecha : (!tiene("lugar") ? PROD.lugar : PROD.pack);
-  var of = algo ? falta : PACK;
+  var algo = algoComprado();
+  var of = algo ? falta() : PACK;
+  var pr = precioDe(of);
   return '<div class="card otar">'
     +'<div class="otag">'+I.candado+' '+(algo?"Te falta una parte":"Falta una cosa")+'</div>'
     +'<div class="oth">'+(quien?("¿Cuándo llega "+quien+"?"):"¿Cuándo llega?")+'</div>'
     +'<p class="otp">'+(algo
         ? ("Ya desbloqueaste una parte. Falta "+esc(of.nombre)+".")
         : (quien?("Tenés su cara y su nombre. Falta el día, el lugar, y cómo vas a reconocer a "+quien+" cuando lo tengas enfrente."):"Tenés su cara y su nombre. Falta el día, el lugar y cómo vas a reconocerlo."))+'</p>'
-    +'<div class="otf"><span class="otpre">'+miles(of.precio)+'</span><span class="otu">'+MONEDA+' · pago único</span></div>'
+    +'<div class="otf"><span class="otpre">'+miles(pr)+'</span><span class="otu">'+MONEDA+' · pago único</span></div>'
     +'<button class="btn obig" '+(algo?('data-act="comprar" data-id="'+of.id+'"'):'data-act="oferta"')+' style="margin:12px 0 0">'
-      +'<span>'+(algo?("Ver "+esc(of.nombre)):("Ver "+esc(PACK.nombre)))+'</span><i>'+plata(of.precio)+'</i></button></div>';
+      +'<span>'+(algo?("Ver "+esc(of.nombre)):("Ver "+esc(PACK.nombre)))+'</span><i>'+plata(pr)+'</i></button></div>';
 }
 
 /* ─── el bloque de alerta que va suelto en las pestañas ──────────────
@@ -311,35 +454,46 @@ function alerta(nom, donde){
   /* Si ya compró una parte, se le ofrece lo que le falta al precio de eso,
      no el pack entero: volver a mostrarle el precio completo al que ya puso
      plata se lee como que le quieren cobrar dos veces. */
-  var algo = tiene("fecha") || tiene("lugar") || tiene("senal");
-  var falta = !tiene("fecha") ? PROD.fecha : (!tiene("lugar") ? PROD.lugar : PROD.pack);
-  var of = algo ? falta : PACK;
+  var algo = algoComprado();
+  var of = algo ? falta() : PACK;
+  var pr = precioDe(of);
   var ahorro = (!algo && PACK.ancla) ? (PACK.ancla - PACK.precio) : 0;
+  /* Al que compró La señal se le muestra el crédito en vez del ahorro del
+     ancla: es el número que le importa —lo que ya puso, descontado—. */
+  var credito = (of.id==="pack" && pr<of.precio) ? (of.precio-pr) : 0;
 
   return '<div class="card oalerta">'
     +'<div class="oabarra"><span class="opunto"></span>'+esc(c.tag)+'</div>'
     +'<div class="oath">'+esc(c.tit(quien))+'</div>'
     +'<p class="oatp">'+esc(c.txt(quien))+'</p>'
-    + (ahorro
+    + (credito
+        ? '<div class="oapre"><s>'+miles(of.precio)+'</s><b>'+miles(pr)+'</b>'
+          +'<i class="oaoff">tu crédito de La señal</i></div>'
+        : ahorro
         ? '<div class="oapre"><s>'+miles(PACK.ancla)+'</s><b>'+miles(PACK.precio)+'</b>'
           +'<i class="oaoff">ahorrás '+miles(ahorro)+'</i></div>'
         : '')
     +'<button class="btn obig op2btn" '
       + (algo ? ('data-act="comprar" data-id="'+of.id+'"') : 'data-act="oferta"')+'>'
       +'<span>'+(algo?("Desbloquear "+esc(of.nombre)):"Desbloquear todo")+'</span>'
-      +'<i>'+miles(of.precio)+'<u>'+MONEDA+'</u></i></button>'
+      +'<i>'+miles(pr)+'<u>'+MONEDA+'</u></i></button>'
     +'<button class="olink" data-act="desbloquear">Ya lo compré — desbloquear</button>'
     +'<p class="oanota">Pago único. No es suscripción.</p>'
     +'</div>';
 }
 
 window.NOCTRA_OFERTA={
-  abrir:abrir, tarjeta:tarjeta, alerta:alerta, prod:PROD, pack:PACK,
+  abrir:abrir, downsell:abrirDownsell, tarjeta:tarjeta, alerta:alerta,
+  prod:PROD, pack:PACK, precio:precioDe,
   plata:plata, miles:miles, ir:irAlCheckout,
+  /* El cupón del crédito, para cargarlo sin tocar el archivo:
+     NOCTRA_OFERTA.credito("SENAL4500") */
+  credito:function(c){ if(typeof c==="string") CREDITO.cupon=c.trim(); return CREDITO.cupon; },
   /* Para cargar las variantes sin tocar el archivo:
      NOCTRA_OFERTA.variantes({fecha:"123", lugar:"456"}) */
   variantes:function(m){
-    if(!m) return {fecha:PROD.fecha.variante, lugar:PROD.lugar.variante, pack:PROD.pack.variante};
+    if(!m) return {fecha:PROD.fecha.variante, lugar:PROD.lugar.variante,
+                   senal:PROD.senal.variante, pack:PROD.pack.variante};
     Object.keys(m).forEach(function(k){ if(PROD[k]) PROD[k].variante=String(m[k]||""); });
     return this.variantes();
   }

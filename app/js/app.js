@@ -142,7 +142,7 @@ function vRetrato(){
     /* Sólo con las tres partes se muestra la tarjeta de "ya lo tenés". Si
        compró una sola, la tarjeta de venta sigue ahí ofreciéndole lo que le
        falta: es el único lugar de la app donde se entera de que hay más. */
-    (tienePar("fecha")&&tienePar("lugar")&&tienePar("senal"))
+    (tienePar("fecha")&&tienePar("lugar")&&tienePar("senal")&&tienePar("vos"))
     ? `<div class="sep"></div><div class="card otar abierta">
         <div class="otag">${I.abierto} Tu pack</div>
         <div class="oth">Cuándo, Dónde y Cómo</div>
@@ -301,9 +301,11 @@ function encRituales(){
    El contenido lo arma js/plan.js con las mismas respuestas que dieron el
    retrato, así no puede contradecir a la lectura. */
 function abierto(){ return !!(window.NOCTRA_ACCESO && window.NOCTRA_ACCESO.abierto()); }
-/* Qué secciones tiene compradas. Tres llaves: fecha, lugar, senal. */
+/* Qué secciones tiene compradas. Cuatro llaves: fecha, lugar, senal, vos.
+   'senal' y 'vos' se separaron cuando La señal pasó a venderse suelta: con
+   una sola llave, esa compra de $4.500 abria tambien Por qué vos. */
 function tienePar(x){ return !!(window.NOCTRA_ACCESO && window.NOCTRA_ACCESO.tiene && window.NOCTRA_ACCESO.tiene(x)); }
-function algoAbierto(){ return tienePar("fecha")||tienePar("lugar")||tienePar("senal"); }
+function algoAbierto(){ return tienePar("fecha")||tienePar("lugar")||tienePar("senal")||tienePar("vos"); }
 function ciudad(){ return (window.NOCTRA_ACCESO && window.NOCTRA_ACCESO.ciudad()) || P.ciudad || ""; }
 let PLAN=null, mostradoPack=false;
 function plan(){
@@ -356,7 +358,9 @@ function planSeccion(n,ic,tit,cuerpo){
    número y el nombre de lo que le falta es lo que lo hace comprarlo; un
    hueco sin nombre no da ganas de nada. */
 function planCerrada(n,ic,tit,prod,nota){
-  const O=window.NOCTRA_OFERTA, p=O&&O.prod&&O.prod[prod];
+  /* sin variante cargada en Shopify no hay botón: la sección se ve cerrada
+     y con su nombre, pero no se ofrece algo que todavía no se puede pagar */
+  const O=window.NOCTRA_OFERTA, p0=O&&O.prod&&O.prod[prod], p=(p0&&p0.variante)?p0:null;
   const pm=v=>O&&O.miles?O.miles(v):("$"+String(v).replace(/\B(?=(\d{3})+(?!\d))/g,"."));
   return `<div class="card plsec plcerrada">
     <div class="plh"><span class="plnum">${n}</span><span class="plic">${I.candado}</span><b>${esc(tit)}</b></div>
@@ -375,7 +379,7 @@ function encPlan(){
   const n=NOMBRE?esc(NOMBRE):"";
   const q=n||"esa persona";
 
-  const todo = tienePar("fecha") && tienePar("lugar") && tienePar("senal");
+  const todo = tienePar("fecha") && tienePar("lugar") && tienePar("senal") && tienePar("vos");
   return `<div class="plcab">
     <div class="lab" style="color:var(--oro)">${I.abierto} ${todo?"Tu pack · desbloqueado":"Desbloqueado"}</div>
     <h2 style="margin:6px 0 6px">${todo?"Cuándo, Dónde y Cómo":"Tu encuentro"}</h2>
@@ -426,9 +430,9 @@ function encPlan(){
     ${SE.gestos.map(x=>`<div class="plpaso"><span>${I.corazon}</span><div><small>${esc(x)}</small></div></div>`).join("")}
     <div class="plpaso" style="margin-top:16px"><span>${I.estrella}</span><div><b>Cómo va a pasar</b><small>${esc(SE.circunstancia)}</small></div></div>
     <p class="plnota">${I.info} <b>Lo que NO es ${esc(q)}:</b> ${esc(SE.noEs)}</p>`)
-    : planCerrada(4,I.ojo,"La señal","pack","Cómo reconocerlo cuando lo tengas enfrente: lo que vas a ver primero, lo que vas a notar después, y lo que NO es él. Sólo viene en el pack.")}
+    : planCerrada(4,I.ojo,"La señal","senal","Cómo reconocerlo cuando lo tengas enfrente: lo que vas a ver primero, lo que vas a notar después, y lo que NO es él.")}
 
-  ${tienePar("senal") ? planSeccion(5,I.corazon,"Por qué vos",`
+  ${tienePar("vos") ? planSeccion(5,I.corazon,"Por qué vos",`
     <p style="margin:0 0 12px">Lo que ya tenés y te vuelve inconfundible${n?" para "+n:""}. Sale de lo que contestaste, no de un molde.</p>
     ${VO.tenes.map(x=>`<div class="plpaso"><span>${I.check}</span><div><small>${esc(x)}</small></div></div>`).join("")}
     <div class="lab" style="margin:16px 0 8px">Tres cosas para hacer en la antesala</div>
