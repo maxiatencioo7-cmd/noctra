@@ -451,8 +451,102 @@ var COPY = {
     tit:function(){ return "Acá ves el tramo. Falta el día."; },
     txt:function(){ return "Las ventanas marcan los meses en que es más probable. La fecha exacta del"
       +" encuentro, el lugar y cómo reconocerlo se abren aparte."; }
+  },
+  diario:{
+    tag:"¿Era él?",
+    tit:function(){ return "Anotás encuentros. Falta saber cuál cuenta."; },
+    txt:function(q){ return "Cada persona que anotás te deja la misma duda. La señal te da los dos rasgos"
+      +" y los dos gestos que vas a notar primero"+(q?(" en "+q):"")+", y lo que NO es él."; }
+  },
+  maia:{
+    tag:"Maia no puede contarte esto",
+    tit:function(){ return "Hay cosas que no están en la charla."; },
+    txt:function(){ return "Maia te acompaña con lo que ya tenés. El día, el lugar y la señal del"
+      +" encuentro son otra cosa: están escritos, y se abren aparte."; }
   }
 };
+
+/* Qué producto se destaca en cada lugar de la app.
+
+   Que no sea siempre el pack es a propósito. Quien dijo que no a 13.497 no
+   vuelve a decir que sí al mismo número tres pantallas después; pero el
+   mismo día puede decir que sí a 4.500. Y cada apartado tiene su propia
+   pregunta abierta: en las ventanas falta el día, en el diario falta saber
+   si la persona que anotó era él. Ofrecer ahí lo que contesta esa pregunta
+   vende más que repetir el pack en los cinco lugares.
+
+   Lo que ya compró nunca se le ofrece: si el destacado ya es suyo —o si
+   ya compró algo y el destacado es el pack— cae en falta(), que siempre
+   devuelve algo que no tiene. */
+var DESTACADO = { retrato:"pack", lectura:"pack", ventanas:"fecha",
+                  diario:"senal", maia:"lugar", plan:"pack",
+                  /* el aviso flotante siempre tira por lo más barato */
+                  nudge:"senal" };
+
+function ofrecido(donde){
+  var k = DESTACADO[donde];
+  if(k==="pack") return algoComprado() ? falta() : PACK;
+  var p = k && PROD[k];
+  if(p && p.variante && !tiene(k)) return p;
+  return falta();
+}
+
+/* ─── la cinta ──────────────────────────────────────────────────────
+   Una barra fina, para los lugares donde una tarjeta entera sería una
+   interrupción: el chat con Maia, por ejemplo, donde la persona está en
+   medio de una conversación. Dice qué falta, cuánto sale, y se toca. */
+function cinta(nom, donde){
+  if(comprada()) return "";
+  var c = COPY[donde] || COPY.retrato;
+  var of = ofrecido(donde), pr = precioDe(of);
+  var abre = (of.id==="pack" && !algoComprado())
+    ? 'data-act="oferta"' : ('data-act="comprar" data-id="'+of.id+'"');
+  return '<button class="ocinta" '+abre+'>'
+    +'<span class="ocic">'+I.candado+'</span>'
+    +'<span class="ocitx"><b>'+esc(c.tag)+'</b><small>'+esc(of.nombre)+'</small></span>'
+    +'<i class="ocipre">'+miles(pr)+'</i></button>';
+}
+
+/* ─── el aviso flotante ─────────────────────────────────────────────
+   Aparece solo, una vez por visita, cuando la persona ya se movió un rato
+   por la app. Ofrece lo más barato que le falta, que es lo único que tiene
+   sentido tirar sin que lo hayan pedido.
+
+   Lo que este aviso NO hace, y no va a hacer: decir que alguien acaba de
+   comprar. Un "Sofía de Rosario compró el pack hace 3 minutos" con un
+   nombre inventado es una venta que no existió, escrita para que la lea
+   como real. Eso es igual que el contador que no pusimos y que los "quedan
+   3 lugares" que tampoco: funciona una vez, y después vuelve como pedido
+   de reembolso y como reseña. Si algún día queremos mostrar compras
+   reales, se leen de Shopify y se muestran sin nombre. */
+function nudge(nom){
+  if(comprada()) return false;
+  if(document.getElementById("onudge")) return false;
+  var of = ofrecido("nudge"), pr = precioDe(of);
+  if(!of || !of.variante) return false;
+  var abre = (of.id==="pack" && !algoComprado())
+    ? 'data-act="oferta"' : ('data-act="comprar" data-id="'+of.id+'"');
+  var d=document.createElement("div");
+  d.id="onudge"; d.className="onudge";
+  d.innerHTML='<button class="onx" id="onxb" aria-label="Cerrar">&times;</button>'
+    +'<div class="onlab">'+I.candado+' Todavía cerrado</div>'
+    +'<b>'+esc(of.titulo||of.nombre)+'</b>'
+    +'<p>'+esc(of.sub||"")+'</p>'
+    +'<button class="onbtn" '+abre+'><span>Ver '+esc(of.nombre)+'</span><i>'+miles(pr)+'</i></button>';
+  document.body.appendChild(d);
+  requestAnimationFrame(function(){ d.classList.add("on"); });
+  function fuera(){
+    d.classList.remove("on");
+    setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },300);
+  }
+  d.querySelector("#onxb").onclick=fuera;
+  /* el botón de adentro lo maneja app.js con data-act, pero el aviso se
+     tiene que ir igual cuando lo tocan */
+  var b=d.querySelector(".onbtn");
+  if(b) b.addEventListener("click",function(){ setTimeout(fuera,60); });
+  setTimeout(function(){ if(d.parentNode) fuera(); },14000);
+  return true;
+}
 
 function alerta(nom, donde){
   if(comprada()) return "";
@@ -462,9 +556,9 @@ function alerta(nom, donde){
      no el pack entero: volver a mostrarle el precio completo al que ya puso
      plata se lee como que le quieren cobrar dos veces. */
   var algo = algoComprado();
-  var of = algo ? falta() : PACK;
+  var of = ofrecido(donde);
   var pr = precioDe(of);
-  var ahorro = (!algo && PACK.ancla) ? (PACK.ancla - PACK.precio) : 0;
+  var ahorro = (of.id==="pack" && !algo && PACK.ancla) ? (PACK.ancla - PACK.precio) : 0;
   /* Al que compró La señal se le muestra el crédito en vez del ahorro del
      ancla: es el número que le importa —lo que ya puso, descontado—. */
   var credito = (of.id==="pack" && pr<of.precio) ? (of.precio-pr) : 0;
@@ -481,8 +575,8 @@ function alerta(nom, donde){
           +'<i class="oaoff">ahorrás '+miles(ahorro)+'</i></div>'
         : '')
     +'<button class="btn obig op2btn" '
-      + (algo ? ('data-act="comprar" data-id="'+of.id+'"') : 'data-act="oferta"')+'>'
-      +'<span>'+(algo?("Desbloquear "+esc(of.nombre)):"Desbloquear todo")+'</span>'
+      + (of.id==="pack" && !algo ? 'data-act="oferta"' : ('data-act="comprar" data-id="'+of.id+'"'))+'>'
+      +'<span>'+(of.id==="pack" && !algo ? "Desbloquear todo" : ("Desbloquear "+esc(of.nombre)))+'</span>'
       +'<i>'+miles(pr)+'<u>'+MONEDA+'</u></i></button>'
     +'<button class="olink" data-act="desbloquear">Ya lo compré — desbloquear</button>'
     +'<p class="oanota">Pago único. No es suscripción.</p>'
@@ -491,6 +585,7 @@ function alerta(nom, donde){
 
 window.NOCTRA_OFERTA={
   abrir:abrir, downsell:abrirDownsell, tarjeta:tarjeta, alerta:alerta,
+  cinta:cinta, nudge:nudge,
   prod:PROD, pack:PACK, precio:precioDe,
   plata:plata, miles:miles, ir:irAlCheckout,
   /* El cupón del crédito, para cargarlo sin tocar el archivo:

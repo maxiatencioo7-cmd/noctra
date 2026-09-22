@@ -89,12 +89,27 @@ function barra(){
 function pintar(){
   const V={retrato:vRetrato,lectura:vLectura,encuentro:vEncuentro,diario:vDiario,maia:vMaia}[tab];
   $app.innerHTML=cabecera()+`<main class="vista">${V()}</main>`+barra();
-  $$("[data-tab]").forEach(b=>b.onclick=()=>{ if(tab===b.dataset.tab){scrollTo({top:0,behavior:"smooth"});return;} tab=b.dataset.tab; pintar(); scrollTo({top:0,behavior:"instant"}); });
+  $$("[data-tab]").forEach(b=>b.onclick=()=>{ if(tab===b.dataset.tab){scrollTo({top:0,behavior:"smooth"});return;} tab=b.dataset.tab; pintar(); scrollTo({top:0,behavior:"instant"}); quizaNudge(); });
   $$("[data-act]").forEach(b=>b.onclick=e=>acciones(b.dataset.act,b,e));
   const post={retrato:postRetrato,lectura:postLectura,encuentro:postEncuentro,diario:postDiario,maia:postMaia}[tab];
   if(post)post();
 }
 function ir(t){ tab=t; pintar(); scrollTo({top:0,behavior:"instant"}); }
+
+/* El aviso flotante. Se cuenta cuántas veces cambió de pestaña en esta
+   visita y recién a la cuarta aparece: antes de eso la persona todavía
+   está mirando lo que compró, y una oferta ahí es una interrupción. Una
+   sola vez por visita —no se guarda en el teléfono a propósito: si vuelve
+   mañana, vuelve a estar disponible, pero dentro de la misma sesión no se
+   repite—. Nunca a quien ya tiene todo. */
+let navegadas=0, nudgeado=false;
+function quizaNudge(){
+  if(nudgeado || D.segundoTrazo===true && !window.NOCTRA_OFERTA) return;
+  const O=window.NOCTRA_OFERTA;
+  if(!O || !O.nudge) return;
+  if(++navegadas < 4) return;
+  nudgeado = O.nudge(NOMBRE) || nudgeado;
+}
 
 /* ================= 1. RETRATO ================= */
 function tarjetasDato(){
@@ -530,7 +545,8 @@ function vDiario(){
       ${cs.map(c=>`<div class="cruce">${esc(c)}</div>`).join("")}
       <button class="pill" data-act="borrarEnt" data-id="${e.t}" style="margin:9px 0 0;font-size:12px;min-height:34px;padding:6px 12px">Borrar</button>
     </div>`;}).join("")}</div>`
-   :`<div class="vacio">${I.diario}<p class="small">${filtro?"Nada con esa búsqueda.":"Todavía no hay entradas. Empezá por algo mínimo: una señal, alguien que apareció, un sueño."}</p></div>`}`;
+   :`<div class="vacio">${I.diario}<p class="small">${filtro?"Nada con esa búsqueda.":"Todavía no hay entradas. Empezá por algo mínimo: una señal, alguien que apareció, un sueño."}</p></div>`}
+  ${window.NOCTRA_OFERTA?`<div class="sep"></div>${window.NOCTRA_OFERTA.alerta(NOMBRE,"diario")}`:""}`;
 }
 function resumenMes(es){
   const t={};es.forEach(e=>t[e.tipo]=(t[e.tipo]||0)+1);
@@ -554,12 +570,16 @@ function postDiario(){
 /* ================= 5. MAIA ================= */
 function vMaia(){
   const ch=D.chat||[];
+  /* acá va la cinta y no la tarjeta: la persona está en medio de una
+     conversación, una tarjeta entera se lee como que la interrumpen */
+  const cin=window.NOCTRA_OFERTA?window.NOCTRA_OFERTA.cinta(NOMBRE,"maia"):"";
   /* si la ultima respuesta no encontro tema, se muestran los cercanos como
      botones: asi nunca queda en un callejon sin salida */
   const ult=D.ultSug&&D.ultSug.t===(ch.length?ch.length:0)?D.ultSug:null;
   return `<div style="padding-bottom:78px">
     <h1 style="margin:0 0 6px">Maia</h1>
     <button class="pill" data-act="quienEsMaia" style="margin:0 0 16px">${I.info} Quién es Maia</button>
+    ${cin}
     ${!ch.length?`<div class="card" style="border-color:rgba(143,211,255,.22)"><div class="lab" style="color:var(--azul)">Antes de empezar</div><p style="margin:8px 0 0">${esc(MAIA.PRESENTACION)}</p></div>`:""}
     <div class="chat" id="chat">${ch.map(m=>`<div class="msg ${m.q==="y"?"y":"m"}">${esc(m.t)}</div>`).join("")}</div>
     ${ch.length<2?`<div class="scroll-x" style="margin-top:14px">${MAIA.PILDORAS.map(p=>`<button class="pill" data-act="pildora" data-id="${esc(p)}">${esc(p)}</button>`).join("")}</div>`:""}
