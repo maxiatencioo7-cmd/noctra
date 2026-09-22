@@ -82,10 +82,16 @@ try{
    siendo la que pagó, solo cambia lo que contestó. */
 try{
   if(new URLSearchParams(location.search).get("nuevo")==="1"){
-    const cod=D.codigoCompra||"";
+    /* Borra lo que define el retrato, y nada más.
+
+       El diario, las personas, el chat con Maía y los favoritos son de la
+       persona, no del dibujo. Borrarlos porque pidió rehacer el retrato
+       sería cobrarle el arreglo con lo que escribió. El código de compra y
+       el acceso al pack también quedan: sigue siendo la que pagó. */
     localStorage.removeItem(KEY_QUIZ);
-    borrarTodo();
-    if(cod){ D.codigoCompra=cod; guardar(); }
+    D.revelado=false; D.rasgos=null; D.nombrePareja=null;
+    D.ofertaVista=false; D.ventana=null;
+    guardar();
     try{ history.replaceState(null,"",location.pathname); }catch(e){}
   }
 }catch(e){}
