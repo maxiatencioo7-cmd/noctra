@@ -66,7 +66,7 @@ const VARIANTES = {
      respaldo escrito a proposito, porque una variante inventada abriria
      una seccion a quien no pago. Se carga VARIANTE_SENAL en Vercel con el
      ID real y desde ahi funciona. */
-  senal: ids(process.env.VARIANTE_SENAL || ''),
+  senal: ids(process.env.VARIANTE_SENAL || '50520637472982'),
 };
 
 /* Que partes abre cada producto.
