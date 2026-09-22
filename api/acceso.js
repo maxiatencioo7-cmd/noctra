@@ -62,13 +62,24 @@ const VARIANTES = {
   /* PACK_VARIANT_IDS se sigue leyendo con el nombre viejo para no romper lo
      que ya esta cargado en Vercel. */
   pack:  ids(process.env.VARIANTE_PACK || process.env.PACK_VARIANT_IDS || '50408908652758'),
+  /* La senal suelta, el downsell. Sin ID cargado no reconoce nada: no hay
+     respaldo escrito a proposito, porque una variante inventada abriria
+     una seccion a quien no pago. Se carga VARIANTE_SENAL en Vercel con el
+     ID real y desde ahi funciona. */
+  senal: ids(process.env.VARIANTE_SENAL || ''),
 };
 
-/* Qué partes abre cada producto. */
+/* Que partes abre cada producto.
+
+   'senal' y 'vos' son dos llaves distintas a proposito. Hasta el
+   22/09/2026 una sola llave abria las dos secciones, asi que vender La
+   senal suelta habria regalado tambien Por que vos, que es una de las dos
+   que sostienen el precio del pack. */
 const ABRE = {
   fecha: ['fecha'],
   lugar: ['lugar'],
-  pack:  ['fecha', 'lugar', 'senal'],
+  senal: ['senal'],
+  pack:  ['fecha', 'lugar', 'senal', 'vos'],
 };
 /* Códigos que Maxi puede repartir a mano (regalos, soporte, reposiciones). */
 const MANUALES = (process.env.ACCESO_CODIGOS || '')
@@ -267,7 +278,7 @@ export default async function handler(request) {
   if (!perfil && !email && !codigo) return responder({ acceso: false, via: 'solo_geo' });
 
   if (codigo && MANUALES.indexOf(codigo) >= 0) {
-    return responder({ acceso: true, partes: ['fecha', 'lugar', 'senal'], via: 'codigo_manual' });
+    return responder({ acceso: true, partes: ['fecha', 'lugar', 'senal', 'vos'], via: 'codigo_manual' });
   }
 
   const r = await ordenes();
@@ -304,7 +315,7 @@ export default async function handler(request) {
   /* Quien compro los dos sueltos puso 20.000, que es mas que los 13.497 del
      pack. Seria injusto —y se leeria como una trampa— que encima le faltaran
      dos secciones que el pack si trae. Con los dos, se le da todo. */
-  if (suma.fecha && suma.lugar) suma.senal = true;
+  if (suma.fecha && suma.lugar) { suma.senal = true; suma.vos = true; }
   const partes = Object.keys(suma);
   const match = mias[0];
 
