@@ -1140,11 +1140,27 @@
       if(huella === ultimoPerfil) return perfil;
       ultimoPerfil = huella;
 
-      var guardado = {};
-      try{ guardado = JSON.parse(localStorage.getItem("noctra_v2")) || {}; }catch(e){}
-      guardado.a = Object.assign({}, guardado.a || {}, perfil);
-      if(S.a.nombre) guardado.nombre = S.a.nombre;
-      try{ localStorage.setItem("noctra_v2", JSON.stringify(guardado)); }catch(e){}
+      /* Lo ÚNICO que el quiz le deja a la app es el código de la compra:
+         quién pagó. Las respuestas ya no viajan.
+
+         Antes sí viajaban, y de ahí salía el rostro. El quiz no preguntaba
+         a quién busca la persona —asumía el sexo opuesto— y ese supuesto
+         llegaba a la app convertido en un dato, indistinguible de una
+         respuesta real. La app lo dibujaba sin volver a preguntar. A mucha
+         gente le llegó el rostro equivocado sin que nadie le hubiera
+         preguntado nunca.
+
+         Ahora el quiz vende y la app pregunta. Son dos cosas separadas y
+         cada una guarda lo suyo. */
+      try{
+        var est = {};
+        try{ est = JSON.parse(localStorage.getItem("noctra_app_v1")) || {}; }catch(e){}
+        var cod = window.NOCTRA_CODIGO.codificar ? window.NOCTRA_CODIGO.codificar(perfil) : "";
+        if(cod && est.codigoCompra !== cod){
+          est.codigoCompra = cod;
+          localStorage.setItem("noctra_app_v1", JSON.stringify(est));
+        }
+      }catch(e){}
       return perfil;
     }catch(e){ return null; }
   }
