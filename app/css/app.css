@@ -676,3 +676,44 @@ label.f>span{display:block;margin:0 0 7px}
 #oferta.ods .opack2 .op2mas{text-align:left}
 #oferta.ods .op2pre.odsc{justify-content:space-between;margin:0 0 12px;text-align:left}
 #oferta.ods .op2pre.odsc span{color:var(--tx3,#5E6785);font-size:13px}
+
+/* ─── la cinta ──────────────────────────────────────────────────────
+   Barra fina para los lugares donde una tarjeta entera interrumpe. */
+.ocinta{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 16px;
+  padding:12px 14px;border-radius:var(--r);text-align:left;cursor:pointer;
+  border:1px solid rgba(245,214,123,.30);
+  background:linear-gradient(180deg,rgba(245,214,123,.09),rgba(245,214,123,.02));
+  color:var(--tx);font-family:inherit}
+.ocinta .ocic{flex:0 0 22px;color:var(--oro);display:flex}
+.ocinta .ocic svg{width:18px;height:18px}
+.ocinta .ocitx{flex:1;min-width:0}
+.ocinta .ocitx b{display:block;font-size:14px;line-height:19px}
+.ocinta .ocitx small{display:block;color:var(--tx2);font-size:12.5px;line-height:18px}
+.ocinta .ocipre{font-style:normal;font-weight:700;color:var(--oro);font-size:15px;white-space:nowrap}
+.ocinta:active{transform:scale(.99)}
+
+/* ─── el aviso flotante ─────────────────────────────────────────────
+   Abajo a la izquierda, por encima de la barra de pestañas. Entra
+   deslizándose desde el borde y se va solo. No tapa el botón de enviar
+   del chat, que vive a la derecha. */
+.onudge{position:fixed;left:12px;bottom:calc(80px + env(safe-area-inset-bottom));
+  z-index:94;width:min(300px,calc(100vw - 24px));padding:14px 15px 13px;
+  border-radius:var(--r);border:1px solid rgba(245,214,123,.38);
+  background:linear-gradient(180deg,#101830,#0A0F22);
+  box-shadow:0 18px 44px rgba(0,0,0,.55);
+  opacity:0;transform:translateX(-14px) scale(.98);
+  transition:opacity .34s var(--ease),transform .34s var(--ease)}
+.onudge.on{opacity:1;transform:translateX(0) scale(1)}
+@media (prefers-reduced-motion:reduce){ .onudge{transition:none} }
+.onudge .onx{position:absolute;top:6px;right:8px;background:none;border:0;
+  color:var(--tx2);font-size:21px;line-height:1;padding:4px 7px;cursor:pointer}
+.onudge .onlab{display:flex;align-items:center;gap:6px;color:var(--oro);
+  font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin:0 0 7px}
+.onudge .onlab svg{width:13px;height:13px}
+.onudge b{display:block;font-family:"Fraunces","Iowan Old Style",Georgia,serif;
+  font-size:17px;line-height:22px;margin:0 0 4px}
+.onudge p{margin:0 0 11px;color:var(--tx2);font-size:12.5px;line-height:18px}
+.onudge .onbtn{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  width:100%;min-height:44px;padding:0 14px;border:0;border-radius:999px;
+  background:var(--oro);color:#141007;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer}
+.onudge .onbtn i{font-style:normal;font-weight:800;font-size:15px}
