@@ -45,6 +45,13 @@ const vacio={
   /* sugerencias de la ultima respuesta de Maia sin tema */
   ultSug:null,
   ciudadIP:"", ciudadManual:"",
+  /* El código de perfil con el que se hizo la compra, tal cual llegó.
+     Es la IDENTIDAD ante /api/acceso y nada más: no dice qué rostro
+     dibujar. Antes se recalculaba desde las respuestas, así que cambiar
+     una respuesta cambiaba el código y la persona perdía el pack que
+     había pagado. Guardarlo aparte es lo que deja que las respuestas se
+     puedan corregir sin tocar la compra. */
+  codigoCompra:"",
   leidas:{}, favoritas:{}, diario:[], personas:[], chat:[],
   maiaVisto:false, notif:{ventanas:true,lunas:true,bocetos:true,diaria:false,hora:"09:00"},
   rituales:{}, archivo:[], ultimaDiaria:""
@@ -68,24 +75,42 @@ try{
   }
 }catch(e){}
 
-/* Si el enlace trae el perfil (viene del mail de la compra), lo guardamos
-   en este dispositivo. Desde ahí en más la app ya no necesita el enlace. */
+/* ?nuevo=1 — el link que se manda para que alguien lo haga de cero.
+   Borra el perfil y el estado de la app en ESTE teléfono y arranca por las
+   preguntas. Es lo que hace que mandar el link a otra persona no le muestre
+   el retrato del anterior. El código de compra se conserva: la persona sigue
+   siendo la que pagó, solo cambia lo que contestó. */
+try{
+  if(new URLSearchParams(location.search).get("nuevo")==="1"){
+    const cod=D.codigoCompra||"";
+    localStorage.removeItem(KEY_QUIZ);
+    borrarTodo();
+    if(cod){ D.codigoCompra=cod; guardar(); }
+    try{ history.replaceState(null,"",location.pathname); }catch(e){}
+  }
+}catch(e){}
+
+/* El enlace del mail de la compra trae ?p=<código>&n=<nombre>.
+
+   De ahí se guarda SOLO el código: sirve para que /api/acceso reconozca a
+   quien pagó, y para nada más. Las respuestas que el código lleva adentro
+   ya no se usan para dibujar —el rostro sale de lo que la persona contesta
+   acá adentro—, porque varias de esas respuestas el quiz nunca las
+   preguntó: las supuso. */
 function desdeURL(){
   try{
-    const q=new URLSearchParams(location.search).get("p");
-    if(!q||!window.NOCTRA_CODIGO) return false;
-    const a=window.NOCTRA_CODIGO.decodificar(q);
-    if(!a) return false;
-    let s={}; try{ s=JSON.parse(localStorage.getItem(KEY_QUIZ))||{}; }catch(e){}
-    s.a=Object.assign({},s.a||{},a);
-    const n=(new URLSearchParams(location.search).get("n")||"").trim().slice(0,40);
-    if(n) s.nombre=n;
-    /* El código no lleva la marca de "perfil corto" —no le sobra un
-       carácter—, así que viaja aparte como &k=1 (la "c" ya la usa el código de acceso manual). Sin esto, a quien entra por el mail
-       le saldría la lectura como si hubiera contestado las veinte
-       preguntas, y no se le podría ofrecer completarla. */
-    if(new URLSearchParams(location.search).get("k")==="1") s.a.corto=true;
-    localStorage.setItem(KEY_QUIZ,JSON.stringify(s));
+    const par=new URLSearchParams(location.search);
+    const q=par.get("p");
+    const n=(par.get("n")||"").trim().slice(0,40);
+    if(!q && !n) return false;
+    if(q && window.NOCTRA_CODIGO && window.NOCTRA_CODIGO.decodificar(q)){
+      D.codigoCompra=q; guardar();
+    }
+    if(n){
+      let s={}; try{ s=JSON.parse(localStorage.getItem(KEY_QUIZ))||{}; }catch(e){}
+      s.nombre=n;
+      try{ localStorage.setItem(KEY_QUIZ,JSON.stringify(s)); }catch(e){}
+    }
     try{ history.replaceState(null,"",location.pathname); }catch(e){}
     return true;
   }catch(e){ return false; }

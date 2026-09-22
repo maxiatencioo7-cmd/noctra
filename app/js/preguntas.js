@@ -71,6 +71,9 @@ function pintar(C,largas){
   const Q=C.preguntas, MESES=C.meses;
   const PASOS=largas?LARGAS:CORTAS;
   const R={};                       // respuestas
+  /* Si el mail de la compra trajo el nombre, viene puesto: es una pregunta
+     menos para quien acaba de pagar. */
+  try{ const g=JSON.parse(localStorage.getItem(KEY)); if(g&&g.nombre) R.nombre=g.nombre; }catch(e){}
   let i=0;
 
   const caja=document.createElement("div");

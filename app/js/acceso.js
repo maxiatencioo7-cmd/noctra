@@ -19,8 +19,17 @@ var RUTA="/api/acceso";
 var ultimo=0, pidiendo=false, hubo=false;
 var oyentes=[];
 
+/* El código con el que /api/acceso reconoce a quien pagó.
+
+   Primero el que vino con la compra, guardado tal cual. Recalcularlo desde
+   las respuestas —que es lo único que se hacía antes— ataba la identidad
+   al contenido: alguien corregía a quién busca, el código cambiaba, Shopify
+   ya no lo reconocía y perdía el pack que había pagado. El recalculado
+   queda de respaldo para los perfiles viejos, que no tienen guardado el
+   código original. */
 function codigo(){
   try{
+    if(D && D.codigoCompra) return D.codigoCompra;
     if(!window.NOCTRA_CODIGO||!P) return "";
     return window.NOCTRA_CODIGO.codificar(P)||"";
   }catch(e){ return ""; }
