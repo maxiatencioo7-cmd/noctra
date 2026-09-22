@@ -664,3 +664,13 @@ label.f>span{display:block;margin:0 0 7px}
   .plfilas{grid-template-columns:1fr 1fr}
   .plfilas>div:last-child{grid-column:1/-1}
 }
+
+/* ─── el downsell ───────────────────────────────────────────────────
+   Usa la misma hoja que el upsell (#oferta): mismo alto, misma entrada,
+   mismos botones. Sólo cambia la alineación de la lista: acá son tres
+   renglones que se leen, no tres precios que se comparan, y centrados
+   cuestan más de leer. */
+#oferta.ods .olista{margin:0 0 14px}
+#oferta.ods .oit{text-align:left;padding:13px 14px;margin:0 0 8px}
+#oferta.ods .oit b{margin:0;font-weight:600;line-height:20px}
+#oferta.ods .opack2 .op2mas{text-align:left}
