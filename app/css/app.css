@@ -717,3 +717,24 @@ label.f>span{display:block;margin:0 0 7px}
   width:100%;min-height:44px;padding:0 14px;border:0;border-radius:999px;
   background:var(--oro);color:#141007;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer}
 .onudge .onbtn i{font-style:normal;font-weight:800;font-size:15px}
+
+/* ─── la isla de compras reales ─────────────────────────────────────
+   Más chica que el aviso de oferta y sin botón: no pide nada, sólo
+   cuenta algo que pasó. Comparte el borde inferior con el otro aviso,
+   que nunca salen los dos juntos. */
+.oprueba{position:fixed;left:12px;bottom:calc(80px + env(safe-area-inset-bottom));
+  z-index:93;display:flex;align-items:center;gap:10px;
+  max-width:min(290px,calc(100vw - 24px));padding:10px 14px 10px 12px;
+  border-radius:999px;border:1px solid var(--linea);
+  background:rgba(12,17,34,.94);backdrop-filter:blur(8px);
+  box-shadow:0 14px 34px rgba(0,0,0,.5);
+  opacity:0;transform:translateX(-12px);
+  transition:opacity .32s var(--ease),transform .32s var(--ease)}
+.oprueba.on{opacity:1;transform:translateX(0)}
+@media (prefers-reduced-motion:reduce){ .oprueba{transition:none} }
+.oprueba .opunto{flex:0 0 8px;width:8px;height:8px;border-radius:50%;
+  background:var(--ok,#6FD39A);box-shadow:0 0 0 4px rgba(111,211,154,.16)}
+.oprueba .oprtx{min-width:0}
+.oprueba .oprtx b{display:block;font-size:13px;line-height:17px;font-weight:700}
+.oprueba .oprtx small{display:block;color:var(--tx2);font-size:12px;line-height:16px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
