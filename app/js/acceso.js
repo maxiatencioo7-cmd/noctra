@@ -70,7 +70,7 @@ function aplicar(j){
      caído dejarían a un comprador afuera. Sólo se abre. Lo que sí cierra
      es que el servidor conteste que no, dos veces seguidas, con el mismo
      código de perfil y sin error —eso es que la orden fue anulada—. */
-  if(j && j.acceso===false && j.via==="perfil" && D.segundoTrazo){
+  if(j && j.acceso===false && j.via==="perfil" && D.segundoTrazo && !D.codigoManual){
     D.negativos=(D.negativos||0)+1;
     if(D.negativos>=2){ D.segundoTrazo=false; D.partes=null; D.negativos=0; cambio=true; }
   }else if(j && j.acceso===true){ D.negativos=0; }
@@ -86,6 +86,12 @@ function comprobar(forzar, cb){
   pidiendo=true; ultimo=Date.now();
   var q=[], c=codigo();
   if(c) q.push("p="+encodeURIComponent(c));
+  /* El código a mano viaja en cada consulta, no solo la primera vez. Sin
+     esto el servidor contestaba que no (la persona no tiene orden en
+     Shopify) y a la segunda negativa se le cerraba el pack que se le había
+     regalado. Sigue validándose del lado del servidor: sacarlo de
+     ACCESO_CODIGOS lo revoca en la consulta siguiente. */
+  if(D && D.codigoManual) q.push("c="+encodeURIComponent(D.codigoManual));
   fetch(RUTA+(q.length?"?"+q.join("&"):""),{cache:"no-store",credentials:"omit"})
     .then(function(r){ return r.ok?r.json():null; })
     .then(function(j){
@@ -119,7 +125,11 @@ function porCodigo(cod, cb){
     .then(function(r){ return r.ok?r.json():null; })
     .then(function(j){
       var ok=!!(j&&j.acceso);
-      if(ok){ aplicar(j); avisar(true); }
+      if(ok){
+        /* se guarda para que comprobar() lo siga mandando */
+        try{ if(D){ D.codigoManual=String(cod||"").trim(); DT.guardar(); } }catch(e){}
+        aplicar(j); avisar(true);
+      }
       if(cb) cb(ok, j);
     })
     .catch(function(){ if(cb)cb(false); });
