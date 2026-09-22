@@ -89,7 +89,7 @@ var PROD={
    producto del pack—, no la app: acá sólo se muestra el precio final y se
    agrega el código al enlace del carrito. Con CUPON en blanco no se
    descuenta nada y el pack sigue costando lo de siempre. */
-var CREDITO={ cupon:"", monto:4500 };
+var CREDITO={ cupon:"CREDITOSENAL", monto:4500 };
 /* El resto de la app lee PACK para la tarjeta del retrato y la pestaña
    cerrada: se deja con el nombre de siempre. */
 var PACK=PROD.pack;
