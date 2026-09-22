@@ -104,10 +104,16 @@ function ir(t){ tab=t; pintar(); scrollTo({top:0,behavior:"instant"}); }
    repite—. Nunca a quien ya tiene todo. */
 let navegadas=0, nudgeado=false;
 function quizaNudge(){
-  if(nudgeado || D.segundoTrazo===true && !window.NOCTRA_OFERTA) return;
   const O=window.NOCTRA_OFERTA;
-  if(!O || !O.nudge) return;
-  if(++navegadas < 4) return;
+  if(!O) return;
+  navegadas++;
+  /* Primero la prueba: una compra real de esta semana, si la hay. Va antes
+     que la oferta porque no pide nada —solo cuenta algo que pasó— y porque
+     después de verla, la oferta que llega más tarde cae mejor. A la
+     segunda pestaña, que es temprano: es un dato, no una interrupción. */
+  if(navegadas===2 && O.prueba){ O.prueba(function(){}); return; }
+  /* La oferta recién a la cuarta, una sola vez, y nunca al que tiene todo. */
+  if(nudgeado || navegadas<4 || !O.nudge) return;
   nudgeado = O.nudge(NOMBRE) || nudgeado;
 }
 

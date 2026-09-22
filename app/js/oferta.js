@@ -507,6 +507,61 @@ function cinta(nom, donde){
     +'<i class="ocipre">'+miles(pr)+'</i></button>';
 }
 
+/* ─── la prueba social, con compras de verdad ───────────────────────
+   Una isla chiquita abajo a la izquierda: "Alguien de Córdoba se llevó el
+   pack · hace 2 horas". Sale de /api/ultimas, que lee las órdenes pagadas
+   de Shopify. Sin nombre y sin mail a propósito: quien compró un retrato
+   de su alma gemela no firmó para aparecer en la pantalla de un
+   desconocido, y la ciudad sola no identifica a nadie.
+
+   Si no hubo ventas en la semana, la lista viene vacía y no se muestra
+   nada. Ahí es donde se cae la tentación de escribirlas a mano, y es
+   justo donde no hay que hacerlo: una compra inventada es una venta que
+   no existió, y el producto entero se apoya en que la persona crea lo que
+   le contamos sobre alguien que no conoce. */
+var COMPRAS = null;   /* null = todavía no se pidió */
+
+function traerCompras(cb){
+  if(COMPRAS){ cb(COMPRAS); return; }
+  try{
+    fetch("/api/ultimas",{cache:"no-store",credentials:"omit"})
+      .then(function(r){ return r.ok?r.json():null; })
+      .then(function(j){
+        COMPRAS = (j && Array.isArray(j.compras)) ? j.compras : [];
+        cb(COMPRAS);
+      })
+      .catch(function(){ COMPRAS=[]; cb(COMPRAS); });
+  }catch(e){ COMPRAS=[]; cb(COMPRAS); }
+}
+
+function islaCompra(c){
+  if(document.getElementById("oprueba")) return false;
+  var d=document.createElement("div");
+  d.id="oprueba"; d.className="oprueba";
+  d.innerHTML='<span class="opunto"></span>'
+    +'<span class="oprtx"><b>Alguien de '+esc(c.lugar)+'</b>'
+      +'<small>se llevó '+esc(c.producto)+' · '+esc(c.cuando)+'</small></span>';
+  document.body.appendChild(d);
+  requestAnimationFrame(function(){ d.classList.add("on"); });
+  setTimeout(function(){
+    d.classList.remove("on");
+    setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },320);
+  },6500);
+  return true;
+}
+
+/* Se muestran de a una, en orden, sin repetir dentro de la misma visita.
+   Devuelve false cuando no queda ninguna: ahí el que llama decide si tira
+   la oferta en su lugar. */
+var vistas=0;
+function prueba(cb){
+  traerCompras(function(l){
+    if(!l.length || vistas>=l.length){ if(cb) cb(false); return; }
+    var c=l[vistas++];
+    if(cb) cb(islaCompra(c));
+  });
+}
+
 /* ─── el aviso flotante ─────────────────────────────────────────────
    Aparece solo, una vez por visita, cuando la persona ya se movió un rato
    por la app. Ofrece lo más barato que le falta, que es lo único que tiene
@@ -585,7 +640,7 @@ function alerta(nom, donde){
 
 window.NOCTRA_OFERTA={
   abrir:abrir, downsell:abrirDownsell, tarjeta:tarjeta, alerta:alerta,
-  cinta:cinta, nudge:nudge,
+  cinta:cinta, nudge:nudge, prueba:prueba,
   prod:PROD, pack:PACK, precio:precioDe,
   plata:plata, miles:miles, ir:irAlCheckout,
   /* El cupón del crédito, para cargarlo sin tocar el archivo:
