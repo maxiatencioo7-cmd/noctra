@@ -67,7 +67,21 @@ function lugarDe(o) {
   const d = o.billing_address || o.shipping_address || o.customer_address || {};
   const c = String(d.city || '').trim();
   const p = String(d.province || '').trim();
-  return c || p || '';
+  return titulo(c || p || '');
+}
+
+/* La ciudad la escribe cada comprador a mano en el checkout, así que llega
+   como "san francisco", "RIO GRANDE" o "Mar del Plata", las tres en la
+   misma lista. Se normaliza acá: leer "Alguien de san francisco" hace que
+   todo el aviso parezca un error del sistema. Las partículas quedan en
+   minúscula, que es como se escriben en castellano. */
+const CHICAS = ['de', 'del', 'la', 'las', 'los', 'y', 'el'];
+function titulo(s) {
+  return String(s || '').toLowerCase().split(/\s+/).filter(Boolean)
+    .map((w, i) => (i > 0 && CHICAS.indexOf(w) >= 0)
+      ? w
+      : w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
 }
 
 function hace(iso) {
