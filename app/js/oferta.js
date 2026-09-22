@@ -284,6 +284,13 @@ function abrirDownsell(nom, alSeguir){
         + puntoD("Cómo va a ser el primer cruce, en concreto")
       +'</div>'
       +'<p class="op2mas" style="margin:0 0 14px">Y <b>lo que NO es él</b>: la contraseña para no ilusionarte con la persona equivocada.</p>'
+      /* El comparativo. No lleva precio tachado: La señal nunca costó otra
+         cosa, y tacharle un número inventado es la clase de mentira que
+         después vuelve como reembolso. Lo que se compara es real —lo que
+         cuesta cualquiera de las otras dos sueltas— y la razón de la
+         diferencia se dice en voz alta abajo: es la sección más chica. */
+      +'<div class="op2pre odsc"><span>Cada sección suelta: '+miles(PROD.fecha.precio)+'</span>'
+        +'<b>Ésta: '+miles(PROD.senal.precio)+'</b></div>'
       +'<button class="btn obig op2btn" data-prod="senal">'
         +'<span>Abrir La señal</span><i>'+miles(PROD.senal.precio)+'<u>'+MONEDA+'</u></i></button>'
       +'<p class="op2mas">Es la sección más chica del pack — y la única que se puede llevar sola.'
