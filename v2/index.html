@@ -19,7 +19,22 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
 <meta name="theme-color" content="#9974F6">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/v2/css/quiz.css?v=30">
+<link rel="stylesheet" href="/v2/css/quiz.css?v=33">
+
+<!-- Las tres primeras cartas de la grilla de signos.
+
+     La grilla la dibuja el JS, asi que sin esto el navegador no se entera
+     de que estas imagenes existen hasta despues de bajar y ejecutar
+     content.js y app.js: casi un segundo de cuadros grises en la primera
+     pantalla del embudo. Declaradas aca, empiezan a bajar mientras todavia
+     se esta leyendo el HTML.
+
+     Tres y no doce a proposito: son las de la primera fila. Precargar las
+     doce le sacaria ancho de banda al JS, que es lo que hace falta para
+     que la pagina sea tocable. -->
+<link rel="preload" as="image" href="/v2/assets/aries.webp" fetchpriority="high">
+<link rel="preload" as="image" href="/v2/assets/tauro.webp" fetchpriority="high">
+<link rel="preload" as="image" href="/v2/assets/geminis.webp" fetchpriority="high">
 
 <!-- Meta Pixel — el mismo de siempre, a propósito.
      Un píxel nuevo empezaría a aprender de cero y tiraría a la basura todo
@@ -53,7 +68,7 @@ src="https://www.facebook.com/tr?id=1563930394938040&ev=PageView&noscript=1"></n
 <!-- Compartidos con la portada: la atribución tiene que ser IDÉNTICA en los
      dos embudos o el webhook deja de poder atar la venta al anuncio. Es la
      única parte que no se duplica, justamente porque no debe divergir. -->
-<script src="/js/perfil-codigo.js?v=32"></script>
+<script src="/js/perfil-codigo.js?v=33"></script>
 <script src="/js/pixel.js"></script>
 
 <!-- Propios del v2: acá se construye el quiz nuevo.
@@ -63,7 +78,7 @@ src="https://www.facebook.com/tr?id=1563930394938040&ev=PageView&noscript=1"></n
      nuevo, el copy nuevo saldría sin procesar (por ejemplo, con las llaves
      de género a la vista). Al cambiar cualquiera de los tres, se sube el
      número en los tres. -->
-<script src="/v2/js/content.js?v=32"></script>
-<script src="/v2/js/app.js?v=32"></script>
+<script src="/v2/js/content.js?v=33"></script>
+<script src="/v2/js/app.js?v=33"></script>
 </body>
 </html>
