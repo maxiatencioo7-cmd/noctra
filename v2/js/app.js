@@ -127,15 +127,30 @@
   }
 
   function signos(p){
-    var grilla = (Q.signos||[]).map(function(s){
+    /* Las seis primeras cartas entran arriba del pliegue: se piden ya, con
+       prioridad alta. Con loading="lazy" el navegador esperaba a tener el
+       layout resuelto antes de pedirlas siquiera, y como esta grilla la
+       dibuja el JS, eso pasaba casi un segundo despues de abrir la pagina:
+       la persona veia doce cuadros grises en la primera pantalla del
+       embudo, que es donde mas caro sale que dude. Las otras seis siguen
+       en lazy — hay que bajar para verlas —, asi no compiten por el ancho
+       de banda con las que si se ven.
+
+       El width/height va escrito aunque el CSS mande: le da al navegador
+       la proporcion antes de que baje la imagen y evita que la grilla
+       salte cuando cada carta aterriza. */
+    var grilla = (Q.signos||[]).map(function(s, i){
       var sel = S.a[p.campo]===s.id;
+      var ya = i < 6;
       /* El glifo sostiene la tarjeta mientras la ilustracion baja y se apaga
          cuando llega; el nombre en texto solo aparece si la imagen falla,
          porque la carta ya lo trae impreso abajo. */
       return '<button class="sg'+(sel?" sel":"")+'" data-val="'+esc(s.id)+'" '
         + 'aria-label="'+esc(s.nombre)+'">'
         + '<span class="sgart">'
-          + '<img src="/v2/assets/'+esc(s.id)+'.webp" alt="" loading="lazy" decoding="async" '
+          + '<img src="/v2/assets/'+esc(s.id)+'.webp" alt="" width="380" height="570" '
+          + (ya ? 'loading="eager" fetchpriority="high" decoding="sync" '
+                : 'loading="lazy" decoding="async" ')
           + 'onload="this.closest(\'.sg\').classList.add(\'con-img\')" '
           + 'onerror="this.closest(\'.sg\').classList.add(\'sin-img\'); this.remove()">'
           + '<i class="glifo">'+s.glifo+'</i>'
