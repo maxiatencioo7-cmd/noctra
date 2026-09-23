@@ -713,7 +713,38 @@ function armar(){
   var u = CONFIG.CHECKOUT;
   try{ if(window.NOCTRA_ATRIB) u = window.NOCTRA_ATRIB(u); }catch(e){}
   u += (u.indexOf("?")<0 ? "?" : "&") + "attributes[quiz]=v2&attributes[origen]=espera";
+  u += perfilYNombre();
   return u;
+}
+
+/* El código de perfil y el nombre, pegados al pedido.
+
+   Sin esto, quien compra desde esta pantalla queda como un pedido anónimo:
+   el mail de confirmación arma el enlace "?p={{ attributes.perfil }}" con
+   el valor vacío —así que no restaura nada aunque el texto prometa que
+   lleva sus respuestas adentro— y /api/acceso no puede reconocerla si
+   abre la app en otro teléfono. Es, literalmente, el "pagué y me vuelve a
+   pedir pagar" que ya se arregló en el camino principal del quiz; esta
+   pantalla se había quedado afuera.
+
+   El quiz guarda sus respuestas en el mismo dominio, así que acá se leen
+   igual que se lee el género para el rostro del orbe. Si no hay respuestas
+   —alguien que entró de una a esta URL— no se agrega nada: un código
+   armado sobre datos que no existen es peor que ninguno. */
+function perfilYNombre(){
+  try{
+    var C = window.NOCTRA_CODIGO;
+    if(!C || !C.desdeV2 || !C.codificar) return "";
+    var a = (JSON.parse(localStorage.getItem("noctra_q2") || "{}").a) || {};
+    if(!a.signo) return "";
+    var perfil = C.desdeV2(a);
+    if(!perfil) return "";
+    var cod = C.codificar(perfil);
+    var out = "";
+    if(cod) out += "&attributes[perfil]=" + encodeURIComponent(cod);
+    if(a.nombre) out += "&attributes[nombre]=" + encodeURIComponent(a.nombre);
+    return out;
+  }catch(e){ return ""; }
 }
 var URL_COMPRA = armar();
 
