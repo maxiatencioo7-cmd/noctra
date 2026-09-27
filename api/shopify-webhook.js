@@ -248,8 +248,11 @@ async function sendPurchase(order) {
      señales que Meta usa para atribuir cuando no le llego la cookie. Es dato
      que ya estabamos pagando con friccion en el checkout y no usabamos. */
   const tel = telefono(order);
+  /* El email va sólo si existe de verdad. Mandar el hash de una cadena
+     vacía es peor que no mandar nada: Meta lo toma como un identificador
+     y lo compara contra el hash vacío de cualquier otro anunciante. */
   const user_data = {
-    em: [await sha256(email)],
+    em: isValidEmail(email) ? [await sha256(email)] : undefined,
     ph: tel ? [await sha256(tel)] : undefined,
     fn: c.first_name ? [await sha256(sinEspacios(c.first_name))] : undefined,
     ln: c.last_name ? [await sha256(sinEspacios(c.last_name))] : undefined,
@@ -266,6 +269,16 @@ async function sendPurchase(order) {
     fbp: ids.fbp,
   };
   for (const k of Object.keys(user_data)) if (user_data[k] === undefined) delete user_data[k];
+
+  /* Meta exige al menos un identificador de persona. Con email, teléfono,
+     fbp o fbc alcanza. Si no hay ninguno la venta igual quedó registrada en
+     UTMify —que es lo que no se puede perder—; lo único que se pierde acá
+     es la atribución, que sin datos no existiría de todos modos. */
+  if (!user_data.em && !user_data.ph && !user_data.fbp && !user_data.fbc
+      && !user_data.external_id) {
+    console.warn('[shopify] sin identificador para Meta, order_id=' + order.id);
+    return { ok: true, ignored: 'sin_identificador' };
+  }
 
   const eventTime = Math.floor(
     (Date.parse(order.processed_at || order.created_at || '') || Date.now()) / 1000,
@@ -404,7 +417,14 @@ export async function sendUtmify(order, status) {
     refundedAt: status === 'refunded' ? (fechaUtc(order.updated_at) || fechaUtc(new Date().toISOString())) : null,
     customer: {
       name: nombreDe(order),
-      email: buyerEmail(order),
+      /* UTMify exige un email con forma de email y rechaza el pedido entero
+         si no lo tiene. Cuando la persona pagó con el teléfono no hay
+         ninguno, así que va uno técnico, armado con el número de orden y en
+         nuestro propio dominio: no es de nadie, no recibe correo y se
+         reconoce de un vistazo en el panel. Es eso o perder la venta. */
+      email: isValidEmail(buyerEmail(order))
+        ? buyerEmail(order)
+        : ('sin-email+' + order.id + '@noctrastral.online'),
       phone: (order.phone || (order.customer && order.customer.phone) || null),
       document: null,
       country: paisDe(order),
@@ -520,10 +540,17 @@ export default async function handler(request) {
   if (order.id == null) {
     return Response.json({ ok: true, topic, ignored: 'no_order_id' });
   }
-  if (!isValidEmail(buyerEmail(order))) {
-    console.warn('[shopify] sin email válido, order_id=' + order.id);
-    return Response.json({ ok: true, topic, ignored: 'no_email' });
-  }
+  /* Antes, una orden sin email se descartaba acá y no llegaba a ningún
+     lado. El checkout pide "Email o número de teléfono móvil": quien paga
+     con el teléfono genera una orden sin email, y esa venta desaparecía
+     del dashboard y de Meta sin dejar más rastro que una línea en los
+     logs. Eran ventas reales, cobradas, invisibles.
+
+     Ahora la falta de email no descarta nada: UTMify recibe la venta igual
+     —el dashboard tiene que mostrar TODAS— y Meta decide por su cuenta si
+     tiene con qué identificar a la persona (ver sendPurchase). */
+  const emailOk = isValidEmail(buyerEmail(order));
+  if (!emailOk) console.warn('[shopify] sin email, sigue igual, order_id=' + order.id);
 
   const pagado = topic === 'orders/paid'
     || String(order.financial_status || '').toLowerCase() === 'paid';
