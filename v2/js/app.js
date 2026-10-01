@@ -207,6 +207,7 @@
     }, {passive:true});
 
     app.querySelector("[data-seguir]").addEventListener("click", function(){
+      clic();
       var i = actual();
       if(i < slides.length-1){
         c.scrollTo({ left:(i+1)*c.clientWidth, behavior:"smooth" });
@@ -1004,8 +1005,70 @@
   var TOLERANCIA = 10;
   var tocando = null;
 
+  /* ---- el clic ----------------------------------------------------
+     Un tick corto cada vez que toca una respuesta. No es un archivo: se
+     sintetiza en el momento con WebAudio. Pesa cero, no agrega un pedido
+     de red en la primera pantalla —que es justo donde no sobra nada— y no
+     depende de un CDN ajeno que algún día devuelva 404 y deje el quiz
+     mudo sin que nos enteremos.
+
+     Arranca recién en el primer toque, que es la única forma de que iOS
+     deje sonar algo: un AudioContext creado antes del gesto nace
+     suspendido y no vuelve solo.
+
+     Sólo hasta la prueba social (paso 11). Desde la nota del Maestro en
+     adelante el embudo cambia de registro —ahí hay audios de voz y una
+     conversación— y un tick de interfaz encima suena a videojuego.
+
+     Si algo falla, falla en silencio: nada de esto puede impedir que la
+     persona avance. */
+  var ac = null, mudo = false;
+  try{ mudo = localStorage.getItem("noctra_mudo") === "1"; }catch(e){}
+
+  function clic(){
+    if(mudo || S.paso > 11) return;
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return;
+      if(!ac) ac = new AC();
+      if(ac.state === "suspended") ac.resume();
+
+      var t = ac.currentTime;
+      var g = ac.createGain();
+      g.connect(ac.destination);
+      /* Ataque de 3 ms y caída de 90: más corto suena a error del sistema,
+         más largo deja de ser un clic y pasa a ser una nota. */
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.13, t + 0.003);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+
+      var o = ac.createOscillator();
+      o.type = "triangle";
+      /* La bajada de tono es lo que lo hace "satisfactorio": un tono plano
+         se percibe como aviso; uno que cae, como algo que encastró. */
+      o.frequency.setValueAtTime(1180, t);
+      o.frequency.exponentialRampToValueAtTime(680, t + 0.085);
+      o.connect(g);
+      o.start(t);
+      o.stop(t + 0.1);
+
+      /* Un golpecito agudo arriba, muy corto: es el "tac" del principio.
+         Sin esto el clic suena blando. */
+      var g2 = ac.createGain();
+      g2.connect(ac.destination);
+      g2.gain.setValueAtTime(0.055, t);
+      g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.025);
+      var o2 = ac.createOscillator();
+      o2.type = "square";
+      o2.frequency.setValueAtTime(2300, t);
+      o2.connect(g2);
+      o2.start(t);
+      o2.stop(t + 0.03);
+    }catch(e){}
+  }
+
   function elegir(t){
-    if(t.hasAttribute("data-atras")){ atras(); return; }
+    if(t.hasAttribute("data-atras")){ clic(); atras(); return; }
     /* El de la prueba social tiene su propio listener: avanza el carrusel
        antes de avanzar de pantalla. */
     if(navegando) return;
@@ -1014,6 +1077,7 @@
     var campo = cont.getAttribute("data-campo");
     if(!campo) return;
 
+    clic();
     S.a[campo] = t.getAttribute("data-val");
     guardar();
     navegando = true;
