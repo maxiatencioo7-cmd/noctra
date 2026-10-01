@@ -1016,9 +1016,10 @@
      deje sonar algo: un AudioContext creado antes del gesto nace
      suspendido y no vuelve solo.
 
-     Sólo hasta la prueba social (paso 11). Desde la nota del Maestro en
-     adelante el embudo cambia de registro —ahí hay audios de voz y una
-     conversación— y una campana encima se pisa con ellos.
+     Suena en todo el embudo, el chat incluido. Lo único que lo calla es
+     la voz del Maestro: mientras un audio suena, las campanas y el fondo
+     bajan solos. Pisarle la voz al audio que la persona tocó para
+     escuchar es la forma más segura de arruinar esto.
 
      Si algo falla, falla en silencio: nada de esto puede impedir que la
      persona avance. */
@@ -1039,11 +1040,11 @@
     [[1, vol], [1.5, vol * 0.3], [2, vol * 0.12]].forEach(function(par){
       var g = ac.createGain();
       g.connect(ac.destination);
-      /* Ataque de 12 ms —se oye como un roce, no como un golpe— y una cola
+      /* Ataque de 20 ms —se oye como un roce, no como un golpe— y una cola
          larga que se apaga sola. Eso es lo que lo vuelve celestial en vez
          de un clic de interfaz. */
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(par[1], t + 0.012);
+      g.gain.exponentialRampToValueAtTime(par[1], t + 0.02);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       var o = ac.createOscillator();
       o.type = "sine";
@@ -1069,6 +1070,41 @@
      Arranca con el primer toque —antes iOS no deja— y se apaga sola al
      llegar a la nota del Maestro, donde empiezan los audios de voz. */
   var pad = null;
+
+  /* ---- agacharse cuando habla Elian -------------------------------
+     En el chat la persona toca un audio porque quiere escucharlo. Una
+     campana encima, o un acorde debajo, le pisan la voz: es lo único que
+     puede convertir esto en una molestia en vez de un detalle.
+
+     Así que mientras cualquier <audio> de la página esté sonando, el
+     fondo baja a un cuarto y los botones no suenan. Vuelve solo al
+     terminar. Se escucha en captura porque play y pause no burbujean. */
+  var agachado = false;
+
+  function padVolumen(v, seg){
+    if(!pad || !ac) return;
+    try{
+      var t = ac.currentTime;
+      pad.master.gain.cancelScheduledValues(t);
+      pad.master.gain.setValueAtTime(Math.max(0.0001, pad.master.gain.value), t);
+      pad.master.gain.exponentialRampToValueAtTime(Math.max(0.0001, v), t + seg);
+    }catch(e){}
+  }
+
+  function sonandoAlgo(){
+    var a = document.querySelectorAll("audio");
+    for(var i=0;i<a.length;i++) if(!a[i].paused && !a[i].ended) return true;
+    return false;
+  }
+  function revisarAgachado(){
+    var hay = sonandoAlgo();
+    if(hay === agachado) return;
+    agachado = hay;
+    padVolumen(hay ? 0.007 : 0.028, hay ? 0.35 : 1.2);
+  }
+  ["play","playing","pause","ended"].forEach(function(ev){
+    document.addEventListener(ev, revisarAgachado, true);
+  });
 
   function padArrancar(){
     if(pad || !ac) return;
@@ -1137,23 +1173,17 @@
   /* Si se va a otra pestaña, baja a cero y vuelve al volver: nadie quiere
      buscar de qué pestaña sale una música. */
   addEventListener("visibilitychange", function(){
-    if(!pad || !ac) return;
-    try{
-      var t = ac.currentTime, v = document.visibilityState === "visible";
-      pad.master.gain.cancelScheduledValues(t);
-      pad.master.gain.setValueAtTime(Math.max(0.0001, pad.master.gain.value), t);
-      pad.master.gain.exponentialRampToValueAtTime(v ? 0.028 : 0.0001, t + (v ? 1.2 : 0.4));
-    }catch(e){}
+    if(document.visibilityState === "visible") padVolumen(agachado ? 0.007 : 0.028, 1.2);
+    else padVolumen(0.0001, 0.4);
   });
 
   function padChequear(){
     if(mudo) return;
-    if(S.paso > 11) padApagar();
-    else if(ac && !pad) padArrancar();
+    if(ac && !pad) padArrancar();
   }
 
   function clic(){
-    if(mudo || S.paso > 11) return;
+    if(mudo || agachado) return;
     try{
       var AC = window.AudioContext || window.webkitAudioContext;
       if(!AC) return;
@@ -1163,14 +1193,14 @@
       padArrancar();
       var t = ac.currentTime;
       var f = NOTAS[S.paso % NOTAS.length];
-      /* Tres notas que suben, muy pegadas: la nota, su quinta y la octava.
+      /* Tres notas que suben, con aire entre una y otra: la nota, su quinta y la octava.
          Un sonido solo se registra como "pasó algo"; uno que sube se
          registra como "algo salió bien" — es la misma figura que usan los
          juegos cuando premian, pero tocada con campanas y a un volumen que
          no se impone. */
-      campana(f, t, 0.085, 0.9);
-      campana(f * 1.5, t + 0.055, 0.045, 0.8);
-      campana(f * 2, t + 0.105, 0.03, 0.7);
+      campana(f, t, 0.062, 1.2);
+      campana(f * 1.5, t + 0.09, 0.032, 1.0);
+      campana(f * 2, t + 0.18, 0.02, 0.85);
     }catch(e){}
   }
 
