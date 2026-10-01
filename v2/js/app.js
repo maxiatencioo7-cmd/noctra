@@ -207,7 +207,6 @@
     }, {passive:true});
 
     app.querySelector("[data-seguir]").addEventListener("click", function(){
-      clic();
       var i = actual();
       if(i < slides.length-1){
         c.scrollTo({ left:(i+1)*c.clientWidth, behavior:"smooth" });
@@ -917,6 +916,7 @@
   }
 
   function pintar(){
+    try{ padChequear(); }catch(e){}
     var h = desdeHash();
     if(h!==null && h!==S.paso){ S.paso = Math.max(0,Math.min(h, TOTAL-1)); guardar(); }
     /* Sin hash (el "atrás" del teléfono llegó al link pelado): portada. */
@@ -1006,8 +1006,8 @@
   var tocando = null;
 
   /* ---- el clic ----------------------------------------------------
-     Un tick corto cada vez que toca una respuesta. No es un archivo: se
-     sintetiza en el momento con WebAudio. Pesa cero, no agrega un pedido
+     Una campana corta cada vez que toca una respuesta. No es un archivo:
+     se sintetiza en el momento con WebAudio. Pesa cero, no agrega un pedido
      de red en la primera pantalla —que es justo donde no sobra nada— y no
      depende de un CDN ajeno que algún día devuelva 404 y deje el quiz
      mudo sin que nos enteremos.
@@ -1018,12 +1018,139 @@
 
      Sólo hasta la prueba social (paso 11). Desde la nota del Maestro en
      adelante el embudo cambia de registro —ahí hay audios de voz y una
-     conversación— y un tick de interfaz encima suena a videojuego.
+     conversación— y una campana encima se pisa con ellos.
 
      Si algo falla, falla en silencio: nada de esto puede impedir que la
      persona avance. */
   var ac = null, mudo = false;
   try{ mudo = localStorage.getItem("noctra_mudo") === "1"; }catch(e){}
+
+  /* Las notas. Pentatónica mayor de La: suene en el orden que suene, nunca
+     suena mal — por eso se usa en los juguetes y en los carillones. Cada
+     respuesta toca la siguiente y va subiendo, así avanzar se oye como
+     avanzar. Vuelve a empezar arriba de todo, nunca se va al agudo
+     molesto. */
+  var NOTAS = [880, 987.77, 1108.73, 1318.51, 1479.98, 1760];
+
+  function campana(f, t, vol, dur){
+    /* Una campana es el tono más una quinta justa arriba, muy floja, que
+       le da el brillo. Senos puros: cualquier otra onda acá suena a
+       sintetizador barato, no a algo que resuena. */
+    [[1, vol], [1.5, vol * 0.3], [2, vol * 0.12]].forEach(function(par){
+      var g = ac.createGain();
+      g.connect(ac.destination);
+      /* Ataque de 12 ms —se oye como un roce, no como un golpe— y una cola
+         larga que se apaga sola. Eso es lo que lo vuelve celestial en vez
+         de un clic de interfaz. */
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(par[1], t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      var o = ac.createOscillator();
+      o.type = "sine";
+      o.frequency.setValueAtTime(f * par[0], t);
+      o.connect(g);
+      o.start(t);
+      o.stop(t + dur + 0.05);
+    });
+  }
+
+  /* ---- el fondo ----------------------------------------------------
+     Un acorde sostenido, muy por debajo de todo, mientras dura el test.
+     La misma tónica que las campanas (La), así lo que toca y lo que suena
+     de fondo son la misma música y no dos cosas peleándose.
+
+     Va a volumen de ambiente, no de música: la idea es que si lo apagás
+     se note que faltaba algo, no que estabas escuchando una canción.
+
+     Cada voz respira con su propio ciclo lento y los ciclos no son
+     múltiplos entre sí, así que el acorde nunca se repite igual. Un loop
+     que se escucha repetir cansa en treinta segundos.
+
+     Arranca con el primer toque —antes iOS no deja— y se apaga sola al
+     llegar a la nota del Maestro, donde empiezan los audios de voz. */
+  var pad = null;
+
+  function padArrancar(){
+    if(pad || !ac) return;
+    try{
+      var master = ac.createGain();
+      master.gain.setValueAtTime(0.0001, ac.currentTime);
+      var filtro = ac.createBiquadFilter();
+      filtro.type = "lowpass";
+      /* Se le saca todo el brillo: lo que queda es el cuerpo del acorde,
+         que es lo que se puede tener de fondo sin cansar. */
+      filtro.frequency.value = 900;
+      filtro.Q.value = 0.7;
+      filtro.connect(master);
+      master.connect(ac.destination);
+
+      /* La2, Mi3, La3, Do#4, Mi4 — La mayor, abierto. */
+      var voces = [110, 164.81, 220, 277.18, 329.63];
+      var ciclos = [23, 31, 19, 37, 29];   /* segundos, primos entre sí */
+      var oscs = [];
+      voces.forEach(function(f, i){
+        var g = ac.createGain();
+        g.gain.value = (i === 0 ? 0.5 : 0.22);
+        g.connect(filtro);
+
+        var o = ac.createOscillator();
+        o.type = "sine";
+        o.frequency.value = f;
+        /* Apenas desafinado: dos senos exactos sueltan un tono plano y
+           muerto; con un cabello de diferencia late despacio y respira. */
+        o.detune.value = (i % 2 ? 4 : -4);
+        o.connect(g);
+        o.start();
+        oscs.push(o);
+
+        var lfo = ac.createOscillator();
+        lfo.type = "sine";
+        lfo.frequency.value = 1 / ciclos[i];
+        var prof = ac.createGain();
+        prof.gain.value = g.gain.value * 0.55;
+        lfo.connect(prof);
+        prof.connect(g.gain);
+        lfo.start();
+        oscs.push(lfo);
+      });
+
+      master.gain.exponentialRampToValueAtTime(0.028, ac.currentTime + 4);
+      pad = { master: master, oscs: oscs };
+    }catch(e){}
+  }
+
+  function padApagar(){
+    if(!pad) return;
+    try{
+      var t = ac.currentTime;
+      pad.master.gain.cancelScheduledValues(t);
+      pad.master.gain.setValueAtTime(Math.max(0.0001, pad.master.gain.value), t);
+      /* Dos segundos y medio de desvanecido. Cortar de golpe se escucha
+         como un error del teléfono. */
+      pad.master.gain.exponentialRampToValueAtTime(0.0001, t + 2.5);
+      var o = pad.oscs;
+      setTimeout(function(){ o.forEach(function(x){ try{ x.stop(); }catch(e){} }); }, 2800);
+    }catch(e){}
+    pad = null;
+  }
+
+  /* Si se va a otra pestaña, baja a cero y vuelve al volver: nadie quiere
+     buscar de qué pestaña sale una música. */
+  addEventListener("visibilitychange", function(){
+    if(!pad || !ac) return;
+    try{
+      var t = ac.currentTime, v = document.visibilityState === "visible";
+      pad.master.gain.cancelScheduledValues(t);
+      pad.master.gain.setValueAtTime(Math.max(0.0001, pad.master.gain.value), t);
+      pad.master.gain.exponentialRampToValueAtTime(v ? 0.028 : 0.0001, t + (v ? 1.2 : 0.4));
+    }catch(e){}
+  });
+
+  function padChequear(){
+    if(mudo) return;
+    if(S.paso > 11) padApagar();
+    else if(ac && !pad) padArrancar();
+  }
 
   function clic(){
     if(mudo || S.paso > 11) return;
@@ -1033,42 +1160,22 @@
       if(!ac) ac = new AC();
       if(ac.state === "suspended") ac.resume();
 
+      padArrancar();
       var t = ac.currentTime;
-      var g = ac.createGain();
-      g.connect(ac.destination);
-      /* Ataque de 3 ms y caída de 90: más corto suena a error del sistema,
-         más largo deja de ser un clic y pasa a ser una nota. */
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.13, t + 0.003);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
-
-      var o = ac.createOscillator();
-      o.type = "triangle";
-      /* La bajada de tono es lo que lo hace "satisfactorio": un tono plano
-         se percibe como aviso; uno que cae, como algo que encastró. */
-      o.frequency.setValueAtTime(1180, t);
-      o.frequency.exponentialRampToValueAtTime(680, t + 0.085);
-      o.connect(g);
-      o.start(t);
-      o.stop(t + 0.1);
-
-      /* Un golpecito agudo arriba, muy corto: es el "tac" del principio.
-         Sin esto el clic suena blando. */
-      var g2 = ac.createGain();
-      g2.connect(ac.destination);
-      g2.gain.setValueAtTime(0.055, t);
-      g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.025);
-      var o2 = ac.createOscillator();
-      o2.type = "square";
-      o2.frequency.setValueAtTime(2300, t);
-      o2.connect(g2);
-      o2.start(t);
-      o2.stop(t + 0.03);
+      var f = NOTAS[S.paso % NOTAS.length];
+      /* Tres notas que suben, muy pegadas: la nota, su quinta y la octava.
+         Un sonido solo se registra como "pasó algo"; uno que sube se
+         registra como "algo salió bien" — es la misma figura que usan los
+         juegos cuando premian, pero tocada con campanas y a un volumen que
+         no se impone. */
+      campana(f, t, 0.085, 0.9);
+      campana(f * 1.5, t + 0.055, 0.045, 0.8);
+      campana(f * 2, t + 0.105, 0.03, 0.7);
     }catch(e){}
   }
 
   function elegir(t){
-    if(t.hasAttribute("data-atras")){ clic(); atras(); return; }
+    if(t.hasAttribute("data-atras")){ atras(); return; }
     /* El de la prueba social tiene su propio listener: avanza el carrusel
        antes de avanzar de pantalla. */
     if(navegando) return;
@@ -1077,7 +1184,6 @@
     var campo = cont.getAttribute("data-campo");
     if(!campo) return;
 
-    clic();
     S.a[campo] = t.getAttribute("data-val");
     guardar();
     navegando = true;
@@ -1096,6 +1202,16 @@
   app.addEventListener("pointerdown", function(e){
     var t = blanco(e);
     tocando = t ? { el:t, x:e.clientX, y:e.clientY } : null;
+  }, {passive:true});
+
+  /* El sonido cuelga de acá y no de cada manejador: así suena en CUALQUIER
+     botón del test —las cartas, las opciones, la flecha de atrás, el
+     Continuar del carrusel— y ninguno se lo puede olvidar el día que
+     agreguemos una pantalla. En pointerdown, no en el click: el premio
+     tiene que llegar con el dedo apoyado, no 80 ms después. */
+  app.addEventListener("pointerdown", function(e){
+    var b = e.target && e.target.closest ? e.target.closest("button") : null;
+    if(b) clic();
   }, {passive:true});
 
   app.addEventListener("pointermove", function(e){
