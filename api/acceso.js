@@ -190,6 +190,45 @@ export async function tokenAdmin() {
            largoId: id.length, largoSecreto: secreto.length };
 }
 
+/* ─── traer TODAS las órdenes, no las primeras 250 ──────────────────
+ *
+ * Shopify devuelve como mucho 250 por página y el resto queda detrás de un
+ * cursor que viaja en la cabecera Link. Mientras hubo 30 pedidos por día
+ * eso no se notaba; con 110 por día, 250 son dos días y medio, así que
+ * quien había comprado el martes simplemente no aparecía en la lista y la
+ * app le volvía a pedir que pague. El error no se veía por ningún lado:
+ * la consulta devolvía 200 y una lista perfectamente válida, nada más que
+ * incompleta.
+ *
+ * El tope de páginas existe para que un día raro no se coma la cuota de la
+ * API ni el tiempo de la función. Si se alcanza, queda dicho en el log en
+ * vez de pasar en silencio, que es como empezó todo esto. */
+export async function paginar(url, token, maxPaginas, etiqueta) {
+  let salida = [];
+  let siguiente = url;
+  let n = 0;
+  while (siguiente && n < maxPaginas) {
+    const res = await fetch(siguiente, {
+      headers: { 'X-Shopify-Access-Token': token, 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) {
+      const cuerpo = (await res.text()).slice(0, 200);
+      console.warn('[' + etiqueta + '] shopify ' + res.status + ' ' + cuerpo);
+      return { error: 'shopify_' + res.status, lista: salida };
+    }
+    const json = await res.json();
+    salida = salida.concat(Array.isArray(json.orders) ? json.orders : []);
+    n++;
+
+    /* El cursor viene así: <https://...page_info=XYZ>; rel="next" */
+    const link = res.headers.get('link') || res.headers.get('Link') || '';
+    const m = link.split(',').find((p) => p.indexOf('rel="next"') >= 0);
+    siguiente = m ? (m.match(/<([^>]+)>/) || [])[1] : null;
+  }
+  if (siguiente) console.warn('[' + etiqueta + '] tope de ' + maxPaginas + ' páginas, quedaron órdenes sin leer');
+  return { lista: salida, paginas: n, truncado: !!siguiente };
+}
+
 async function ordenes() {
   const t = await tokenAdmin();
   if (t.error) return { error: t.error, detalle: t.detalle,
@@ -203,17 +242,12 @@ async function ordenes() {
     + '&fields=id,name,email,financial_status,note_attributes,line_items,created_at,test';
 
   try {
-    const res = await fetch(url, {
-      headers: { 'X-Shopify-Access-Token': token, 'Content-Type': 'application/json' },
-    });
-    if (!res.ok) {
-      console.warn('[acceso] shopify ' + res.status + ' ' + (await res.text()).slice(0, 200));
-      return { error: 'shopify_' + res.status };
-    }
-    const json = await res.json();
-    const lista = Array.isArray(json.orders) ? json.orders : [];
-    cache = { t: Date.now(), ordenes: lista };
-    return { lista };
+    /* 20 páginas = 5.000 órdenes. A este volumen cubre los 120 días de la
+       ventana con margen de sobra. */
+    const r = await paginar(url, token, 20, 'acceso');
+    if (r.error && !r.lista.length) return { error: r.error };
+    cache = { t: Date.now(), ordenes: r.lista };
+    return { lista: r.lista };
   } catch (e) {
     console.warn('[acceso] fetch falló ' + (e && e.message));
     return { error: 'fetch_failed' };

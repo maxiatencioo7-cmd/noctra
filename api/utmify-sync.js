@@ -25,7 +25,7 @@
  *   - prueba sin escribir: &seco=1
  *   - y cada hora, por el cron de vercel.json
  */
-import { tokenAdmin } from './acceso.js';
+import { tokenAdmin, paginar } from './acceso.js';
 import { sendUtmify } from './shopify-webhook.js';
 
 export const config = { runtime: 'edge' };
@@ -75,13 +75,15 @@ export default async function handler(request) {
     + '?status=any&limit=250&created_at_min=' + encodeURIComponent(desde);
 
   let ordenes = [];
+  let truncado = false;
   try {
-    const r = await fetch(url, {
-      headers: { 'X-Shopify-Access-Token': t.token, 'Content-Type': 'application/json' },
-    });
-    if (!r.ok) return responder({ ok: false, error: 'shopify_' + r.status }, 502);
-    const j = await r.json();
-    ordenes = Array.isArray(j.orders) ? j.orders : [];
+    /* Sin paginar, esto leía 250 y creía haber terminado. Con 110 ventas
+       por día eran dos días y medio: todo lo anterior no se sincronizaba
+       nunca y el tablero quedaba corto sin que nada fallara. */
+    const r = await paginar(url, t.token, 20, 'sync');
+    if (r.error && !r.lista.length) return responder({ ok: false, error: r.error }, 502);
+    ordenes = r.lista;
+    truncado = !!r.truncado;
   } catch (e) {
     return responder({ ok: false, error: 'shopify_fetch', detalle: e && e.message }, 502);
   }
@@ -112,5 +114,5 @@ export default async function handler(request) {
   }
 
   console.log('[sync] ' + JSON.stringify(cuenta) + (errores.length ? ' errores=' + JSON.stringify(errores) : ''));
-  return responder({ ok: true, dias, seco, ...cuenta, errores });
+  return responder({ ok: true, dias, seco, truncado, ...cuenta, errores });
 }

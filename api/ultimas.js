@@ -16,7 +16,7 @@
  * leerlo cualquiera sin que le importe a quien compró. Por eso no hay
  * ningún campo más que estos tres.
  */
-import { tokenAdmin } from './acceso.js';
+import { tokenAdmin, paginar } from './acceso.js';
 
 export const config = { runtime: 'edge' };
 
@@ -134,15 +134,11 @@ export default async function handler(request) {
 
   let lista = [];
   try {
-    const r = await fetch(url, {
-      headers: { 'X-Shopify-Access-Token': t.token, 'Content-Type': 'application/json' },
-    });
-    if (!r.ok) {
-      console.warn('[ultimas] shopify ' + r.status);
-      return responder({ ok: false, compras: [] });
-    }
-    const j = await r.json();
-    const ordenes = Array.isArray(j.orders) ? j.orders : [];
+    /* Acá alcanza con pocas páginas: lo único que se muestra son las 12
+       más nuevas de la semana. */
+    const r = await paginar(url, t.token, 4, 'ultimas');
+    if (r.error && !r.lista.length) return responder({ ok: false, compras: [] });
+    const ordenes = r.lista;
     lista = ordenes
       .filter((o) => !o.test)
       .filter((o) => o.financial_status === 'paid' || o.financial_status === 'partially_refunded')

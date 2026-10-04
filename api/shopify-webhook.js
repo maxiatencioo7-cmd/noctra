@@ -440,27 +440,31 @@ export async function sendUtmify(order, status) {
     })),
     /* Atribucion.
      *
-     * La compra del upsell llega con las utm del anuncio que trajo a esa
-     * persona, porque es la misma persona. Pero el anuncio ya se llevo el
-     * credito de la primera venta: si le sumamos esta, el panel muestra dos
-     * ventas donde hubo un solo comprador, y el costo por venta del anuncio
-     * se lee a la mitad.
+     * El upsell tambien va colgado del anuncio que trajo a esa persona.
      *
-     * Entonces el upsell entra SIN utm. Sigue estando en el panel general
-     * —la plata es plata y suma a la facturacion del dia— pero no se le
-     * cuelga a ningun anuncio. Queda marcado en "src" para poder filtrarlo. */
-    trackingParameters: upsell
-      ? { src: 'upsell_app', sck: null, utm_source: null, utm_campaign: null,
-          utm_medium: null, utm_content: null, utm_term: null }
-      : {
-          src: attr(order, 'src') || null,
-          sck: attr(order, 'sck') || null,
-          utm_source: utms.utm_source || null,
-          utm_campaign: utms.utm_campaign || null,
-          utm_medium: utms.utm_medium || null,
-          utm_content: utms.utm_content || null,
-          utm_term: utms.utm_term || null,
-        },
+     * Antes entraba sin utm, para que el anuncio no contara dos ventas por
+     * un solo comprador. El problema de eso es cual numero se arruina. Sin
+     * las utm, el conteo de ventas queda limpio pero la facturacion del
+     * anuncio queda corta: el panel muestra que trajo 9.799 cuando en
+     * realidad trajo 9.799 mas el upsell. Y el numero con el que se decide
+     * cuanto invertir es el ROAS, no el conteo.
+     *
+     * Asi que se invierte el sacrificio: la plata va donde la genero, y el
+     * conteo de ventas del front se lee filtrando por producto en el panel,
+     * que es un filtro que ya existe. Un ROAS corto hace apagar campanas
+     * rentables; un conteo inflado solo obliga a filtrar.
+     *
+     * "src" queda en upsell_app igual, asi se puede separar cuando haga
+     * falta. */
+    trackingParameters: {
+      src: upsell ? 'upsell_app' : (attr(order, 'src') || null),
+      sck: attr(order, 'sck') || null,
+      utm_source: utms.utm_source || null,
+      utm_campaign: utms.utm_campaign || null,
+      utm_medium: utms.utm_medium || null,
+      utm_content: utms.utm_content || null,
+      utm_term: utms.utm_term || null,
+    },
     commission: {
       totalPriceInCents: total,
       gatewayFeeInCents: fee,
