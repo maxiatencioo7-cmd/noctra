@@ -81,9 +81,30 @@ const ABRE = {
   senal: ['senal'],
   pack:  ['fecha', 'lugar', 'senal', 'vos'],
 };
-/* Códigos que Maxi puede repartir a mano (regalos, soporte, reposiciones). */
-const MANUALES = (process.env.ACCESO_CODIGOS || '')
-  .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+/* Códigos que Maxi puede repartir a mano (regalos, soporte, reposiciones) y
+   los que Impultienda entrega en el mail de compra.
+
+   Formato: "codigo" abre las cuatro partes, como venía siendo. "codigo:a+b"
+   abre sólo esas. Lo segundo existe por Impultienda: ahí el código viaja en
+   la URL de entrega de UN producto, y el que pagó sólo La señal no puede
+   recibir de yapa el pack entero, que es justo lo que sostiene el precio.
+   Hasta hoy cualquier código abría todo, así que un código por producto
+   habría regalado las cuatro secciones sin que nadie lo notara.
+   Ej: ACCESO_CODIGOS=pack30sep,imp-senal-v2w6:senal,imp-fecha-q4x9:fecha */
+const TODAS = ['fecha', 'lugar', 'senal', 'vos'];
+const MANUALES = {};
+(process.env.ACCESO_CODIGOS || '').split(',').forEach((entrada) => {
+  const t = String(entrada || '').trim().toLowerCase();
+  if (!t) return;
+  const i = t.indexOf(':');
+  if (i < 0) { MANUALES[t] = TODAS.slice(); return; }
+  const cod = t.slice(0, i).trim();
+  const partes = t.slice(i + 1).split('+').map(x => x.trim())
+    .filter(x => TODAS.indexOf(x) >= 0);
+  /* Un alcance mal escrito no puede caer en "abrir todo": eso convertiría un
+     error de tipeo en una entrega gratis. Sin partes válidas, no hay código. */
+  if (cod && partes.length) MANUALES[cod] = partes;
+});
 /* Cuántos días hacia atrás mirar. Shopify devuelve 250 por página; a este
    volumen 90 días entran de sobra en una sola. */
 const DIAS = parseInt(process.env.ACCESO_DIAS || '120', 10);
@@ -311,8 +332,8 @@ export default async function handler(request) {
      poder nombrarla en la oferta. */
   if (!perfil && !email && !codigo) return responder({ acceso: false, via: 'solo_geo' });
 
-  if (codigo && MANUALES.indexOf(codigo) >= 0) {
-    return responder({ acceso: true, partes: ['fecha', 'lugar', 'senal', 'vos'], via: 'codigo_manual' });
+  if (codigo && MANUALES[codigo]) {
+    return responder({ acceso: true, partes: MANUALES[codigo].slice(), via: 'codigo_manual' });
   }
 
   const r = await ordenes();
