@@ -30,10 +30,10 @@ var U=window.NOCTRA_UI, I=U.I, esc=U.esc;
               cosa, y puede costar menos que la suma sin que el número
               quede raro.
 
-   El ancla de 32.400 es la suma real de dos productos que cualquiera puede
-   ir a comprar por separado (16.200 + 16.200). No es un número puesto a
-   dedo: el que hace la cuenta ve que el pack le sale 10.603 menos y encima
-   trae dos secciones que sueltas no existen.
+   El ancla de 35.540 es la suma real de dos productos que cualquiera puede
+   comprar por separado en el post-compra (17.770 + 17.770). No es un número
+   puesto a dedo: el que hace la cuenta ve que el pack le sale 13.743 menos y
+   encima trae dos secciones que sueltas no existen.
 
    12/10/2026 — los cuatro pasan a Impultienda. Ya no se arma un carrito a
    partir de un id de variante: cada producto tiene su propio embudo con su
@@ -48,7 +48,7 @@ var CHECKOUT="https://noctra.impultienda.ar/checkout/";
 
 var PROD={
   fecha:{
-    id:"fecha", nombre:"Fecha Exacta", precio:16200,
+    id:"fecha", nombre:"Fecha Exacta", precio:17770,
     /* 12/10/2026 — sin link a propósito. Este producto pasó a ser upsell
        1-click post-compra en Impultienda, y allá un producto post-compra no
        puede además tener checkout propio: al marcarlo, su embudo se queda
@@ -62,7 +62,7 @@ var PROD={
     boton:"Fecha Exacta"
   },
   lugar:{
-    id:"lugar", nombre:"Dónde y Cómo", precio:16200,
+    id:"lugar", nombre:"Dónde y Cómo", precio:17770,
     /* Mismo caso que la fecha: upsell post-compra de Impultienda, sin link
        propio. Reponer: CHECKOUT+"donde-y-como-desde-la-app" */
     enlace:"",   /* Shopify: 50411352817878 */
@@ -90,7 +90,7 @@ var PROD={
     boton:"La señal"
   },
   pack:{
-    id:"pack", nombre:"Cuándo, Dónde y Cómo", precio:21797, ancla:32400,
+    id:"pack", nombre:"Cuándo, Dónde y Cómo", precio:21797, ancla:35540,
     enlace:CHECKOUT+"pack-completo-desde-la-app",   /* Shopify: 50408908652758 */
     boton:"Desbloquear todo"
   }
