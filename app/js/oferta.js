@@ -49,14 +49,23 @@ var CHECKOUT="https://noctra.impultienda.ar/checkout/";
 var PROD={
   fecha:{
     id:"fecha", nombre:"Fecha Exacta", precio:16200,
-    enlace:CHECKOUT+"fecha-exacta-desde-la-app",   /* Shopify: 50411348000982 */
+    /* 12/10/2026 — sin link a propósito. Este producto pasó a ser upsell
+       1-click post-compra en Impultienda, y allá un producto post-compra no
+       puede además tener checkout propio: al marcarlo, su embudo se queda
+       sin producto y el link empieza a cobrar $0. Con el enlace vacío la app
+       no dibuja el botón y ofrece el pack en su lugar.
+       Para volver a venderlo desde acá hay que sacarlo de post-compra en
+       Impultienda y recién ahí reponer: CHECKOUT+"fecha-exacta-desde-la-app" */
+    enlace:"",   /* Shopify: 50411348000982 */
     titulo:"La fecha exacta del encuentro",
     sub:"El momento preciso en el que sus caminos se cruzan",
     boton:"Fecha Exacta"
   },
   lugar:{
     id:"lugar", nombre:"Dónde y Cómo", precio:16200,
-    enlace:CHECKOUT+"donde-y-como-desde-la-app",   /* Shopify: 50411352817878 */
+    /* Mismo caso que la fecha: upsell post-compra de Impultienda, sin link
+       propio. Reponer: CHECKOUT+"donde-y-como-desde-la-app" */
+    enlace:"",   /* Shopify: 50411352817878 */
     titulo:"Dónde y cómo vas a conocerlo",
     sub:"El contexto exacto, lugar y situación del primer encuentro",
     boton:"Dónde y Cómo"
@@ -142,9 +151,13 @@ function precioDe(p){
    crédito puesto —no las sueltas—, porque el pack con crédito le sale
    menos que las dos sueltas juntas. */
 function falta(){
+  /* Se saltean los que no tienen link de cobro. Sin esta guarda, al que le
+     falta sólo el lugar se le elegía el lugar, que hoy no se vende desde la
+     app: el botón no se dibujaba y la sección quedaba sin oferta ninguna.
+     Cuando no se puede vender la parte, se ofrece el pack, que la incluye. */
   if(!tiene("fecha") && !tiene("lugar")) return PROD.pack;
-  if(!tiene("fecha")) return PROD.fecha;
-  if(!tiene("lugar")) return PROD.lugar;
+  if(!tiene("fecha") && PROD.fecha.enlace) return PROD.fecha;
+  if(!tiene("lugar") && PROD.lugar.enlace) return PROD.lugar;
   return PROD.pack;
 }
 function algoComprado(){
