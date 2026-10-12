@@ -10,7 +10,7 @@
 (function(){
   var KEY="noctra_atrib";
   var V={content_name:"Retrato Noctra",value:9799,currency:"ARS"};
-  var UTM=["utm_source","utm_medium","utm_campaign","utm_content","utm_term"];
+  var UTM=["utm_source","utm_medium","utm_campaign","utm_content","utm_term","utm_id"];
   var hecho={};
 
   function fb(ev,p){try{if(window.fbq)window.fbq("track",ev,p||{})}catch(e){}}
@@ -87,15 +87,30 @@
     return {fbp:fbp,fbc:fbc};
   }
 
-  /* Devuelve el link del checkout con la atribución pegada como cart
-     attributes: Shopify los guarda en la orden (note_attributes) y el webhook
-     los lee de ahí. */
+  /* Devuelve el link del checkout con la atribución pegada.
+
+     Van las dos formas del mismo dato, a propósito:
+
+       attributes[utm_source]=…   la que entiende Shopify (note_attributes),
+                                  que es de donde la lee nuestro webhook.
+       utm_source=…               la que entiende Impultienda, que lee los
+                                  utm sueltos y los reenvía a Utmify.
+
+     Antes iba sólo la primera. Cuando el checkout pasó a Impultienda eso
+     significó que TODA venta llegaba con tracking en null: la venta se
+     registraba, pero sin campaña ni anuncio. O sea, el tablero mostraba
+     facturación y cero atribución, que es exactamente lo que el cambio de
+     plataforma venía a medir. Duplicar los parámetros cuesta unos bytes y
+     deja el link sirviendo para las dos plataformas, así que volver atrás
+     tampoco rompe nada. */
   window.NOCTRA_ATRIB=function(url){
     try{
       var g=guardado(), i=ids(), extra=[];
       function add(k,v){ if(v) extra.push("attributes["+k+"]="+encodeURIComponent(v)); }
-      UTM.forEach(function(k){ add(k,g[k]); });
-      add("fbclid",g.fbclid);
+      /* suelto, sin el envoltorio de Shopify */
+      function solo(k,v){ if(v) extra.push(k+"="+encodeURIComponent(v)); }
+      UTM.forEach(function(k){ add(k,g[k]); solo(k,g[k]); });
+      add("fbclid",g.fbclid); solo("fbclid",g.fbclid);
       add("fbp",i.fbp);
       add("fbc",i.fbc);
       add("src_host",location.host);
