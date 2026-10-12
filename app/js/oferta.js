@@ -21,7 +21,7 @@
 var U=window.NOCTRA_UI, I=U.I, esc=U.esc;
 
 /* Los tres productos. Cada uno abre distintas secciones del plan, y cada
-   uno tiene su propia variante de Shopify.
+   uno tiene su propio link de cobro.
 
      fecha  → sección 1 (La fecha)
      lugar  → secciones 2 y 3 (El lugar, En tu ciudad)
@@ -30,26 +30,33 @@ var U=window.NOCTRA_UI, I=U.I, esc=U.esc;
               cosa, y puede costar menos que la suma sin que el número
               quede raro.
 
-   El ancla de 20.000 es la suma real de dos productos que cualquiera puede
-   ir a comprar por separado. No es un número puesto a dedo: el que hace la
-   cuenta ve que el pack le sale 6.503 menos y encima trae dos secciones
-   que sueltas no existen.
+   El ancla de 32.400 es la suma real de dos productos que cualquiera puede
+   ir a comprar por separado (16.200 + 16.200). No es un número puesto a
+   dedo: el que hace la cuenta ve que el pack le sale 10.603 menos y encima
+   trae dos secciones que sueltas no existen.
 
-   Los checkout de fecha y lugar van vacíos hasta que existan los productos
-   en Shopify: con la variante en blanco el botón avisa en vez de mandar a
-   una página rota. */
-var TIENDA="https://noctralmagemela.myshopify.com/cart/";
+   12/10/2026 — los cuatro pasan a Impultienda. Ya no se arma un carrito a
+   partir de un id de variante: cada producto tiene su propio embudo con su
+   link, así que acá va el link entero. Con "enlace" en blanco el botón no
+   se dibuja, igual que antes con la variante vacía: antes que un botón roto
+   justo cuando la persona iba a pagar, nada.
+
+   Los links viejos de Shopify quedan anotados al lado de cada uno para que
+   volver atrás sea pegar el carrito de nuevo, no ir a buscar los ids. */
 var MONEDA="ARS";
+var CHECKOUT="https://noctra.impultienda.ar/checkout/";
 
 var PROD={
   fecha:{
-    id:"fecha", nombre:"Fecha Exacta", precio:10000, variante:"50411348000982",
+    id:"fecha", nombre:"Fecha Exacta", precio:16200,
+    enlace:CHECKOUT+"fecha-exacta-desde-la-app",   /* Shopify: 50411348000982 */
     titulo:"La fecha exacta del encuentro",
     sub:"El momento preciso en el que sus caminos se cruzan",
     boton:"Fecha Exacta"
   },
   lugar:{
-    id:"lugar", nombre:"Dónde y Cómo", precio:10000, variante:"50411352817878",
+    id:"lugar", nombre:"Dónde y Cómo", precio:16200,
+    enlace:CHECKOUT+"donde-y-como-desde-la-app",   /* Shopify: 50411352817878 */
     titulo:"Dónde y cómo vas a conocerlo",
     sub:"El contexto exacto, lugar y situación del primer encuentro",
     boton:"Dónde y Cómo"
@@ -62,19 +69,20 @@ var PROD={
      se puede comprar por separado, el pack deja de ser otra cosa y pasa a
      ser un descuento, que es mucho más fácil de no comprar.
 
-     Si alguna vez se despublica el producto, vaciar la variante alcanza
-     para que el downsell deje de aparecer: sin variante no se dibuja, que
+     Si alguna vez se despublica el producto, vaciar el enlace alcanza
+     para que el downsell deje de aparecer: sin enlace no se dibuja, que
      es preferible a un botón que lleva a una página rota justo cuando la
      persona estaba por pagar. */
   senal:{
-    id:"senal", nombre:"La señal", precio:4500, variante:"50520637472982",
+    id:"senal", nombre:"La señal", precio:7197,
+    enlace:CHECKOUT+"la-senal",   /* Shopify: 50520637472982 */
     titulo:"Cómo vas a reconocerlo",
     sub:"Los dos rasgos y los dos gestos que vas a notar primero — y lo que NO es él",
     boton:"La señal"
   },
   pack:{
-    id:"pack", nombre:"Cuándo, Dónde y Cómo", precio:13497, ancla:20000,
-    variante:"50408908652758",
+    id:"pack", nombre:"Cuándo, Dónde y Cómo", precio:21797, ancla:32400,
+    enlace:CHECKOUT+"pack-completo-desde-la-app",   /* Shopify: 50408908652758 */
     boton:"Desbloquear todo"
   }
 };
@@ -85,11 +93,18 @@ var PROD={
    reclamo: nadie pagó de más por haber empezado de a poco, y el que ya
    tiene el pack nunca ve este número.
 
-   El descuento lo aplica Shopify —un código de monto fijo limitado al
-   producto del pack—, no la app: acá sólo se muestra el precio final y se
-   agrega el código al enlace del carrito. Con CUPON en blanco no se
-   descuenta nada y el pack sigue costando lo de siempre. */
-var CREDITO={ cupon:"CREDITOSENAL", monto:4500 };
+   El descuento lo aplicaba Shopify —un código de monto fijo limitado al
+   producto del pack—, no la app.
+
+   12/10/2026: queda APAGADO. En Impultienda no hay cupones configurados,
+   así que mostrar el pack con el crédito puesto habría sido anunciar un
+   precio y cobrar otro en la pantalla siguiente. Eso no es un número que
+   quede feo: es un cobro distinto al que la persona aceptó.
+
+   Para volver a encenderlo hace falta que el cupón exista en Impultienda y
+   que el enlace sepa mandarlo; recién ahí se vuelve a poner el código acá.
+   Con el cupón en blanco no se descuenta nada y el pack cuesta lo de lista. */
+var CREDITO={ cupon:"", monto:4500 };
 /* El resto de la app lee PACK para la tarjeta del retrato y la pestaña
    cerrada: se deja con el nombre de siempre. */
 var PACK=PROD.pack;
@@ -146,6 +161,10 @@ function algoComprado(){
 function atribucion(){
   var extra=[];
   function add(k,v){ if(v) extra.push("attributes["+k+"]="+encodeURIComponent(v)); }
+  /* Suelto, sin el envoltorio de Shopify: es la forma que lee Impultienda y
+     reenvía a Utmify. Van las dos para que el link sirva en las dos
+     plataformas y volver atrás no rompa la atribución. */
+  function solo(k,v){ if(v) extra.push(k+"="+encodeURIComponent(v)); }
   function cookie(n){
     var m=document.cookie.match("(^|;)\\s*"+n+"\\s*=\\s*([^;]+)");
     return m?m.pop():"";
@@ -153,9 +172,9 @@ function atribucion(){
   try{
     var g={};
     try{ g=JSON.parse(localStorage.getItem("noctra_atrib"))||{}; }catch(e){}
-    ["utm_source","utm_medium","utm_campaign","utm_content","utm_term"]
-      .forEach(function(k){ add(k,g[k]); });
-    add("fbclid",g.fbclid);
+    ["utm_source","utm_medium","utm_campaign","utm_content","utm_term","utm_id"]
+      .forEach(function(k){ add(k,g[k]); solo(k,g[k]); });
+    add("fbclid",g.fbclid); solo("fbclid",g.fbclid);
     var fbp=cookie("_fbp"), fbc=cookie("_fbc");
     /* mismo armado que usa el quiz: si no vino la cookie pero sí el click id,
        se reconstruye con el formato que documenta Meta */
@@ -169,20 +188,22 @@ function atribucion(){
 
 function irAlCheckout(prod){
   var P0 = (typeof prod==="string") ? PROD[prod] : (prod||PACK);
-  if(!P0 || !P0.variante){
+  if(!P0 || !P0.enlace){
     U.toast("En un momento lo habilitamos. Escribinos si lo querés ya.");
     return;
   }
-  var url=TIENDA+P0.variante+":1";
-  /* El crédito viaja como código de descuento en el propio enlace del
-     carrito: Shopify lo aplica solo y la persona ve el total ya corregido
-     antes de poner un dato. Que lo valide Shopify y no la app es lo que
-     impide que alguien se lo aplique escribiéndolo en la consola. */
-  if(P0.id==="pack" && CREDITO.cupon && tiene("senal")){
-    url+="?discount="+encodeURIComponent(CREDITO.cupon);
-  }
+  var url=P0.enlace;
+  /* El crédito de La señal queda afuera a propósito mientras cobremos por
+     Impultienda: no hay cupón del otro lado, así que un precio descontado
+     acá terminaría en un cobro distinto en la pantalla siguiente. CREDITO
+     está apagado y precioDe() ya muestra el precio de lista. */
   /* el perfil viaja con la compra, igual que en el quiz: así la app puede
-     reconocer a la persona aunque abra el mail en otro teléfono */
+     reconocer a la persona aunque abra el mail en otro teléfono.
+
+     En Impultienda esto todavía no vuelve en el aviso de la venta, así que
+     por ahora no sirve para reconocerla del otro lado; se sigue mandando
+     porque no molesta y porque vuelve a servir solo cuando exista el
+     receptor del webhook. */
   try{
     var P=window.NOCTRA_DATOS&&window.NOCTRA_DATOS.P;
     var cod=window.NOCTRA_CODIGO&&P&&window.NOCTRA_CODIGO.codificar(P);
@@ -247,11 +268,11 @@ function tarjetaProd(k){
    ofrecerle "una sección suelta" al que ya puso plata es ruido, y al que
    tiene el pack sería directamente venderle lo que ya es suyo.
 
-   Y no aparece si el producto todavía no existe en Shopify (variante en
+   Y no aparece si el producto todavía no tiene link de cobro (enlace en
    blanco): antes que un botón roto justo después de un no, nada. */
 function hayDownsell(){
   var DT=window.NOCTRA_DATOS, D=DT&&DT.D;
-  if(!PROD.senal.variante) return false;
+  if(!PROD.senal.enlace) return false;
   if(algoComprado()) return false;
   if(D && D.downsellVisto) return false;
   return true;
@@ -487,7 +508,7 @@ function ofrecido(donde){
   var k = DESTACADO[donde];
   if(k==="pack") return algoComprado() ? falta() : PACK;
   var p = k && PROD[k];
-  if(p && p.variante && !tiene(k)) return p;
+  if(p && p.enlace && !tiene(k)) return p;
   return falta();
 }
 
@@ -578,7 +599,7 @@ function nudge(nom){
   if(comprada()) return false;
   if(document.getElementById("onudge")) return false;
   var of = ofrecido("nudge"), pr = precioDe(of);
-  if(!of || !of.variante) return false;
+  if(!of || !of.enlace) return false;
   var abre = (of.id==="pack" && !algoComprado())
     ? 'data-act="oferta"' : ('data-act="comprar" data-id="'+of.id+'"');
   var d=document.createElement("div");
@@ -646,13 +667,13 @@ window.NOCTRA_OFERTA={
   /* El cupón del crédito, para cargarlo sin tocar el archivo:
      NOCTRA_OFERTA.credito("SENAL4500") */
   credito:function(c){ if(typeof c==="string") CREDITO.cupon=c.trim(); return CREDITO.cupon; },
-  /* Para cargar las variantes sin tocar el archivo:
-     NOCTRA_OFERTA.variantes({fecha:"123", lugar:"456"}) */
-  variantes:function(m){
-    if(!m) return {fecha:PROD.fecha.variante, lugar:PROD.lugar.variante,
-                   senal:PROD.senal.variante, pack:PROD.pack.variante};
-    Object.keys(m).forEach(function(k){ if(PROD[k]) PROD[k].variante=String(m[k]||""); });
-    return this.variantes();
+  /* Para cambiar los links de cobro sin tocar el archivo:
+     NOCTRA_OFERTA.enlaces({pack:"https://..."}) */
+  enlaces:function(m){
+    if(!m) return {fecha:PROD.fecha.enlace, lugar:PROD.lugar.enlace,
+                   senal:PROD.senal.enlace, pack:PROD.pack.enlace};
+    Object.keys(m).forEach(function(k){ if(PROD[k]) PROD[k].enlace=String(m[k]||""); });
+    return this.enlaces();
   }
 };
 })();

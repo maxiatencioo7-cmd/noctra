@@ -353,7 +353,7 @@ const rango=(a,b)=>window.NOCTRA_PLAN.dia(a)+" al "+window.NOCTRA_PLAN.dia(b);
 function planCerrado(){
   const n=NOMBRE?esc(NOMBRE):null;
   const O=window.NOCTRA_OFERTA;
-  const pk=(O&&O.pack)||{nombre:"Cuándo, Dónde y Cómo",precio:13497,moneda:"ARS"};
+  const pk=(O&&O.pack)||{nombre:"Cuándo, Dónde y Cómo",precio:21797,moneda:"ARS"};
   /* el precio y la moneda salen de un solo lado (js/oferta.js): si mañana
      cambian, no hay que acordarse de tocarlos acá también */
   const pl=v=>O&&O.plata?O.plata(v):("$"+String(v).replace(/\B(?=(\d{3})+(?!\d))/g,".")+" ARS");
@@ -379,9 +379,9 @@ function planSeccion(n,ic,tit,cuerpo){
    número y el nombre de lo que le falta es lo que lo hace comprarlo; un
    hueco sin nombre no da ganas de nada. */
 function planCerrada(n,ic,tit,prod,nota){
-  /* sin variante cargada en Shopify no hay botón: la sección se ve cerrada
+  /* sin link de cobro cargado no hay botón: la sección se ve cerrada
      y con su nombre, pero no se ofrece algo que todavía no se puede pagar */
-  const O=window.NOCTRA_OFERTA, p0=O&&O.prod&&O.prod[prod], p=(p0&&p0.variante)?p0:null;
+  const O=window.NOCTRA_OFERTA, p0=O&&O.prod&&O.prod[prod], p=(p0&&p0.enlace)?p0:null;
   const pm=v=>O&&O.miles?O.miles(v):("$"+String(v).replace(/\B(?=(\d{3})+(?!\d))/g,"."));
   return `<div class="card plsec plcerrada">
     <div class="plh"><span class="plnum">${n}</span><span class="plic">${I.candado}</span><b>${esc(tit)}</b></div>
