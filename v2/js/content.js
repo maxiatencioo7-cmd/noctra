@@ -36,10 +36,19 @@ window.NOCTRA_V2 = {
      pase por los dos embudos arrastra respuestas cruzadas. */
   key: "noctra_q2",
 
-  /* Mismo producto y misma variante que la portada vieja. Lo que se prueba
-     es el embudo, no la oferta: cambiando las dos cosas a la vez no se sabe
-     cuál movió la aguja. */
-  checkoutUrl: "https://noctralmagemela.myshopify.com/cart/50392314314966:1",
+  /* 12/10/2026 — el checkout pasa a Impultienda para medir si el order bump
+     del Pack adentro del checkout levanta el ticket. La oferta de entrada no
+     se toca ($9.799): se prueba la plataforma, no el precio.
+
+     Los "attributes[...]" que app.js le pega al link eran de Shopify. Acá
+     viajan como parámetros sueltos y se ignoran; se dejan escritos a
+     propósito para que volver a Shopify sea cambiar sólo esta línea.
+     Los utm sí los lee Impultienda y los reenvía a Utmify.
+
+     OJO: mientras esto apunte a Impultienda, el que abra el mail de entrega
+     en OTRO dispositivo no va a ver su retrato —el perfil ya no viaja con la
+     orden—. Se arregla de verdad cuando exista el receptor del webhook. */
+  checkoutUrl: "https://noctra.impultienda.ar/checkout/retrato-del-alma-gemela",
 
   pasos: [
 
