@@ -2,6 +2,10 @@
 
    El upsell. Aparece después del revelado y en ningún otro momento antes:
    antes de ver la cara, cobrar de nuevo se siente como cobrar dos veces lo
+   /* Noctra — Cuándo, Dónde y Cómo.
+
+   El upsell. Aparece después del revelado y en ningún otro momento antes:
+   antes de ver la cara, cobrar de nuevo se siente como cobrar dos veces lo
    mismo; después, es extender algo que ya le gustó.
 
    Por qué este producto y no otro: el retrato le contesta QUIÉN, y al
@@ -46,26 +50,40 @@ var U=window.NOCTRA_UI, I=U.I, esc=U.esc;
 var MONEDA="ARS";
 var CHECKOUT="https://noctra.impultienda.ar/checkout/";
 
+/* 13/10/2026 — los entregables de la app vuelven a cobrarse por Shopify.
+
+   No es una vuelta atras: es liberar lugar. Impultienda limita la cantidad
+   de upsells por tienda, y cada producto que la app vendia alla ocupaba uno
+   de esos lugares con un embudo propio que casi nadie usaba. Cobrando aca
+   por Shopify, los cuatro quedan libres para ser lo que de verdad factura:
+   la secuencia post-compra del embudo principal.
+
+   Los precios de Shopify se igualaron a los de Impultienda el mismo dia
+   (pack 26.197, fecha 17.770, lugar 17.770, senal 7.197), asi que la persona
+   ve el mismo numero en los dos lados y no hay nada que explicar.
+
+   De paso vuelve el acceso automatico: Shopify si devuelve attributes[perfil]
+   en el webhook, asi que /api/acceso reconoce al comprador sin codigo manual.
+   Eso con Impultienda no pasaba.
+
+   Los links de Impultienda quedan anotados al lado de cada uno. */
+var SHOPIFY="https://noctralmagemela.myshopify.com/cart/";
+
 var PROD={
   fecha:{
     id:"fecha", nombre:"Fecha Exacta", precio:17770,
-    /* 12/10/2026 — sin link a propósito. Este producto pasó a ser upsell
-       1-click post-compra en Impultienda, y allá un producto post-compra no
-       puede además tener checkout propio: al marcarlo, su embudo se queda
-       sin producto y el link empieza a cobrar $0. Con el enlace vacío la app
-       no dibuja el botón y ofrece el pack en su lugar.
-       Para volver a venderlo desde acá hay que sacarlo de post-compra en
-       Impultienda y recién ahí reponer: CHECKOUT+"fecha-exacta-desde-la-app" */
-    enlace:"",   /* Shopify: 50411348000982 */
+    /* 13/10/2026 — vuelve a tener boton, cobrando por Shopify. En Impultienda
+       sigue siendo upsell post-compra, y alla un producto post-compra no puede
+       ademas tener checkout propio; aca no hay ese conflicto. */
+    enlace:SHOPIFY+"50411348000982:1",   /* Impultienda: CHECKOUT+"fecha-exacta-desde-la-app" */
     titulo:"La fecha exacta del encuentro",
     sub:"El momento preciso en el que sus caminos se cruzan",
     boton:"Fecha Exacta"
   },
   lugar:{
     id:"lugar", nombre:"Dónde y Cómo", precio:17770,
-    /* Mismo caso que la fecha: upsell post-compra de Impultienda, sin link
-       propio. Reponer: CHECKOUT+"donde-y-como-desde-la-app" */
-    enlace:"",   /* Shopify: 50411352817878 */
+    /* Mismo caso que la fecha. */
+    enlace:SHOPIFY+"50411352817878:1",   /* Impultienda: CHECKOUT+"donde-y-como-desde-la-app" */
     titulo:"Dónde y cómo vas a conocerlo",
     sub:"El contexto exacto, lugar y situación del primer encuentro",
     boton:"Dónde y Cómo"
@@ -84,14 +102,19 @@ var PROD={
      persona estaba por pagar. */
   senal:{
     id:"senal", nombre:"La señal", precio:7197,
-    enlace:CHECKOUT+"la-senal",   /* Shopify: 50520637472982 */
+    enlace:SHOPIFY+"50520637472982:1",   /* Impultienda: CHECKOUT+"la-senal" */
     titulo:"Cómo vas a reconocerlo",
     sub:"Los dos rasgos y los dos gestos que vas a notar primero — y lo que NO es él",
     boton:"La señal"
   },
   pack:{
-    id:"pack", nombre:"Cuándo, Dónde y Cómo", precio:21797, ancla:35540,
-    enlace:CHECKOUT+"pack-completo-desde-la-app",   /* Shopify: 50408908652758 */
+    /* 13/10/2026 — 21.797 a 26.197 (+20%). El pack pasa a ser la primera
+       oferta de la secuencia post-compra, que es donde mas se vende; el
+       precio de la app lo acompana para que sea el mismo numero en los dos
+       lados. El ancla de 35.540 sigue siendo la suma real de las dos sueltas
+       (17.770 + 17.770), asi que todavia ahorra 9.343. */
+    id:"pack", nombre:"Cuándo, Dónde y Cómo", precio:26197, ancla:35540,
+    enlace:SHOPIFY+"50408908652758:1",   /* Impultienda: CHECKOUT+"pack-completo-desde-la-app" */
     boton:"Desbloquear todo"
   }
 };
