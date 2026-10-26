@@ -64,6 +64,26 @@ function fijarNombre(){
 }
 let NOMBRE=nombreRetrato();
 
+/* El nombre completo ahora es parte de El Código. Antes se mostraba a todo
+   el mundo junto al retrato; a quien ya lo había revelado no se le saca —
+   eso sería quitarle algo que ya tenía— así que la primera vez que corre
+   esta versión se le marca `nombreLegado` y lo sigue viendo. De acá en
+   adelante, el que revela ve la inicial y el nombre entero se abre con El
+   Código. */
+try{
+  if(!D.migCodigo){
+    D.migCodigo=1;
+    if(D.nombrePareja && D.nombrePareja.n) D.nombreLegado=true;
+    DT.guardar();
+  }
+}catch(e){}
+function nombreVisible(){ return !!D.nombreLegado || tienePar("codigo"); }
+/* "Martín" cerrado es "M·····": se ve la inicial y se ve el largo. */
+function nombreTapado(){
+  if(!NOMBRE) return "";
+  return NOMBRE.charAt(0).toUpperCase() + Array(NOMBRE.length).join("\u00B7");
+}
+
 /* ---------- utilidades ---------- */
 const hoy=()=>new Date();
 function faseHoy(){ return AS.faseLunar(hoy()); }
@@ -151,8 +171,8 @@ function vRetrato(){
     <div class="lab" style="margin:0 0 8px">${esc(U.fechaLarga(hoy()))}</div>
     <h1 style="margin:0 0 16px">${nom()?"Tu retrato, "+esc(nom()):"Tu Retrato del Alma Gemela"}</h1>
     <div class="marco" id="marcoRetrato"><img src="${RETRATO}" alt="Retrato del alma gemela" id="imgRetrato"><span class="firma">${esc(nom()||"Noctra")} · ${esc(U.fechaCorta(new Date(D.creado||Date.now())))}</span></div>
-    ${NOMBRE?`<div style="margin:14px 0 0"><span class="lab">Se llama</span>
-      <div class="disp" style="font-size:28px;line-height:34px;color:var(--oro);margin:4px 0 0">${esc(NOMBRE)}</div></div>`:""}
+    ${NOMBRE?`<div style="margin:14px 0 0"><span class="lab">${nombreVisible()?"Se llama":"Su nombre empieza con"}</span>
+      <div class="disp" style="font-size:28px;line-height:34px;color:var(--oro);margin:4px 0 0">${esc(nombreVisible()?NOMBRE:nombreTapado())}</div>${nombreVisible()?"":`<div class="small muted" style="margin:6px 0 0">${I.candado} El nombre entero está en El Código</div>`}</div>`:""}
     <div class="fila" style="margin:14px 0 0">
       <button class="pill" data-act="ampliar">${I.ojo} Ampliar</button>
       <button class="pill" data-act="revivir">${I.estrella} Ver el revelado</button>
@@ -257,9 +277,95 @@ let segEnc="plan";
 function vEncuentro(){
   return `<h1 style="margin:0 0 14px">Encuentro</h1>
   <div class="scroll-x" style="margin-bottom:16px">
-    ${[["plan","Cuándo y dónde"],["ventanas","Ventanas"],["compat","Compatibilidad"],["rituales","Rituales"]].map(([k,n])=>`<button class="pill ${segEnc===k?"on":""}" data-act="seg" data-id="${k}">${k==="plan"&&!abierto()?I.candado+" ":""}${n}</button>`).join("")}
+    ${[["plan","Cuándo y dónde"],["codigo","El Código"],["ventanas","Ventanas"],["compat","Compatibilidad"],["rituales","Rituales"]].map(([k,n])=>`<button class="pill ${segEnc===k?"on":""}" data-act="seg" data-id="${k}">${(k==="plan"&&!abierto())||(k==="codigo"&&!tienePar("codigo"))?I.candado+" ":""}${n}</button>`).join("")}
   </div>
-  ${segEnc==="plan"?encPlan():segEnc==="ventanas"?encVentanas():segEnc==="compat"?encCompat():encRituales()}`;
+  ${segEnc==="plan"?encPlan():segEnc==="codigo"?encCodigo():segEnc==="ventanas"?encVentanas():segEnc==="compat"?encCompat():encRituales()}`;
+}
+/* ---------- El Código ----------
+   El nombre entero, su signo y cómo se cruza con la carta de ella, qué
+   necesita para quedarse, el comparador y los veintiún días. El contenido
+   lo arma js/codigo.js; quién lo ve lo decide el servidor, igual que el
+   pack. */
+let CODIGO=null;
+function codigo(){
+  if(CODIGO) return CODIGO;
+  if(!window.NOCTRA_ELCODIGO) return null;
+  CODIGO=window.NOCTRA_ELCODIGO.generar(P,SIGNO,NOMBRE);
+  return CODIGO;
+}
+function codigoCerrado(){
+  const tapa=(w)=>`<span class="borrcod" style="width:${w}%"></span>`;
+  return `<div class="card otar">
+    <div class="otag">${I.candado} Todavía cerrado</div>
+    <div class="oth">El Código</div>
+    <p class="otp">Ya sabés qué cara tiene y con qué letra empieza. Falta lo que hace que, el día que pase, no tengas ninguna duda.</p>
+    <div class="codficha" style="margin:14px 0 0">
+      <div class="codfila"><span class="lab">Su nombre</span><b style="color:var(--oro)">${esc(nombreTapado())}</b></div>
+      <div class="codfila"><span class="lab">Su signo</span>${tapa(44)}</div>
+      <div class="codfila"><span class="lab">Su elemento</span>${tapa(62)}</div>
+      <div class="codfila"><span class="lab">Compatibilidad con vos</span>${tapa(30)}</div>
+      <div class="codfila"><span class="lab">Para que se quede</span>${tapa(88)}${tapa(54)}</div>
+      <div class="codfila"><span class="lab">¿Es esta persona?</span>${tapa(70)}</div>
+      <div class="codfila"><span class="lab">Ritual de 21 días</span>${tapa(80)}${tapa(46)}</div>
+    </div>
+    <p class="small muted" style="margin:12px 0 0">Sale de tu retrato y de tu signo. Ya está calculado: no hay que contestar nada más.</p>
+    <button class="olink" data-act="desbloquear" style="margin:12px 0 0">Ya lo compré — desbloquear</button>
+  </div>`;
+}
+function encCodigo(){
+  if(!tienePar("codigo")) return codigoCerrado();
+  const C=codigo();
+  if(!C) return `<div class="vacio">${I.estrella}<p class="small">No pude armar El Código. Volvé a entrar en un rato.</p></div>`;
+  const hechos=D.ritual21||{};
+  const cuantos=C.dias.filter((d,i)=>hechos[i+1]).length;
+  const pruebas=D.codigoPruebas||[];
+  return `<div class="plcab">
+    <div class="lab" style="color:var(--oro)">${I.abierto} El Código · desbloqueado</div>
+    <h2 style="margin:6px 0 6px">${C.nombre?esc(C.nombre):"Su nombre"}</h2>
+    <p class="small muted" style="margin:0">Sol en ${esc(C.signo)} · ${esc(C.elemento)} · ${esc(C.modo)} · regente ${esc(C.regente)}</p>
+  </div>
+
+  <div class="plfilas">
+    <div><span class="lab">Inicial</span><b>${esc(C.inicial)}</b></div>
+    <div><span class="lab">Signo</span><b>${esc(C.signo)}</b></div>
+    <div><span class="lab">Compatibilidad</span><b>${C.compat.puntaje}</b></div>
+  </div>
+
+  ${planSeccion(1,I.estrella,"Su signo y su elemento",`
+    <div class="plgran">${esc(C.signo)}</div>
+    <p class="small muted" style="margin:0 0 12px">Elemento ${esc(C.elemento)}. ${esc(C.modo.charAt(0).toUpperCase()+C.modo.slice(1))}, regido por ${esc(C.regente)}.</p>
+    <div class="plpaso"><span>${I.corazon}</span><div><b>Cómo se cruza con tu carta</b><small>${esc(C.compat.aspecto.charAt(0).toUpperCase()+C.compat.aspecto.slice(1))} — ${esc(C.compat.nota)} Elementos ${esc(C.compat.elementos)}: ${esc(C.compat.quimica)}.</small></div></div>
+    <div class="plpaso"><span>${I.ojo}</span><div><b>Cómo demuestra</b><small>${esc(C.senal)}</small></div></div>
+    <p class="plnota">El signo no es un dato de adorno: es lo que explica por qué alguien hace lo que hace cuando le importa algo.</p>`)}
+
+  ${planSeccion(2,I.corazon,"Para que se quede",`
+    <p class="par" style="margin:0 0 12px">${esc(C.necesita)}</p>
+    <div class="plpaso aviso"><span>${I.candado}</span><div><b>El error que más rápido lo aleja</b><small>${esc(C.error)}</small></div></div>
+    <p class="plnota">Esto no es una receta para retener a nadie. Es para que, si se va, no se vaya por algo que no tenía nada que ver.</p>`)}
+  ${planSeccion(3,I.ojo,"¿Es esta persona?",`
+    <p class="small muted" style="margin:0 0 12px">Poné el nombre y el signo de alguien que te interesa. Compara contra tu Código y te dice qué coincide y qué no. No es una autorización: es un dato más.</p>
+    <button class="btn ghost" data-act="probarCodigo">${I.mas} Probar una persona</button>
+    ${pruebas.length?`<div style="margin:12px 0 0">${pruebas.map((x,i)=>`<div class="card" style="margin:0 0 8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="flex:1"><b style="font-size:16px">${esc(x.nombre)}</b><div class="small muted">${esc(x.signo)} · ${esc(x.veredicto)}</div></div>
+        <span class="tag ${x.okNombre&&x.okSigno?"oro":""}">${(x.okNombre?1:0)+(x.okSigno?1:0)}/2</span></div>
+      <p class="small muted" style="margin:8px 0 0">${esc(x.detalle)}</p>
+      <button class="olink" data-act="borrarPrueba" data-id="${i}" style="margin:8px 0 0">Borrar</button></div>`).join("")}</div>`:""}`)}
+
+  ${planSeccion(4,I.cal,"Ritual de 21 días",`
+    <p class="small muted" style="margin:0 0 10px">Veintiún ejercicios de escritura, atención y límites. No tienen nada de mágico y funcionan igual. Uno por día, en orden: los primeros siete sacan de encima lo viejo, los siete del medio rompen la rutina y los últimos siete miran hacia afuera.</p>
+    <div class="barra" style="margin:0 0 14px"><i style="width:${Math.round(cuantos/C.dias.length*100)}%"></i></div>
+    <p class="small muted" style="margin:0 0 14px">${cuantos} de ${C.dias.length} hechos.</p>
+    ${C.dias.map((d,i)=>{const n=i+1;const ok=!!hechos[n];
+      return `<div class="card r21 ${ok?"hecho":""}" data-act="dia21" data-id="${n}">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div style="flex:1"><div class="lab">Día ${n}${d.m?" · "+d.m+" min":""}</div>
+            <b style="font-size:16px;display:block;margin:5px 0 3px">${esc(d.t)}</b>
+            <span class="small muted">${esc(d.x)}</span>
+            <div class="small" style="color:var(--oro);margin:6px 0 0">${esc(d.p)}</div></div>
+          <span style="color:${ok?"var(--ok)":"var(--tx2)"};display:flex">${ok?I.check:I.estrella}</span>
+        </div></div>`;}).join("")}
+    <p class="plnota">Nada de esto se vence. Si saltás tres días, seguís donde quedaste.</p>`)}`;
 }
 function encVentanas(){
   const vs=AS.ventanas(SIGNO), base=hoy();
@@ -652,6 +758,17 @@ function acciones(act,b,e){
     case "ventana": return hojaVentana(+id);
     case "ritual": return hojaRitual(+id);
     case "nuevaPersona": return hojaPersona();
+    case "dia21": {
+      if(!D.ritual21) D.ritual21={};
+      const n=+id;
+      if(D.ritual21[n]) delete D.ritual21[n]; else D.ritual21[n]=Date.now();
+      guardar(); return pintar();
+    }
+    case "probarCodigo": return hojaProbarCodigo();
+    case "borrarPrueba": {
+      D.codigoPruebas=(D.codigoPruebas||[]).filter((x,i)=>i!==+id);
+      guardar(); return pintar();
+    }
     case "verPersona": return hojaVerPersona(+id);
     case "comparar": return hojaComparar();
     case "nueva": return hojaNuevaEntrada(id);
@@ -784,6 +901,32 @@ function hojaRitual(id){
 }
 
 /* ---- compatibilidad ---- */
+/* El comparador de El Código. Pide lo mínimo — nombre y signo — porque la
+   idea es que se pueda usar en el momento, con el dato que acaba de
+   escuchar, y no después con la fecha de nacimiento que todavía no sabe. */
+function hojaProbarCodigo(){
+  const S=AS.SIGNOS;
+  const p=U.hoja(`<h2 style="margin:0 0 4px">¿Es esta persona?</h2>
+   <p class="small muted">Con el nombre y el signo alcanza. Compara contra tu Código.</p>
+   <div style="margin:16px 0 0">
+   <label class="f"><span class="lab">Nombre</span><input id="cn" placeholder="Cómo se llama"></label>
+   <label class="f"><span class="lab">Signo</span><select id="cs"><option value="">Elegí uno</option>${S.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("")}</select></label>
+   </div>
+   <button class="btn" id="ccalc">${I.ojo} Comparar</button>
+   <button class="btn ghost" data-cerrar style="margin:10px 0 0">Cancelar</button>`);
+  const $n=p.querySelector("#cn"), $s=p.querySelector("#cs");
+  p.querySelector("#ccalc").onclick=()=>{
+    const nom=($n.value||"").trim(), sig=$s.value||"";
+    if(!nom){ $n.classList.add("mal"); $n.focus(); return; }
+    if(!sig){ $s.classList.add("mal"); $s.focus(); return; }
+    const C=codigo(); if(!C) return;
+    const r=window.NOCTRA_ELCODIGO.probar({nombre:nom,signo:sig},C);
+    D.codigoPruebas=(D.codigoPruebas||[]);
+    D.codigoPruebas.unshift(r);
+    if(D.codigoPruebas.length>5) D.codigoPruebas.length=5;
+    guardar(); U.cerrarHoja(); segEnc="codigo"; pintar();
+  };
+}
 function hojaPersona(){
   const p=U.hoja(`<h2 style="margin:0 0 4px">Cargar una persona</h2>
    <p class="small muted">Con el nombre y la fecha alcanza. La hora y la ciudad afinan el resultado.</p>
@@ -1089,7 +1232,7 @@ function revelado(revisita,auto){
     <h1>${auto?"Acá está":"Esto es lo que vi en tus respuestas"}${D.nombre?", "+esc(D.nombre):""}</h1>
     <div class="rimg"><div class="marco"><img src="${RETRATO}" alt="Tu retrato"></div>
       ${et.map((t,i)=>`<span class="etq e${i+1}">${esc(t)}</span>`).join("")}</div>
-    ${NOMBRE?`<div class="rnom" id="rnom"><span class="lab">El nombre</span><b>${esc(NOMBRE)}</b></div>`:""}
+    ${NOMBRE?`<div class="rnom" id="rnom"><span class="lab">${nombreVisible()?"El nombre":"Su nombre empieza con"}</span><b>${esc(nombreVisible()?NOMBRE:nombreTapado())}</b></div>`:""}
     <button class="btn" id="rev">${I.estrella} Revelar</button>
     <div id="racts" style="display:none">
       <button class="btn lec" id="rlec">${I.lectura} Ver mi lectura</button>
