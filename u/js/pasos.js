@@ -20,6 +20,63 @@
 
   var PASOS = [
 
+  /* ===== DÓNDE Y CÓMO SE CONOCEN (Impultienda: UpSell 2 / DownSell 1 / DownSell 2) ===== */
+  {
+    id:"dc",
+    sello:"mapa",
+    revelado:[
+      "Ya sabés qué cara tiene.",
+      "Pero las caras aparecen <span class='o'>en algún lado</span>.",
+      "Y ese lado no es cualquiera."
+    ],
+    kicker:"LA OTRA MITAD DE LA HISTORIA",
+    titulo:"Sabés quién es. <span class='o'>Falta dónde y cómo.</span>",
+    sub:"El lugar, la situación y el gesto por el que lo vas a reconocer.",
+    partes:[
+      {t:"ficha",
+        campos:[
+          ["DÓNDE SE CRUZAN","borr",[94,61]],
+          ["CÓMO EMPIEZA","borr",[82]],
+          ["QUIÉN DA EL PRIMER PASO","borr",[58]],
+          ["CÓMO LO VAS A RECONOCER","borr",[88,52]]
+        ],
+        pie:"Sale de tus respuestas. Ya está escrito."},
+
+      {t:"p1",x:"Un retrato te dice a quién buscás. No te dice dónde mirar. Y mirar en el lugar equivocado durante un año cansa más que no mirar."},
+      {t:"p",x:"Lo que contestaste en el test no dibuja solo una cara: dibuja <b>una escena</b>. Un tipo de lugar, una hora del día, una situación concreta en la que dos personas como ustedes se terminan cruzando."},
+      {t:"marco",x:"No es «en algún lado, alguna vez».<br>Es un lugar con forma y una manera de empezar."},
+
+      {t:"sep"},
+      {t:"h",x:"Lo que pasa cuando no lo sabés"},
+      {t:"p",x:"Te cruzás con él. Hablan dos minutos por una razón cualquiera. Y como no había nada que te hiciera prestar atención, <mark>la charla se termina y vos seguís con tu día.</mark>"},
+      {t:"p",x:"No fue que no apareció. Fue que apareció disfrazado de martes."},
+      {t:"p",x:"Y a los cuarenta y pico eso pesa distinto que a los veinte, porque ya no tenés diez años por delante para que se repita el cruce."},
+
+      {t:"sep"},
+      {t:"h",x:"Qué se abre"},
+      {t:"lista",items:[
+        ["DÓNDE SE CRUZAN","El tipo de lugar y la situación concreta. No «en un café»: el contexto real que sale de tus respuestas."],
+        ["CÓMO EMPIEZA","El primer contacto, y por qué va a parecer casual cuando no lo es."],
+        ["QUIÉN DA EL PRIMER PASO","Si te toca a vos o a él. Esto cambia todo lo que tenés que hacer ese día."],
+        ["CÓMO LO VAS A RECONOCER","Los dos rasgos que vas a notar antes que nada, y el error que más veces hace que alguien lo deje pasar."]
+      ],cierre:"No hay que contestar nada más: ya está calculado y se abre entero apenas se confirma el pago."},
+
+      {t:"sep"},
+      {t:"p",x:"<b>«¿Y si no voy a ese lugar nunca?»</b> Entonces ya sabés qué cambiar. Esa es justamente la información que te falta."},
+      {t:"p",x:"<b>«Lo pienso.»</b> Podés. Pero esta pantalla no vuelve, y el lugar no te lo va a soplar nadie."},
+
+      {t:"sep"},
+      {t:"p",x:"Tenés la cara. <b>Que no te falte el lugar.</b>"}
+    ],
+    precio:"$17.770", antes:"$31.900",
+    cta:"Sí, quiero saber dónde y cómo",
+    ctaSub:"Pago único. No es suscripción: no hay renovación ni cobros posteriores.",
+    rechazo:"No, gracias",
+    pd:"<b>P. D.</b> — Queda guardado en tu app, junto al retrato. No es un PDF que se te pierde en el correo.",
+    va:null
+  },
+
+
   /* ============ 1. PACK CUÁNDO, CÓMO Y DÓNDE ============ */
   {
     id:"u1",
