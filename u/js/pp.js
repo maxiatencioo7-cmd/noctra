@@ -158,3 +158,23 @@
   if (document.readyState === "loading") addEventListener("DOMContentLoaded", arranque);
   else arranque();
 })();
+
+
+/* El anfitrion (Impultienda) pinta su propio fondo claro por encima del nuestro.
+   Metemos el cielo adentro de #u y oscurecemos la cadena de contenedores. */
+(function(){
+  function fondo(){
+    var u=document.getElementById('u'); if(!u) return;
+    var c=document.getElementById('cielo'), n=document.querySelector('.neb');
+    if(n && n.parentNode!==u) u.insertBefore(n,u.firstChild);
+    if(c && c.parentNode!==u) u.insertBefore(c,u.firstChild);
+    var p=u.parentNode;
+    while(p && p.nodeType===1){
+      p.style.setProperty('background','#04060D','important');
+      p.style.setProperty('background-image','none','important');
+      p=p.parentNode;
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fondo); else fondo();
+  setTimeout(fondo,300); setTimeout(fondo,1500);
+})();
