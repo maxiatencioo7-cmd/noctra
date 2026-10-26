@@ -434,3 +434,10 @@ mark.v{
 @media (prefers-reduced-motion:reduce){
   .sello{animation:none;opacity:1}
 }
+
+
+/* ===== blindaje: fondo oscuro aunque la pagina anfitriona sea clara ===== */
+html,body{background:#04060D !important}
+#u{position:relative;z-index:1;isolation:isolate;background:#04060D}
+#u::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:100vw;transform:translateX(-50%);background:#04060D;z-index:-2;pointer-events:none}
+#u > #cielo,#u > .neb{z-index:-1}
