@@ -56,7 +56,9 @@ const vacio={
   codigoCompra:"",
   leidas:{}, favoritas:{}, diario:[], personas:[], chat:[],
   maiaVisto:false, notif:{ventanas:true,lunas:true,bocetos:true,diaria:false,hora:"09:00"},
-  rituales:{}, archivo:[], ultimaDiaria:""
+  rituales:{}, archivo:[], ultimaDiaria:"",
+  /* El Código: días del ritual de 21 y las comparaciones guardadas. */
+  ritual21:{}, codigoPruebas:[], nombreLegado:false, migCodigo:0
 };
 function cargar(){ try{const r=localStorage.getItem(KEY_APP); return r?Object.assign({},vacio,JSON.parse(r)):Object.assign({},vacio,{creado:Date.now()});}catch(e){return Object.assign({},vacio,{creado:Date.now()});} }
 let D=cargar();
