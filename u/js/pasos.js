@@ -229,7 +229,7 @@
       {t:"p",x:"<b>Sería una pena cerrar tu lectura sabiendo cómo es su cara y no cómo se llama.</b>"},
       {t:"p",x:"Ya esperaste bastante como para además <mark>llegar y no reconocerlo.</mark>"}
     ],
-    precio:"$11.906", antes:"$29.600",
+    precio:"$14.790", antes:"$29.600",
     cta:"Sí — quiero saber cómo se llama", ctaSub:LEGAL,
     rechazo:"Ahora no",
     pd:"<b>P. D.</b> — El ritual de 21 días vive dentro de tu app y el día 1 se abre hoy. No es un PDF que se te pierde en el correo.",
