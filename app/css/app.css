@@ -738,3 +738,26 @@ label.f>span{display:block;margin:0 0 7px}
 .oprueba .oprtx b{display:block;font-size:13px;line-height:17px;font-weight:700}
 .oprueba .oprtx small{display:block;color:var(--tx2);font-size:12px;line-height:16px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- El Código ---------- */
+/* La inicial sola, cuando el nombre entero todavía no está comprado. */
+.nomtap{cursor:pointer}
+.nomtap .disp{letter-spacing:.06em}
+
+.codficha{border:1px solid var(--linea);border-radius:14px;padding:4px 14px;background:rgba(255,255,255,.025)}
+.codfila{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);min-height:44px}
+.codfila:last-child{border-bottom:0}
+.codfila .lab{flex:0 0 auto}
+.codfila b{font-size:17px}
+/* Las barras tapadas: ancho variable para que parezca texto y no una grilla. */
+.borrcod{display:inline-block;height:11px;border-radius:6px;margin-left:8px;
+  background:linear-gradient(90deg,rgba(245,214,123,.26),rgba(155,123,232,.20));
+  filter:blur(1.5px)}
+
+/* Los días del ritual de 21. */
+.r21{cursor:pointer;transition:border-color .2s var(--ease),opacity .2s var(--ease)}
+.r21.hecho{opacity:.62}
+.r21.hecho b{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.3)}
+.plpaso.aviso{border-color:rgba(245,214,123,.26)}
+@media (prefers-reduced-motion:reduce){.r21{transition:none}}
