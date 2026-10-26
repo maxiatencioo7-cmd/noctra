@@ -111,9 +111,9 @@
         '<p class="sub">' + p.sub + '</p>' +
         partes +
         '<div class="precio">' + (antes ? '<s>' + antes + '</s>' : '') + '<b>' + precio + '</b></div>' +
-        '<button class="cta" data-pp-accept>' + p.cta + '</button>' +
+        '<button class="cta" id="ppSi">' + p.cta + '</button>' +
         '<p class="fino">' + p.ctaSub + '</p>' +
-        '<button class="no" data-pp-decline>' + p.rechazo + '</button>' +
+        '<button class="no" id="ppNo">' + p.rechazo + '</button>' +
         (p.pd ? '<p class="pd">' + p.pd + '</p>' : '') +
         '<p class="legal">Al tocar el botón aceptás nuestros Términos y Condiciones, ' +
           'incluido el cobro del monto indicado en esta pantalla para esta oferta adicional. ' +
@@ -121,11 +121,27 @@
           'con fines de entretenimiento.</p>' +
       '</article>';
 
+    puente("ppSi", "[data-pp-accept]");
+    puente("ppNo", "[data-pp-decline]");
+
     setTimeout(function(){
       var c = document.getElementById("cuerpo");
       if (c) c.classList.add("ver");
       setTimeout(barajar, 450);
     }, (p.revelado.length * pausa + 1.1) * 1000);
+  }
+
+  /* Los botones reales son los que van pegados en el HTML de la oferta:
+     Impultienda los engancha al cargar y no vuelve a mirar. Los nuestros,
+     que se dibujan despues, solo los disparan. */
+  function puente(id, sel){
+    var mio  = document.getElementById(id);
+    var real = document.querySelector(sel);
+    if (!mio) return;
+    mio.addEventListener("click", function(){
+      if (real) real.click();
+      else console.warn("[noctra] falta el boton", sel);
+    });
   }
 
   /* La ruleta va arriba del paso con descuento: no gasta una oferta aparte. */
