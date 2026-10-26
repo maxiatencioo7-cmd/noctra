@@ -138,7 +138,7 @@
         (p.pd ? '<p class="pd">' + p.pd + '</p>' : '') +
         '<p class="legal">Al tocar el botón aceptas nuestros Términos y Condiciones, ' +
           'incluido el cobro del monto indicado en esta pantalla para esta oferta adicional. ' +
-          'Precio en dólares estadounidenses (USD). Noctra es contenido interpretativo, ' +
+          'Precio final en pesos argentinos (ARS). Noctra es contenido interpretativo, ' +
           'con fines de entretenimiento.</p>' +
       '</article>';
 
