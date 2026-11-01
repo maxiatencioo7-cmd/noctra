@@ -9,7 +9,7 @@
    que es la única fuente, para que no se duplique. */
 (function(){
   var KEY="noctra_atrib";
-  var V={content_name:"Retrato Noctra",value:9799,currency:"ARS"};
+  var V={content_name:"Retrato Noctra",value:19900,currency:"ARS"};
   var UTM=["utm_source","utm_medium","utm_campaign","utm_content","utm_term","utm_id"];
   var hecho={};
 
