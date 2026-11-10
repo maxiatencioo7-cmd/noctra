@@ -34,8 +34,8 @@ var U=window.NOCTRA_UI, I=U.I, esc=U.esc;
               cosa, y puede costar menos que la suma sin que el número
               quede raro.
 
-   El ancla de 35.540 es la suma real de dos productos que cualquiera puede
-   comprar por separado en el post-compra (17.770 + 17.770). No es un número
+   El ancla de 51.600 es la suma real de dos productos que cualquiera puede
+   comprar por separado en el post-compra (25.800 + 25.800). No es un número
    puesto a dedo: el que hace la cuenta ve que el pack le sale 13.743 menos y
    encima trae dos secciones que sueltas no existen.
 
@@ -58,9 +58,11 @@ var CHECKOUT="https://noctra.impultienda.ar/checkout/";
    por Shopify, los cuatro quedan libres para ser lo que de verdad factura:
    la secuencia post-compra del embudo principal.
 
-   Los precios de Shopify se igualaron a los de Impultienda el mismo dia
-   (pack 26.197, fecha 17.770, lugar 17.770, senal 7.197), asi que la persona
-   ve el mismo numero en los dos lados y no hay nada que explicar.
+   09/11/2026 — los precios de la app ya no siguen a los de Impultienda.
+   La escalera post-compra subio 40% y la app 45%, a proposito: la persona
+   ve la escalera primero, asi que el upsell en el momento queda siendo el
+   mas barato y la app, despues, un poco mas cara. Si la app quedara mas
+   barata, la gente aprenderia a rechazar el upsell para comprar aca.
 
    De paso vuelve el acceso automatico: Shopify si devuelve attributes[perfil]
    en el webhook, asi que /api/acceso reconoce al comprador sin codigo manual.
@@ -71,7 +73,7 @@ var SHOPIFY="https://noctralmagemela.myshopify.com/cart/";
 
 var PROD={
   fecha:{
-    id:"fecha", nombre:"Fecha Exacta", precio:17770,
+    id:"fecha", nombre:"Fecha Exacta", precio:25800,
     /* 13/10/2026 — vuelve a tener boton, cobrando por Shopify. En Impultienda
        sigue siendo upsell post-compra, y alla un producto post-compra no puede
        ademas tener checkout propio; aca no hay ese conflicto. */
@@ -81,7 +83,7 @@ var PROD={
     boton:"Fecha Exacta"
   },
   lugar:{
-    id:"lugar", nombre:"Dónde y Cómo", precio:17770,
+    id:"lugar", nombre:"Dónde y Cómo", precio:25800,
     /* Mismo caso que la fecha. */
     enlace:SHOPIFY+"50411352817878:1",   /* Impultienda: CHECKOUT+"donde-y-como-desde-la-app" */
     titulo:"Dónde y cómo vas a conocerlo",
@@ -101,7 +103,7 @@ var PROD={
      es preferible a un botón que lleva a una página rota justo cuando la
      persona estaba por pagar. */
   senal:{
-    id:"senal", nombre:"La señal", precio:7197,
+    id:"senal", nombre:"La señal", precio:10400,
     enlace:SHOPIFY+"50520637472982:1",   /* Impultienda: CHECKOUT+"la-senal" */
     titulo:"Cómo vas a reconocerlo",
     sub:"Los dos rasgos y los dos gestos que vas a notar primero — y lo que NO es él",
@@ -111,9 +113,12 @@ var PROD={
     /* 13/10/2026 — 21.797 a 26.197 (+20%). El pack pasa a ser la primera
        oferta de la secuencia post-compra, que es donde mas se vende; el
        precio de la app lo acompana para que sea el mismo numero en los dos
-       lados. El ancla de 35.540 sigue siendo la suma real de las dos sueltas
-       (17.770 + 17.770), asi que todavia ahorra 9.343. */
-    id:"pack", nombre:"Cuándo, Dónde y Cómo", precio:26197, ancla:35540,
+       lados.
+
+       09/11/2026 — 26.197 a 38.000 (+45%). El ancla de 51.600 sigue siendo la
+       suma real de las dos sueltas (25.800 + 25.800), asi que todavia ahorra
+       13.600. */
+    id:"pack", nombre:"Cuándo, Dónde y Cómo", precio:38000, ancla:51600,
     enlace:SHOPIFY+"50408908652758:1",   /* Impultienda: CHECKOUT+"pack-completo-desde-la-app" */
     boton:"Desbloquear todo"
   }
