@@ -890,6 +890,9 @@
          que termine de leer el último audio— acá son dos segundos de
          pantalla vacía, que es exactamente lo que se siente como "el botón
          no anda". Ya lo leyó una vez. */
+      /* 18/11: si el guion cambio de largo (se sacaron mensajes) y el indice guardado quedo
+         afuera, se vuelve al ultimo paso: sin esto el boton de compra no aparece al recargar. */
+      if(S.chat >= guion.length){ S.chat = guion.length - 1; guardar(); }
       var pasoActual = guion[S.chat];
       if(pasoActual && pasoActual.cta) return ponerCTA(pasoActual);
       seguirChat();
