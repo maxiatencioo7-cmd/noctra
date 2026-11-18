@@ -385,15 +385,15 @@
 
   /* La pausa entre que termina un mensaje y aparecen los tres puntos del
      siguiente. Es lo que hace que se lea "de a uno" y no como una cola. */
-  function respiro(){ return azar(900, 1300); }
+  function respiro(){ return azar(600, 950); }
 
   /* Cuánto "tarda en escribir" un mensaje. Piso para que no parezca un bot
      y techo para que nadie se vaya esperando. */
   function demora(paso){
-    if(paso.audio) return azar(2300, 2900);   /* grabar lleva más que teclear */
-    if(paso.img)   return azar(1800, 2300);
+    if(paso.audio) return azar(1700, 2200);   /* grabar lleva más que teclear */
+    if(paso.img)   return azar(1300, 1700);
     var n = (paso.txt||"").length;
-    var t = Math.min(3800, Math.max(1100, 800 + n*40));
+    var t = Math.min(3000, Math.max(700, 450 + n*36));  /* 18/11: ~1 s mas rapido por mensaje */
     return t * azar(0.9, 1.1);
   }
 
